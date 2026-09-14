@@ -1,0 +1,773 @@
+/* ==========================================================================
+   CampusCare Design System & Custom Components
+   ========================================================================== */
+
+:root {
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --secondary: #0f172a;
+  --accent: #f59e0b;
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --info: #06b6d4;
+  --bg-slate: #f8fafc;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  background-color: #f8fafc;
+  color: #1e293b;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6, .font-heading, .font-display {
+  font-family: 'Sora', -apple-system, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* Glassmorphism accents */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.glass-nav {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.85);
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+}
+
+.glass-nav .font-display,
+.glass-nav strong,
+.glass-nav #header-user-name {
+  font-family: 'Sora', sans-serif !important;
+}
+
+/* Smooth transitions */
+.transition-all-200 {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Status Badges */
+.badge-pending {
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.badge-in-progress {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.badge-resolved {
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.badge-rejected {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+/* Priority Badges */
+.badge-emergency {
+  background-color: #7f1d1d;
+  color: #fef2f2;
+}
+
+.badge-high {
+  background-color: #ef4444;
+  color: #ffffff;
+}
+
+.badge-medium {
+  background-color: #f59e0b;
+  color: #ffffff;
+}
+
+.badge-low {
+  background-color: #64748b;
+  color: #ffffff;
+}
+
+/* Stepper Progress Bar for Ticket Tracking */
+.stepper-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  margin: 1.5rem 0;
+}
+
+.stepper-track {
+  position: absolute;
+  top: 18px;
+  left: 30px;
+  right: 30px;
+  height: 4px;
+  background-color: #e2e8f0;
+  z-index: 1;
+}
+
+.stepper-progress {
+  position: absolute;
+  top: 18px;
+  left: 30px;
+  height: 4px;
+  background-color: #2563eb;
+  z-index: 2;
+  transition: width 0.4s ease;
+}
+
+.step-node {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.step-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  border: 3px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: #64748b;
+  transition: all 0.3s ease;
+}
+
+.step-circle.active {
+  border-color: #2563eb;
+  background-color: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
+}
+
+.step-circle.completed {
+  border-color: #10b981;
+  background-color: #10b981;
+  color: #ffffff;
+}
+
+.step-circle.rejected {
+  border-color: #ef4444;
+  background-color: #ef4444;
+  color: #ffffff;
+}
+
+.step-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-top: 0.5rem;
+}
+
+.step-label.active {
+  color: #2563eb;
+  font-weight: 700;
+}
+
+/* Star Rating component */
+.star-rating {
+  display: inline-flex;
+  flex-direction: row-reverse;
+  justify-content: center;
+}
+
+.star-rating input {
+  display: none;
+}
+
+.star-rating label {
+  cursor: pointer;
+  font-size: 2rem;
+  color: #cbd5e1;
+  padding: 0 0.15rem;
+  transition: color 0.15s ease-in-out;
+}
+
+.star-rating input:checked ~ label,
+.star-rating label:hover,
+.star-rating label:hover ~ label {
+  color: #fbbf24;
+}
+
+/* Toast Notifications */
+#toast-container {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  pointer-events: none;
+}
+
+.toast-item {
+  pointer-events: auto;
+  min-width: 320px;
+  max-width: 440px;
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Custom Modal Animations */
+.modal-backdrop {
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+/* Scrollbar polish */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ==========================================================================
+   Admin Dashboard Premium Visual Upgrade & Animations
+   ========================================================================== */
+
+
+/* Modern Animated KPI Cards */
+.admin-kpi-card {
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 16px;
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.admin-kpi-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  transition: 0.6s ease;
+  pointer-events: none;
+}
+
+.admin-kpi-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 30px -8px rgba(15, 23, 42, 0.12), 0 0 0 1.5px rgba(37, 99, 235, 0.2);
+  border-color: #93c5fd;
+}
+
+.admin-kpi-card:hover::after {
+  left: 100%;
+}
+
+.admin-kpi-card.kpi-pending:hover {
+  border-color: #fcd34d;
+  box-shadow: 0 16px 30px -8px rgba(245, 158, 11, 0.18);
+}
+
+.admin-kpi-card.kpi-progress:hover {
+  border-color: #7dd3fc;
+  box-shadow: 0 16px 30px -8px rgba(2, 132, 199, 0.18);
+}
+
+.admin-kpi-card.kpi-resolved:hover {
+  border-color: #86efac;
+  box-shadow: 0 16px 30px -8px rgba(16, 185, 129, 0.18);
+}
+
+.admin-kpi-card.kpi-overdue:hover {
+  border-color: #fca5a5;
+  box-shadow: 0 16px 30px -8px rgba(239, 68, 68, 0.18);
+}
+
+/* Glowing Pulse Dots for Live Status */
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+  position: relative;
+}
+
+.status-dot.dot-pending {
+  background-color: #f59e0b;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+  animation: pulseDot 1.8s infinite;
+}
+
+.status-dot.dot-progress {
+  background-color: #0284c7;
+  box-shadow: 0 0 8px rgba(2, 132, 199, 0.6);
+  animation: pulseDot 1.4s infinite;
+}
+
+.status-dot.dot-resolved {
+  background-color: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+}
+
+.status-dot.dot-rejected {
+  background-color: #ef4444;
+}
+
+@keyframes pulseDot {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 1;
+    box-shadow: 0 0 12px currentColor;
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+}
+/* Interactive Evidence Photo Thumbnail in Table */
+.evidence-thumb-container {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1.5px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #f1f5f9;
+}
+
+.evidence-thumb-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.evidence-thumb-container:hover {
+  transform: scale(1.08);
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.evidence-thumb-container .thumb-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.evidence-thumb-container:hover .thumb-overlay {
+  opacity: 1;
+}
+
+/* Lightbox Modal */
+.lightbox-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(11, 26, 48, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: fadeIn 0.25s ease forwards;
+}
+
+.lightbox-modal.show {
+  display: flex;
+}
+
+.lightbox-content {
+  background: #ffffff;
+  border-radius: 20px;
+  max-width: 800px;
+  width: 100%;
+  overflow: hidden;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.4);
+  transform: scale(0.95);
+  animation: zoomIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.lightbox-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.lightbox-body {
+  padding: 16px;
+  background: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-height: 70vh;
+}
+
+.lightbox-body img {
+  max-height: 65vh;
+  max-width: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+@keyframes zoomIn {
+  from { transform: scale(0.92); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Glowing Primary Action Buttons */
+.btn-glow-primary {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-glow-primary:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  transform: translateY(-1.5px);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+}
+
+.btn-glow-success {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-glow-success:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-1.5px);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35);
+}
+
+/* ==========================================================================
+   Modern Modal Form Enhancements
+   ========================================================================== */
+
+/* Custom styled selects in modals */
+#admin-add-user-modal select,
+#admin-action-modal select,
+.modal-backdrop select {
+  cursor: pointer;
+  font-size: 15px;
+  padding: 11px 40px 11px 16px;
+  border-radius: 12px;
+  font-weight: 500;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23475569' stroke-width='2.2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px 16px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#admin-add-user-modal select:focus,
+#admin-action-modal select:focus,
+.modal-backdrop select:focus {
+  border-color: #2563eb;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.16);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%232563eb' stroke-width='2.2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+}
+
+/* Modal inputs and textareas */
+#admin-add-user-modal input[type="text"],
+#admin-add-user-modal input[type="email"],
+#admin-add-user-modal input[type="tel"],
+#admin-add-user-modal input[type="password"],
+#admin-action-modal textarea,
+#feedback-modal textarea {
+  font-size: 15px;
+  padding: 11px 16px;
+  border-radius: 12px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: #f8fafc;
+}
+
+#admin-add-user-modal input:focus,
+#admin-action-modal textarea:focus,
+#feedback-modal textarea:focus {
+  background-color: #ffffff;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.16);
+  transform: translateY(-1px);
+}
+
+/* Modal Alert Box */
+#add-user-alert.alert-error {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1.5px solid #fecaca;
+  font-size: 13.5px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  display: block;
+}
+
+#add-user-alert.alert-success {
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1.5px solid #a7f3d0;
+  font-size: 13.5px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  display: block;
+}
+
+/* ==========================================================================
+   Admin Portal Executive Styling & Backgrounds
+   ========================================================================== */
+
+/* Admin Body with Vibrant Ambient Mesh Background */
+body.admin-body {
+  background: 
+    radial-gradient(circle at 12% 15%, rgba(37, 99, 235, 0.10) 0%, transparent 45%),
+    radial-gradient(circle at 88% 10%, rgba(124, 58, 237, 0.11) 0%, transparent 40%),
+    radial-gradient(circle at 50% 85%, rgba(6, 182, 212, 0.08) 0%, transparent 50%),
+    linear-gradient(180deg, #f8fafc 0%, #edf2f7 50%, #f1f5f9 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+/* Executive Navy-Blue Admin Hero Card */
+.admin-hero-card {
+  background: linear-gradient(135deg, #091a38 0%, #173878 50%, #1e40af 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 24px;
+  box-shadow: 0 20px 45px -10px rgba(10, 26, 56, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-hero-card::after {
+  content: '';
+  position: absolute;
+  top: -80px;
+  right: -50px;
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.35) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.admin-hero-card h2 {
+  color: #ffffff !important;
+}
+
+.admin-hero-card p {
+  color: rgba(226, 232, 240, 0.9) !important;
+}
+
+/* Tab Switcher in Admin Hero */
+.admin-tab-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 5px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  width: fit-content;
+}
+
+.admin-tab-btn {
+  padding: 8px 18px;
+  font-size: 13.5px;
+  font-weight: 700;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: rgba(255, 255, 255, 0.85);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.admin-tab-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.admin-tab-btn.active {
+  background: #ffffff;
+  color: #1e3a8a;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+}
+
+/* Modern Multi-Color Admin KPI Cards */
+.admin-kpi-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 18px 16px;
+  border: 1.5px solid #e2e8f0;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3b82f6, #6366f1);
+  opacity: 0.9;
+}
+
+.admin-kpi-card.kpi-pending::before {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.admin-kpi-card.kpi-progress::before {
+  background: linear-gradient(90deg, #0284c7, #06b6d4);
+}
+
+.admin-kpi-card.kpi-resolved::before {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.admin-kpi-card.kpi-overdue::before {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+.admin-kpi-card:hover {
+  transform: translateY(-4px);
+  border-color: #93c5fd;
+  box-shadow: 0 14px 30px -8px rgba(37, 99, 235, 0.2);
+}
+
+/* Status Indicator Dots with Ambient Glow */
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+.dot-pending { background-color: #f59e0b; box-shadow: 0 0 8px rgba(245, 158, 11, 0.7); }
+.dot-progress { background-color: #0284c7; box-shadow: 0 0 8px rgba(2, 132, 199, 0.7); }
+.dot-resolved { background-color: #10b981; box-shadow: 0 0 8px rgba(16, 185, 129, 0.7); }
+.dot-rejected { background-color: #ef4444; box-shadow: 0 0 8px rgba(239, 68, 68, 0.7); }
+
+/* ==========================================================================
+   Universal Form Field Interactive Hover & Click Color Transitions
+   ========================================================================== */
+#admin-add-user-modal input,
+#admin-add-user-modal select,
+#admin-action-modal select,
+#admin-action-modal textarea,
+#feedback-modal textarea,
+.modal-backdrop input,
+.modal-backdrop select,
+.modal-backdrop textarea {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  background-color: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+}
+
+/* Hover State: Soft blue tint, brighter border, and subtle lift */
+#admin-add-user-modal input:hover,
+#admin-add-user-modal select:hover,
+#admin-action-modal select:hover,
+#admin-action-modal textarea:hover,
+#feedback-modal textarea:hover,
+.modal-backdrop input:hover,
+.modal-backdrop select:hover,
+.modal-backdrop textarea:hover {
+  background-color: #f0f7ff !important;
+  border-color: #60a5fa !important;
+  box-shadow: 0 2px 10px rgba(59, 130, 246, 0.12) !important;
+  transform: translateY(-1px);
+}
+
+/* Click / Focus State: Crisp white, deep royal blue border, and glowing ring */
+#admin-add-user-modal input:focus,
+#admin-add-user-modal select:focus,
+#admin-action-modal select:focus,
+#admin-action-modal textarea:focus,
+#feedback-modal textarea:focus,
+.modal-backdrop input:focus,
+.modal-backdrop select:focus,
+.modal-backdrop textarea:focus {
+  background-color: #ffffff !important;
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.20), 0 6px 20px rgba(37, 99, 235, 0.14) !important;
+  transform: translateY(-2px) !important;
+}
+
+

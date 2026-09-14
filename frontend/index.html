@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CampusCare - KIET Smart Civic Problem Reporting System</title>
+  
+  <!-- Google Fonts: Sora (Trending Display) & Plus Jakarta Sans (Modern Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Bootstrap 5.3+ CDN CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Bootstrap Icons CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- Custom Modular CSS -->
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="page-transitions.css">
+</head>
+<body>
+
+  <!-- ========================================================================
+       1. HEADER & NAVIGATION (.navbar)
+       ======================================================================== -->
+  <nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+      
+      <!-- Left: Logo placeholder with subtle container background -->
+      <a class="navbar-brand d-flex align-items-center" href="#home">
+        <div class="logo-container">
+          <img src="images/logo.jpg" alt="KIET CampusCare Logo" class="logo-img" onerror="this.onerror=null; this.src='https://via.placeholder.com/170x48/ffffff/1d4ed8?text=KIET+CampusCare';">
+        </div>
+      </a>
+
+      <!-- Mobile Hamburger Toggler -->
+      <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <!-- Center & Right Navigation -->
+      <div class="collapse navbar-collapse" id="navbarContent">
+        
+        <!-- Center Navigation Links -->
+        <ul class="navbar-nav mx-auto mb-2 mb-lg-0 align-items-lg-center">
+          
+          <!-- Home -->
+          <li class="nav-item">
+            <a class="nav-link" href="#home">Home</a>
+          </li>
+
+          <!-- Issues with Hoverable Dropdown Menu -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#issues" id="issuesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Issues
+            </a>
+            <ul class="dropdown-menu shadow" aria-labelledby="issuesDropdown">
+              <li><a class="dropdown-item" href="#issues"><i class="bi bi-cone-striped"></i> Road Issues</a></li>
+              <li><a class="dropdown-item" href="#issues"><i class="bi bi-droplet-half"></i> Water Issues</a></li>
+              <li><a class="dropdown-item" href="#issues"><i class="bi bi-lightning-charge"></i> Electricity & Power</a></li>
+              <li><a class="dropdown-item" href="#issues"><i class="bi bi-trash3"></i> Cleanliness & Hygiene</a></li>
+              <li><a class="dropdown-item" href="#issues"><i class="bi bi-p-square"></i> Parking & Transit</a></li>
+              <li><a class="dropdown-item" href="#issues"><i class="bi bi-building"></i> Infrastructure & Labs</a></li>
+              <li><a class="dropdown-item" href="#issues"><i class="bi bi-wifi"></i> Internet & Wi-Fi</a></li>
+              <li><a class="dropdown-item" href="#issues"><i class="bi bi-houses"></i> Hostel & Residence</a></li>
+              <li><a class="dropdown-item" href="#issues"><i class="bi bi-cup-hot"></i> Mess & Cafeteria</a></li>
+              <li><a class="dropdown-item" href="#issues"><i class="bi bi-book"></i> Library & Reading Halls</a></li>
+              <li><a class="dropdown-item" href="#issues"><i class="bi bi-shield-check"></i> Security & Safety</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="#issues"><i class="bi bi-grid"></i> Other Issues</a></li>
+            </ul>
+          </li>
+
+          <!-- How It Works -->
+          <li class="nav-item">
+            <a class="nav-link" href="#how-it-works">How It Works</a>
+          </li>
+
+          <!-- Contact Us -->
+          <li class="nav-item">
+            <a class="nav-link" href="#contact">Contact us</a>
+          </li>
+
+          <!-- About -->
+          <li class="nav-item">
+            <a class="nav-link" href="#about">About</a>
+          </li>
+        </ul>
+
+        <!-- Right: Login Button -->
+        <div class="d-flex align-items-center">
+          <button class="btn btn-login-nav" onclick="goToLogin()">
+            <i class="bi bi-box-arrow-in-right"></i> Login
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </nav>
+
+  <!-- ========================================================================
+       2. ANNOUNCEMENT BAR (.announcement)
+       ======================================================================== -->
+  <aside class="announcement" aria-label="Campus Notices">
+    <div class="container-fluid px-3 d-flex align-items-center">
+      <span class="announcement-badge d-none d-md-inline-block">
+        <i class="bi bi-megaphone-fill me-1"></i> NOTICE
+      </span>
+      <div class="marquee-container">
+        <!-- Dual content track for seamless continuous scrolling -->
+        <div class="marquee-content">
+          <div class="marquee-item">
+            Welcome to CampusCare <span class="divider">|</span> Submit your complaints easily <span class="divider">|</span> Track your complaint status <span class="divider">|</span> Stay updated with campus notices
+          </div>
+          <div class="marquee-item">
+            Welcome to CampusCare <span class="divider">|</span> Submit your complaints easily <span class="divider">|</span> Track your complaint status <span class="divider">|</span> Stay updated with campus notices
+          </div>
+        </div>
+        <div class="marquee-content" aria-hidden="true">
+          <div class="marquee-item">
+            Welcome to CampusCare <span class="divider">|</span> Submit your complaints easily <span class="divider">|</span> Track your complaint status <span class="divider">|</span> Stay updated with campus notices
+          </div>
+          <div class="marquee-item">
+            Welcome to CampusCare <span class="divider">|</span> Submit your complaints easily <span class="divider">|</span> Track your complaint status <span class="divider">|</span> Stay updated with campus notices
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ========================================================================
+       3. HERO SECTION (#home) - Background: images/hero-bg.jpg with dark overlay
+       ======================================================================== -->
+  <header id="home" class="hero-section">
+    <div class="container">
+      
+      <div class="hero-pill">
+        <i class="bi bi-shield-check text-warning"></i> OFFICIAL CIVIC PORTAL &bull; DELHI-NCR
+      </div>
+
+      <!-- Prominent Institution Title -->
+      <h1 class="hero-institution-title">KIET</h1>
+
+      <!-- Subtitle / Tagline -->
+      <h2 class="hero-subtitle">Smart Civic Problem Reporting System</h2>
+
+      <!-- Description -->
+      <p class="hero-description">
+        Empowering students, faculty, and campus staff to report civic hurdles with GPS tagging, automated AI verification, and real-time SLA tracking across the entire campus.
+      </p>
+
+      <!-- CTA Buttons -->
+      <div class="hero-cta-group">
+        <button class="btn-hero-primary" onclick="loginRequired('General Grievance')">
+          <i class="bi bi-plus-circle-fill"></i> Report an Issue
+        </button>
+        <a href="#how-it-works" class="btn-hero-secondary">
+          <i class="bi bi-play-circle"></i> How It Works
+        </a>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       4. ISSUES GRID SECTION (#issues) - 8 Uniform Cards with hover zoom
+       ======================================================================== -->
+  <section id="issues" class="section-wrapper">
+    <div class="container">
+      
+      <!-- Section Heading -->
+      <div class="section-header">
+        <span class="section-subtitle-tag">CAMPUSCARE</span>
+        <h2 class="section-title">Report Any Campus Issue</h2>
+        <p class="section-desc">
+          Identify and report concerns impacting infrastructure, cleanliness, water supply, and campus safety for fast departmental resolution.
+        </p>
+      </div>
+
+      <!-- 12-Card Responsive Grid -->
+      <div class="row g-4">
+
+        <!-- Card 1: Road Issues -->
+        <div class="col-12 col-md-6 col-lg-3">
+          <div class="issue-card">
+            <div class="issue-img-wrapper">
+              <span class="issue-category-badge"><i class="bi bi-cone-striped"></i> Road &amp; Pathways</span>
+              <img src="images/road.jpg" alt="Road Issues" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=600&q=80';">
+            </div>
+            <div class="issue-card-body">
+              <h3 class="issue-title">Road Issues</h3>
+              <p class="issue-text">Report potholes, damaged pathways, speed breakers and pavement hazards across campus.</p>
+              <button class="btn btn-report-issue" onclick="loginRequired('Road Issues')">
+                <i class="bi bi-send-fill"></i> Report Issue
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Water Issues -->
+        <div class="col-12 col-md-6 col-lg-3">
+          <div class="issue-card">
+            <div class="issue-img-wrapper">
+              <span class="issue-category-badge"><i class="bi bi-droplet-half"></i> Water &amp; Utilities</span>
+              <img src="images/water.jpg" alt="Water Issues" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1541888946425-d0fbb186c5f3?w=600&q=80';">
+            </div>
+            <div class="issue-card-body">
+              <h3 class="issue-title">Water Issues</h3>
+              <p class="issue-text">Report water coolers, RO filter outages, pipeline leakages, washroom supply and drainage.</p>
+              <button class="btn btn-report-issue" onclick="loginRequired('Water Issues')">
+                <i class="bi bi-send-fill"></i> Report Issue
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Electricity & Power -->
+        <div class="col-12 col-md-6 col-lg-3">
+          <div class="issue-card">
+            <div class="issue-img-wrapper">
+              <span class="issue-category-badge"><i class="bi bi-lightning-charge"></i> Electrical Cell</span>
+              <img src="images/electricity.jpg" alt="Electricity Issues" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=600&q=80';">
+            </div>
+            <div class="issue-card-body">
+              <h3 class="issue-title">Electricity &amp; Power</h3>
+              <p class="issue-text">Report power cuts, broken lights, fans, damaged switchboards, classroom ACs &amp; wiring.</p>
+              <button class="btn btn-report-issue" onclick="loginRequired('Electricity')">
+                <i class="bi bi-send-fill"></i> Report Issue
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4: Cleanliness & Hygiene -->
+        <div class="col-12 col-md-6 col-lg-3">
+          <div class="issue-card">
+            <div class="issue-img-wrapper">
+              <span class="issue-category-badge"><i class="bi bi-trash3"></i> Hygiene &amp; Sanitation</span>
+              <img src="images/cleanliness.jpg" alt="Cleanliness Issues" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1604187351574-c75ca79f5807?w=600&q=80';">
+            </div>
+            <div class="issue-card-body">
+              <h3 class="issue-title">Cleanliness &amp; Hygiene</h3>
+              <p class="issue-text">Report overflowing dustbins, untidy academic corridors, washroom sanitization and campus litter.</p>
+              <button class="btn btn-report-issue" onclick="loginRequired('Cleanliness')">
+                <i class="bi bi-send-fill"></i> Report Issue
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 5: Parking & Mobility -->
+        <div class="col-12 col-md-6 col-lg-3">
+          <div class="issue-card">
+            <div class="issue-img-wrapper">
+              <span class="issue-category-badge"><i class="bi bi-p-square"></i> Parking &amp; Transit</span>
+              <img src="images/parking.jpg" alt="Parking Issues" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1506521781263-d8422e82f27a?w=600&q=80';">
+            </div>
+            <div class="issue-card-body">
+              <h3 class="issue-title">Parking &amp; Mobility</h3>
+              <p class="issue-text">Report vehicle parking congestion, unauthorized parking, blocked gates &amp; bicycle stands.</p>
+              <button class="btn btn-report-issue" onclick="loginRequired('Parking')">
+                <i class="bi bi-send-fill"></i> Report Issue
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 6: Infrastructure & Labs -->
+        <div class="col-12 col-md-6 col-lg-3">
+          <div class="issue-card">
+            <div class="issue-img-wrapper">
+              <span class="issue-category-badge"><i class="bi bi-building"></i> Academic Blocks</span>
+              <img src="images/infrastructure.jpg" alt="Infrastructure Issues" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1562774053-701939374585?w=600&q=80';">
+            </div>
+            <div class="issue-card-body">
+              <h3 class="issue-title">Infrastructure &amp; Labs</h3>
+              <p class="issue-text">Report damaged desks, lecture hall projectors, broken doors, windows and elevator faults.</p>
+              <button class="btn btn-report-issue" onclick="loginRequired('Infrastructure')">
+                <i class="bi bi-send-fill"></i> Report Issue
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 7: Internet & Wi-Fi -->
+        <div class="col-12 col-md-6 col-lg-3">
+          <div class="issue-card">
+            <div class="issue-img-wrapper">
+              <span class="issue-category-badge"><i class="bi bi-wifi"></i> IT Infrastructure</span>
+              <img src="images/internet.jpg" alt="Internet & Wi-Fi" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=600&q=80';">
+            </div>
+            <div class="issue-card-body">
+              <h3 class="issue-title">Internet &amp; Wi-Fi</h3>
+              <p class="issue-text">Report campus Wi-Fi connectivity drops, hostel router speed issues &amp; lab LAN ports.</p>
+              <button class="btn btn-report-issue" onclick="loginRequired('Internet / Wi-Fi')">
+                <i class="bi bi-send-fill"></i> Report Issue
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 8: Hostel & Living -->
+        <div class="col-12 col-md-6 col-lg-3">
+          <div class="issue-card">
+            <div class="issue-img-wrapper">
+              <span class="issue-category-badge"><i class="bi bi-houses"></i> Hostel Residence</span>
+              <img src="images/campus.webp" alt="Hostel Residence" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=600&q=80';">
+            </div>
+            <div class="issue-card-body">
+              <h3 class="issue-title">Hostel &amp; Living</h3>
+              <p class="issue-text">Report hostel room geysers, furniture repairs, corridor water coolers and common room hygiene.</p>
+              <button class="btn btn-report-issue" onclick="loginRequired('Hostel')">
+                <i class="bi bi-send-fill"></i> Report Issue
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 9: Mess & Cafeteria -->
+        <div class="col-12 col-md-6 col-lg-3">
+          <div class="issue-card">
+            <div class="issue-img-wrapper">
+              <span class="issue-category-badge"><i class="bi bi-cup-hot"></i> Dining &amp; Food</span>
+              <img src="https://images.unsplash.com/photo-1567521464027-f127ff144326?w=600&q=80" alt="Mess &amp; Cafeteria">
+            </div>
+            <div class="issue-card-body">
+              <h3 class="issue-title">Mess &amp; Cafeteria</h3>
+              <p class="issue-text">Report food hygiene concerns, dining hall seating, drinking water points and canteen cleanliness.</p>
+              <button class="btn btn-report-issue" onclick="loginRequired('Mess/Canteen')">
+                <i class="bi bi-send-fill"></i> Report Issue
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 10: Library & Reading Halls -->
+        <div class="col-12 col-md-6 col-lg-3">
+          <div class="issue-card">
+            <div class="issue-img-wrapper">
+              <span class="issue-category-badge"><i class="bi bi-book"></i> Library &amp; Study</span>
+              <img src="https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=600&q=80" alt="Library &amp; Reading Halls">
+            </div>
+            <div class="issue-card-body">
+              <h3 class="issue-title">Library &amp; Reading Halls</h3>
+              <p class="issue-text">Report reading hall lighting, AC cooling, digital library terminals, book scanners and quiet zones.</p>
+              <button class="btn btn-report-issue" onclick="loginRequired('Library & Academics')">
+                <i class="bi bi-send-fill"></i> Report Issue
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 11: Security & Safety -->
+        <div class="col-12 col-md-6 col-lg-3">
+          <div class="issue-card">
+            <div class="issue-img-wrapper">
+              <span class="issue-category-badge"><i class="bi bi-shield-check"></i> Safety &amp; Security</span>
+              <img src="https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=600&q=80" alt="Security &amp; Safety">
+            </div>
+            <div class="issue-card-body">
+              <h3 class="issue-title">Security &amp; Safety</h3>
+              <p class="issue-text">Report streetlights during night hours, CCTV blindspots, boundary hazards and emergency access.</p>
+              <button class="btn btn-report-issue" onclick="loginRequired('Security & Safety')">
+                <i class="bi bi-send-fill"></i> Report Issue
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 12: Other Issues -->
+        <div class="col-12 col-md-6 col-lg-3">
+          <div class="issue-card">
+            <div class="issue-img-wrapper">
+              <span class="issue-category-badge"><i class="bi bi-grid"></i> General Grievances</span>
+              <img src="images/other.jpg" alt="Other Issues" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1532619675605-1ede6c2ed2b0?w=600&q=80';">
+            </div>
+            <div class="issue-card-body">
+              <h3 class="issue-title">Other Issues</h3>
+              <p class="issue-text">Report sports grounds, transport buses, departmental services or any miscellaneous campus problem.</p>
+              <button class="btn btn-report-issue" onclick="loginRequired('Other Issues')">
+                <i class="bi bi-send-fill"></i> Report Issue
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       5. HOW IT WORKS SECTION (#how-it-works) - 4 Step Images/Icons
+       ======================================================================== -->
+  <section id="how-it-works" class="section-wrapper how-it-works-section">
+    <div class="container">
+      
+      <!-- Section Heading -->
+      <div class="section-header">
+        <span class="section-subtitle-tag">SIMPLE & SMART</span>
+        <h2 class="section-title">How CampusCare Works</h2>
+        <p class="section-desc">
+          Four easy steps connecting students directly with maintenance authorities to resolve civic problems efficiently.
+        </p>
+      </div>
+
+      <!-- 4 Sequential Step Cards with Dedicated Media Boxes -->
+      <div class="row g-4">
+
+        <!-- Step 01: Capture (images/capture.png) -->
+        <div class="col-12 col-sm-6 col-lg-3">
+          <div class="step-card">
+            <span class="step-number-tag">01</span>
+            <div class="step-media-box">
+              <img src="images/capture.png" alt="Capture Issue" class="step-img" onerror="this.onerror=null; this.src='https://via.placeholder.com/140?text=01+Capture';">
+            </div>
+            <h3 class="step-title">Capture</h3>
+            <p class="step-desc">
+              Take a photo of the campus problem or upload an existing image from your gallery as visual proof.
+            </p>
+          </div>
+        </div>
+
+        <!-- Step 02: GPS Location (images/gps.png) -->
+        <div class="col-12 col-sm-6 col-lg-3">
+          <div class="step-card">
+            <span class="step-number-tag">02</span>
+            <div class="step-media-box">
+              <img src="images/gps.png" alt="GPS Location" class="step-img" onerror="this.onerror=null; this.src='https://via.placeholder.com/140?text=02+GPS';">
+            </div>
+            <h3 class="step-title">GPS Location</h3>
+            <p class="step-desc">
+              Your location can be captured automatically so the concerned team knows exactly where the issue exists on campus.
+            </p>
+          </div>
+        </div>
+
+        <!-- Step 03: AI Analysis (images/ai-analysis.png) -->
+        <div class="col-12 col-sm-6 col-lg-3">
+          <div class="step-card">
+            <span class="step-number-tag">03</span>
+            <div class="step-media-box">
+              <img src="images/ai-analysis.png" alt="AI Analysis" class="step-img" onerror="this.onerror=null; this.src='https://via.placeholder.com/140?text=03+AI';">
+            </div>
+            <h3 class="step-title">AI Analysis</h3>
+            <p class="step-desc">
+              AI analyzes the submitted complaint and helps identify the issue, classify priority, and detect duplicate reports.
+            </p>
+          </div>
+        </div>
+
+        <!-- Step 04: Track (images/track.jpg) -->
+        <div class="col-12 col-sm-6 col-lg-3">
+          <div class="step-card">
+            <span class="step-number-tag">04</span>
+            <div class="step-media-box">
+              <img src="images/track.jpg" alt="Track Resolution" class="step-img" onerror="this.onerror=null; this.src='https://via.placeholder.com/140?text=04+Track';">
+            </div>
+            <h3 class="step-title">Track</h3>
+            <p class="step-desc">
+              Track your complaint from submission to resolution and stay updated with real-time notifications and timeline logs.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       6. ABOUT SECTION (#about)
+       ======================================================================== -->
+  <section id="about" class="section-wrapper">
+    <div class="container">
+      <div class="row align-items-center g-5">
+        
+        <!-- Left Column: Narrative Description & CTA -->
+        <div class="col-12 col-lg-6">
+          <div class="about-narrative">
+            <span class="section-subtitle-tag">ABOUT CAMPUSCARE</span>
+            <h3>Building a Better, Cleaner & Smarter Campus Together</h3>
+            <p>
+              CampusCare is an AI-driven, transparent civic reporting portal engineered specifically for the KIET institution community. It removes red tape and long email chains by connecting student reports directly with department heads and electrical, civil, sanitation, and IT supervisors.
+            </p>
+            <p>
+              Every grievance is backed by verified photographic proof, clear SLA turnaround deadlines, and continuous timeline audit trails ensuring accountability across all campus wings.
+            </p>
+
+            <div class="mb-4">
+              <div class="about-feature-item">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>Direct accountability with automatic SLA escalation</span>
+              </div>
+              <div class="about-feature-item">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>Instant photo evidence attachment & duplicate detection</span>
+              </div>
+              <div class="about-feature-item">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>Transparent step-by-step progress tracking for students</span>
+              </div>
+            </div>
+
+            <button class="btn btn-hero-primary" onclick="goToLogin()">
+              Get Started <i class="bi bi-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Column: 2x2 Grid of Stat Cards -->
+        <div class="col-12 col-lg-6">
+          <div class="row g-3">
+            
+            <!-- Stat 1 -->
+            <div class="col-sm-6">
+              <div class="stat-card">
+                <div class="stat-icon text-primary">⏱️</div>
+                <h4 class="stat-title">24/7 Reporting</h4>
+                <p class="stat-subtitle">Submit civic issues anytime from any corner of the campus.</p>
+              </div>
+            </div>
+
+            <!-- Stat 2 -->
+            <div class="col-sm-6">
+              <div class="stat-card">
+                <div class="stat-icon text-info">🤖</div>
+                <h4 class="stat-title">AI Smart Detection</h4>
+                <p class="stat-subtitle">Smart categorization and duplicate grievance filtering.</p>
+              </div>
+            </div>
+
+            <!-- Stat 3 -->
+            <div class="col-sm-6">
+              <div class="stat-card">
+                <div class="stat-icon text-danger">📍</div>
+                <h4 class="stat-title">GPS Location Based</h4>
+                <p class="stat-subtitle">Pins exact coordinates to direct maintenance teams quickly.</p>
+              </div>
+            </div>
+
+            <!-- Stat 4 -->
+            <div class="col-sm-6">
+              <div class="stat-card">
+                <div class="stat-icon text-success">✓</div>
+                <h4 class="stat-title">1 Unified Platform</h4>
+                <p class="stat-subtitle">One dashboard for hostel, labs, classrooms, and grounds.</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       7. FOOTER (#contact) - Includes images/dark_logo.webp
+       ======================================================================== -->
+  <footer id="contact" class="footer-main">
+    <div class="container">
+      <div class="row g-4 g-lg-5">
+        
+        <!-- Column 1: Institution Contact -->
+        <div class="col-12 col-md-6 col-lg-4">
+          <div class="footer-logo-container">
+            <img src="images/dark_logo.webp" alt="KIET Dark Logo" class="footer-logo-img" onerror="this.onerror=null; this.src='https://via.placeholder.com/190x48/1e293b/ffffff?text=KIET+Group';">
+          </div>
+          <div class="footer-contact-info">
+            <p>
+              <i class="bi bi-geo-alt-fill me-2 text-primary"></i>
+              <strong>KIET Delhi-NCR:</strong><br>
+              Ghaziabad-Meerut Road, Murad Nagar, Uttar Pradesh - 201206
+            </p>
+            <p>
+              <i class="bi bi-telephone-fill me-2 text-primary"></i>
+              <strong>Helpline:</strong> +91-120-2675666 / 667
+            </p>
+            <p>
+              <i class="bi bi-mortarboard-fill me-2 text-primary"></i>
+              <strong>Admission Contact:</strong> 1800-3130-056
+            </p>
+            <p>
+              <i class="bi bi-envelope-fill me-2 text-primary"></i>
+              <strong>Email:</strong> <a href="mailto:campuscare@kiet.edu" class="text-white text-decoration-none">campuscare@kiet.edu</a>
+            </p>
+          </div>
+        </div>
+
+        <!-- Column 2: Quick Links -->
+        <div class="col-12 col-md-6 col-lg-4">
+          <h4 class="footer-heading">Quick Links</h4>
+          <ul class="footer-links">
+            <li><a href="#home"><i class="bi bi-chevron-right"></i> Home</a></li>
+            <li><a href="#issues"><i class="bi bi-chevron-right"></i> Campus Issues</a></li>
+            <li><a href="#how-it-works"><i class="bi bi-chevron-right"></i> How It Works</a></li>
+            <li><a href="#about"><i class="bi bi-chevron-right"></i> About CampusCare</a></li>
+            <li>
+              <a href="video/College_tour.mp4" target="_blank">
+                <i class="bi bi-camera-video-fill text-warning"></i> Campus Tour Video
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Column 3: Campus Issues -->
+        <div class="col-12 col-md-6 col-lg-4">
+          <h4 class="footer-heading">Campus Issues</h4>
+          <ul class="footer-links">
+            <li><a href="#issues" onclick="loginRequired('Road Issues')"><i class="bi bi-cone-striped text-warning"></i> Road &amp; Pathway Issues</a></li>
+            <li><a href="#issues" onclick="loginRequired('Water Issues')"><i class="bi bi-droplet-half text-info"></i> Water Supply &amp; Leakage</a></li>
+            <li><a href="#issues" onclick="loginRequired('Electricity')"><i class="bi bi-lightning-charge text-warning"></i> Electrical &amp; Power Failures</a></li>
+            <li><a href="#issues" onclick="loginRequired('Cleanliness')"><i class="bi bi-trash3 text-success"></i> Garbage &amp; Sanitation</a></li>
+            <li><a href="#issues" onclick="loginRequired('Infrastructure')"><i class="bi bi-building text-danger"></i> Classroom Infrastructure</a></li>
+            <li><a href="#issues" onclick="loginRequired('Other Issues')"><i class="bi bi-grid text-primary"></i> Other Campus Grievances</a></li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Bottom Bar -->
+      <div class="footer-bottom">
+        <p class="mb-0">&copy; 2026 CampusCare | All Rights Reserved. Designed for KIET Delhi-NCR.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================================================================
+       8. LOGIN REQUIRED MODAL / POPUP (#loginPopup)
+       ======================================================================== -->
+  <div id="loginPopup" class="login-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="loginPopupTitle">
+    <div class="login-modal-box">
+      
+      <!-- Close Button -->
+      <button class="login-modal-close" onclick="closeLoginPopup()" aria-label="Close popup">&times;</button>
+      
+      <!-- Lock / Alert Icon -->
+      <div class="login-modal-icon">
+        <i class="bi bi-shield-lock-fill"></i>
+      </div>
+
+      <!-- Title -->
+      <h3 id="loginPopupTitle" class="login-modal-title">Login Required</h3>
+
+      <!-- Description -->
+      <p id="loginPopupDesc" class="login-modal-desc">
+        Please login with your college ID to report a campus issue.
+      </p>
+
+      <!-- Go to Login Button -->
+      <button class="btn-modal-login" onclick="goToLogin()">
+        <i class="bi bi-box-arrow-in-right"></i> Go to Login
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Bootstrap 5.3+ Bundle with Popper JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Page Transitions & Progressive Loader -->
+  <script src="js/page-transitions.js"></script>
+  <!-- Vanilla JavaScript -->
+  <script src="script.js"></script>
+</body>
+</html>

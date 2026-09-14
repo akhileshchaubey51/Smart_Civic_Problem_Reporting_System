@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusCare | Lodge Campus Grievance</title>
+
+    <!-- Google Fonts: Sora (Trending Display) & Plus Jakarta Sans (Modern Body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="complaint-form.css">
+    <link rel="stylesheet" href="page-transitions.css">
+</head>
+
+<body>
+
+    <div class="form-page">
+
+        <!-- Top Header Navigation -->
+        <header class="form-header">
+            <div class="header-inner">
+                <a href="/dashboard" class="brand-link">
+                    <img src="images/logo.jpg" alt="CampusCare Logo" class="brand-logo" onerror="this.onerror=null; this.src='https://via.placeholder.com/160x45/ffffff/2563eb?text=CampusCare';">
+                </a>
+                <a href="/dashboard" class="back-link">
+                    &larr; Back to Dashboard
+                </a>
+            </div>
+        </header>
+
+        <!-- Main Form Container -->
+        <main class="form-main">
+
+            <div class="form-card">
+
+                <div class="form-title-box">
+                    <div class="icon-circle">📝</div>
+                    <div>
+                        <h1>Lodge Campus Grievance</h1>
+                        <p>Submit campus issues with photo evidence and location for quick administrative resolution.</p>
+                    </div>
+                </div>
+
+                <!-- Alert Box -->
+                <div id="formAlert" class="alert-box"></div>
+
+                <form id="complaintForm" enctype="multipart/form-data">
+
+                    <!-- Issue Category -->
+                    <div class="field-group">
+                        <label for="categorySelect">
+                            Issue Category <span class="req">*</span>
+                        </label>
+                        <select id="categorySelect" required>
+                            <option value="" disabled selected>Select category...</option>
+                        </select>
+                        <span class="field-hint" id="slaHint">Standard SLA: 24 - 48 hours</span>
+                    </div>
+
+                    <!-- Issue Title -->
+                    <div class="field-group">
+                        <label for="issueTitle">
+                            Short Summary / Title <span class="req">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="issueTitle" 
+                            placeholder="e.g., Broken projector in MCA Lab, Water cooler leak in Pharmacy Block" 
+                            required 
+                            minlength="5"
+                            maxlength="150"
+                        >
+                        <span class="field-hint">Minimum 5 characters. Be clear and specific.</span>
+                    </div>
+
+                    <!-- Campus Location with GPS Autodetect -->
+                    <div class="field-group">
+                        <div class="label-with-action">
+                            <label for="issueLocation">
+                                Campus Location <span class="req">*</span>
+                            </label>
+                            <button type="button" class="gps-btn" onclick="detectGPSLocation()">
+                                📍 Auto-Detect GPS
+                            </button>
+                        </div>
+                        <input 
+                            type="text" 
+                            id="issueLocation" 
+                            placeholder="e.g., Pharmacy Block, MBA Building, Academic Block-B (CSE/IT), Mech Workshop, Tagore Hostel, Library..." 
+                            required
+                            minlength="3"
+                            maxlength="100"
+                        >
+                        <span class="field-hint">Specify the academic block, department wing, floor, or lab/room number.</span>
+                    </div>
+
+                    <!-- Priority Level -->
+                    <div class="field-group">
+                        <label>Priority Level <span class="req">*</span></label>
+                        <div class="priority-options">
+                            <label class="priority-card priority-low">
+                                <input type="radio" name="priority" value="Low">
+                                <div class="priority-content">
+                                    <div class="priority-header-row">
+                                        <span class="priority-indicator indicator-low"></span>
+                                        <strong>Low</strong>
+                                    </div>
+                                    <span>Minor inconvenience</span>
+                                </div>
+                            </label>
+
+                            <label class="priority-card priority-medium">
+                                <input type="radio" name="priority" value="Medium" checked>
+                                <div class="priority-content">
+                                    <div class="priority-header-row">
+                                        <span class="priority-indicator indicator-medium"></span>
+                                        <strong>Medium</strong>
+                                    </div>
+                                    <span>Standard issue</span>
+                                </div>
+                            </label>
+
+                            <label class="priority-card priority-high">
+                                <input type="radio" name="priority" value="High">
+                                <div class="priority-content">
+                                    <div class="priority-header-row">
+                                        <span class="priority-indicator indicator-high"></span>
+                                        <strong>High</strong>
+                                    </div>
+                                    <span>Urgent attention</span>
+                                </div>
+                            </label>
+
+                            <label class="priority-card priority-emergency emergency">
+                                <input type="radio" name="priority" value="Emergency">
+                                <div class="priority-content">
+                                    <div class="priority-header-row">
+                                        <span class="priority-indicator indicator-emergency"></span>
+                                        <strong>Emergency</strong>
+                                    </div>
+                                    <span>Hazard / Safety risk</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Description -->
+                    <div class="field-group">
+                        <label for="issueDescription">
+                            Detailed Description <span class="req">*</span>
+                        </label>
+                        <textarea 
+                            id="issueDescription" 
+                            rows="4" 
+                            placeholder="Describe the problem clearly so the maintenance team can bring the right tools..." 
+                            required
+                            minlength="15"
+                            maxlength="2000"
+                            oninput="updateCharCounter(this)"
+                        ></textarea>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                            <span class="field-hint">Provide at least 15 characters explaining what needs repair.</span>
+                            <span id="descCharCount" class="field-hint" style="font-weight: 700; color: #475569;">0 / 2000</span>
+                        </div>
+                    </div>
+
+                    <!-- Photo Evidence Upload -->
+                    <div class="field-group">
+                        <label>Evidence Photo (Optional but Recommended)</label>
+                        
+                        <div class="dropzone" id="dropzone">
+                            <input type="file" id="evidenceImage" name="image" accept="image/*" class="file-input">
+                            
+                            <div class="dropzone-content" id="dropzoneDefault">
+                                <div class="upload-icon">📸</div>
+                                <p><strong>Click to browse</strong> or drag & drop image here</p>
+                                <span>PNG, JPG, JPEG, WEBP (Max 10 MB)</span>
+                            </div>
+
+                            <div class="image-preview" id="imagePreview" style="display: none;">
+                                <img id="previewImg" src="" alt="Preview">
+                                <button type="button" class="remove-img-btn" onclick="removeImage(event)">✕ Remove</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <a href="/dashboard" class="cancel-btn">Cancel</a>
+                        <button type="submit" class="submit-btn" id="submitBtn">
+                            Submit Grievance &rarr;
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+
+        </main>
+
+        <!-- Footer Note -->
+        <footer class="form-footer">
+            <p>&copy; 2026 CampusCare | KIET Delhi-NCR</p>
+        </footer>
+
+    </div>
+
+    <!-- Success Confirmation Modal -->
+    <div class="modal-overlay" id="successModal">
+        <div class="success-modal-card">
+            <div class="success-icon">✓</div>
+            <h2>Grievance Lodged Successfully!</h2>
+            <p>Your issue has been logged into the KIET CampusCare portal and routed to the concerned administrative department.</p>
+            
+            <div class="ticket-badge-box">
+                <span>Ticket Reference:</span>
+                <strong id="successTicketId">#CMP-1001</strong>
+            </div>
+
+            <p class="sla-notice">Guaranteed SLA resolution benchmark: <span id="successSla">48 Hours</span></p>
+
+            <button type="button" class="modal-action-btn" onclick="if(typeof CampusLoader!=='undefined'){CampusLoader.navigate('/dashboard','Returning to Dashboard','Loading updated ticket status...');}else{window.location.href='/dashboard';}">
+                Return to Dashboard
+            </button>
+        </div>
+    </div>
+
+    <script src="js/page-transitions.js"></script>
+    <script src="complaint-form.js"></script>
+
+</body>
+
+</html>

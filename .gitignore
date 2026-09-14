@@ -1,0 +1,45 @@
+# Environment Variables & Secrets
+.env
+.env.local
+*.env
+
+# Python byte-compiled / cache files
+__pycache__/
+*.py[cod]
+*.class
+*.pyo
+.pytest_cache/
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Scratch & Temporary Testing Files
+scratch/
+tests/scratch/
+*.log
+
+# Uploaded dynamic complaint images
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# IDE and Editor configurations
+.vscode/
+.idea/
+*.sublime-workspace
+
+# Large Media Files (>100MB GitHub limit)
+*.mp4
+*.mov
+*.avi
+*.mkv
+frontend/video/*
+!frontend/video/.gitkeep

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google Fonts: Sora (Trending Display) & Plus Jakarta Sans (Modern Body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <title>CampusCare | Official College Login</title>
+
+    <link rel="stylesheet" href="login.css">
+    <link rel="stylesheet" href="page-transitions.css">
+</head>
+
+<body>
+
+    <div class="login-page">
+
+        <!-- Left Side: Visual & Brand Highlights -->
+        <div class="login-left">
+
+            <div class="login-overlay">
+
+                <div class="brand">
+                    <img src="images/logo.jpg" alt="CampusCare" onerror="this.onerror=null; this.src='https://via.placeholder.com/160x45/ffffff/2563eb?text=CampusCare';">
+                </div>
+
+                <h1>
+                    Welcome to <span>CampusCare</span>
+                </h1>
+
+                <p>
+                    Smart campus problem reporting made simple,
+                    transparent and efficient for students & administration.
+                </p>
+
+                <div class="login-features">
+
+                    <div class="feature">
+                        <span>📸</span>
+                        <div>
+                            <h3>Report Issues</h3>
+                            <p>Capture and report campus problems with photo evidence.</p>
+                        </div>
+                    </div>
+
+                    <div class="feature">
+                        <span>📍</span>
+                        <div>
+                            <h3>GPS Location</h3>
+                            <p>Pin the exact department, hostel or room location.</p>
+                        </div>
+                    </div>
+
+                    <div class="feature">
+                        <span>📊</span>
+                        <div>
+                            <h3>Track Complaints</h3>
+                            <p>Live step-by-step progress tracking with strict SLAs.</p>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Right Side: Interactive Form Card -->
+        <div class="login-right">
+
+            <!-- Back to Home Link -->
+            <a href="/" class="back-to-home">
+                &larr; Back to Home
+            </a>
+
+            <div class="login-card">
+
+                <h2>
+                    Student Login
+                </h2>
+
+                <p class="login-subtitle">
+                    Login using the college ID and password
+                    provided to you.
+                </p>
+
+                <!-- Role Selector Switcher -->
+                <div class="role-pills">
+                    <button type="button" id="role-student" class="role-btn active" onclick="selectRole('Student')">
+                        Student Portal
+                    </button>
+                    <button type="button" id="role-admin" class="role-btn" onclick="selectRole('Admin')">
+                        Admin / Staff
+                    </button>
+                </div>
+
+                <!-- Interactive Alert Box -->
+                <div id="loginAlert" class="login-alert"></div>
+
+                <form id="loginForm">
+
+                    <!-- College ID / Email -->
+                    <div class="input-group">
+                        <label for="collegeId">
+                            College ID / Email
+                        </label>
+                        <div class="input-box">
+                            <input
+                                type="text"
+                                id="collegeId"
+                                placeholder="Enter your college ID or @kiet.edu email"
+                                required
+                                autocomplete="username"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="input-group">
+                        <label for="password">
+                            Password
+                        </label>
+                        <div class="input-box">
+                            <input
+                                type="password"
+                                id="password"
+                                placeholder="Enter your password"
+                                required
+                                autocomplete="current-password"
+                            >
+                            <button
+                                type="button"
+                                class="show-password"
+                                onclick="togglePassword()"
+                                title="Show / Hide password">
+                                👁
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="login-options">
+                        <label class="remember">
+                            <input type="checkbox" id="rememberMe">
+                            Remember me
+                        </label>
+                        <a href="#" onclick="alert('Please contact your department coordinator or campus IT administrator to reset your password.')">
+                            Forgot Password?
+                        </a>
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="login-submit">
+                        Login
+                    </button>
+
+                </form>
+
+                <div class="college-note" style="margin-top: 22px;">
+                    <p>
+                        <span>ℹ️</span>
+                        Official @kiet.edu College ID is compulsory. Student accounts are authorized and provisioned exclusively by Campus Administration.
+                    </p>
+                </div>
+
+                <p class="login-footer">
+                    &copy; 2026 CampusCare | KIET Delhi-NCR
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="js/page-transitions.js"></script>
+    <script src="login.js"></script>
+
+</body>
+
+</html>

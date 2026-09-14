@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CampusCare - College Civic Grievance & Issue Resolution System</title>
+  
+  <!-- Google Fonts: Sora & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Sora:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Custom Admin Stylesheet & Dynamic Transitions -->
+  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="page-transitions.css">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+            display: ['Sora', 'sans-serif'],
+            heading: ['Sora', 'sans-serif']
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="admin-body text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- Navigation Bar -->
+  <nav class="glass-nav sticky top-0 z-40 transition-all border-b border-slate-200/80 bg-white/90 backdrop-blur-md shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        
+        <!-- Brand Logo with KIET Crest -->
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="window.location.reload()">
+          <div class="h-12 w-25 rounded-2xl bg-white p-1.5 border border-blue-200 shadow-md flex items-center justify-center hover:scale-105 transition-transform">
+            <img src="images/logo.jpg" alt="KIET Official Logo" class="h-full w-full object-contain rounded-xl" onerror="this.onerror=null; this.src='https://via.placeholder.com/60x60/ffffff/1d4ed8?text=KIET';">
+          </div>
+          <div>
+            <div class="text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2.5 font-display">
+              Campus<span class="text-blue-600">Care</span>
+              <span class="text-xs px-3 py-1 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black uppercase tracking-wider shadow-sm">Admin HQ</span>
+            </div>
+            <div class="text-sm font-bold text-slate-500 mt-0.5">KIET Group of Institutions &bull; Grievance Management</div>
+          </div>
+        </div>
+
+        <!-- Right Side: User Profile Header -->
+        <div id="user-profile-header" class="hidden flex items-center gap-4">
+          <div class="text-right hidden sm:block">
+            <div class="flex items-center justify-end gap-2">
+              <span id="header-user-name" class="text-base sm:text-lg font-black text-slate-900 font-display"></span>
+              <span id="header-role-badge"></span>
+            </div>
+            <div class="text-sm text-slate-500 flex items-center justify-end gap-1.5 mt-0.5">
+              <span id="header-user-dept" class="font-semibold text-slate-600"></span> &bull; <span id="header-user-role" class="capitalize font-bold text-slate-700"></span>
+            </div>
+          </div>
+          
+          <button onclick="logout()" class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-extrabold text-rose-600 bg-rose-50 hover:bg-rose-600 hover:text-white transition-all border border-rose-200 shadow-sm hover:shadow-rose-500/25" title="Sign Out to Homepage">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+            <span>Sign Out</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ====================================================================
+         VIEW 1: AUTHENTICATION SCREEN (Login & Registration)
+         ==================================================================== -->
+    <section id="auth-view" class="max-w-4xl mx-auto my-6">
+      
+      <!-- Banner / Value Props -->
+      <div class="text-center mb-8">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 mb-3">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Production-Ready Campus Civic Resolution
+        </span>
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+          Empowering College Civic Accountability
+        </h1>
+        <p class="mt-2 text-slate-600 text-sm sm:text-base max-w-2xl mx-auto">
+          Report hostel issues, electrical faults, sanitation needs, IT lab failures, and infrastructure repairs with photo evidence and verifiable SLA tracking.
+        </p>
+
+        <!-- Feature Badges -->
+        <div class="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs font-semibold text-slate-600">
+          <span class="px-2.5 py-1 rounded-md bg-white border border-slate-200 shadow-sm flex items-center gap-1"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-blue-500"></i> Domain Verification</span>
+          <span class="px-2.5 py-1 rounded-md bg-white border border-slate-200 shadow-sm flex items-center gap-1"><i data-lucide="clock" class="w-3.5 h-3.5 text-blue-500"></i> Strict SLA Hours</span>
+          <span class="px-2.5 py-1 rounded-md bg-white border border-slate-200 shadow-sm flex items-center gap-1"><i data-lucide="history" class="w-3.5 h-3.5 text-blue-500"></i> Chronological Audit Log</span>
+          <span class="px-2.5 py-1 rounded-md bg-white border border-slate-200 shadow-sm flex items-center gap-1"><i data-lucide="star" class="w-3.5 h-3.5 text-amber-500"></i> Student 5-Star Feedback</span>
+        </div>
+      </div>
+
+      <!-- Auth Card -->
+      <div class="bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-200 max-w-md mx-auto overflow-hidden">
+        <!-- Header -->
+        <div class="border-b border-slate-200 bg-slate-50/50 px-6 py-4 text-center">
+          <h2 class="text-base font-bold text-slate-800">Sign In to CampusCare</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Student & Admin Official KIET Authentication</p>
+        </div>
+
+        <div class="p-6 sm:p-8">
+          
+          <!-- LOGIN FORM -->
+          <form id="login-form" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">College Email Address</label>
+              <div class="relative">
+                <i data-lucide="mail" class="w-4 h-4 absolute left-3 top-3 text-slate-400"></i>
+                <input type="email" id="login-email" required placeholder="your.name@kiet.edu" class="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Password</label>
+              <div class="relative">
+                <i data-lucide="lock" class="w-4 h-4 absolute left-3 top-3 text-slate-400"></i>
+                <input type="password" id="login-password" required placeholder="••••••••" class="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              </div>
+            </div>
+
+            <button type="submit" id="login-submit-btn" class="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-lg shadow-sm hover:shadow transition-all flex items-center justify-center">
+              Sign In <i data-lucide="arrow-right" class="w-4 h-4 ml-1 inline"></i>
+            </button>
+
+          </form>
+
+          <div class="mt-5 pt-4 border-t border-slate-100 text-center">
+            <p class="text-xs text-slate-500">
+              <span class="inline-block mr-1">ℹ️</span> Only registered <strong class="text-slate-700 font-semibold">@kiet.edu</strong> accounts are allowed. New student accounts are added by the Campus Administrator.
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         VIEW 2: STUDENT PORTAL
+         ==================================================================== -->
+    <section id="student-portal" class="hidden space-y-6">
+      
+      <!-- Portal Header & Tabs -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+            <i data-lucide="user-check" class="w-5 h-5 text-blue-600"></i> Student Civic Desk
+          </h2>
+          <p class="text-xs text-slate-500 mt-0.5">Submit campus grievances, attach proof photos, and track resolution timelines live.</p>
+        </div>
+        
+        <!-- Navigation Buttons -->
+        <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-xl">
+          <button id="student-tab-lodge" onclick="switchStudentTab('lodge-complaint')" class="px-4 py-2 font-semibold text-sm rounded-lg bg-blue-600 text-white shadow-sm">
+            <i data-lucide="plus-circle" class="w-4 h-4 mr-1 inline"></i> Lodge Grievance
+          </button>
+          <button id="student-tab-my" onclick="switchStudentTab('my-complaints')" class="px-4 py-2 font-medium text-sm rounded-lg text-slate-600 hover:bg-slate-200/60">
+            <i data-lucide="inbox" class="w-4 h-4 mr-1 inline"></i> My Grievances
+          </button>
+        </div>
+      </div>
+
+      <!-- Student KPI Summary Counters -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Raised</div>
+            <div id="metric-student-total" class="text-2xl font-black text-slate-800 mt-1">0</div>
+          </div>
+          <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+            <i data-lucide="file-text" class="w-5 h-5"></i>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <div class="text-xs font-semibold text-amber-500 uppercase tracking-wider">Pending Review</div>
+            <div id="metric-student-pending" class="text-2xl font-black text-amber-600 mt-1">0</div>
+          </div>
+          <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+            <i data-lucide="clock" class="w-5 h-5"></i>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <div class="text-xs font-semibold text-sky-500 uppercase tracking-wider">In Progress</div>
+            <div id="metric-student-in-progress" class="text-2xl font-black text-sky-600 mt-1">0</div>
+          </div>
+          <div class="w-10 h-10 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
+            <i data-lucide="wrench" class="w-5 h-5"></i>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <div class="text-xs font-semibold text-emerald-500 uppercase tracking-wider">Resolved</div>
+            <div id="metric-student-resolved" class="text-2xl font-black text-emerald-600 mt-1">0</div>
+          </div>
+          <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <i data-lucide="check-circle" class="w-5 h-5"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB A: LODGE GRIEVANCE FORM -->
+      <div id="student-view-lodge" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 max-w-3xl mx-auto">
+        <div class="border-b border-slate-100 pb-4 mb-6">
+          <h3 class="text-lg font-bold text-slate-800">Lodge a New Campus Grievance</h3>
+          <p class="text-xs text-slate-500 mt-1">Please provide accurate location and photo proof so the respective administrative department can attend immediately.</p>
+        </div>
+
+        <form id="new-complaint-form" onsubmit="submitComplaint(event)" class="space-y-5">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Grievance Title *</label>
+            <input type="text" id="complaint-title" required placeholder="e.g. Water leakage in 3rd Floor Washroom" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Category *</label>
+              <select id="complaint-category" required class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white">
+                <option value="" disabled selected>Loading categories...</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Specific Location (Block / Room / Wing) *</label>
+              <input type="text" id="complaint-location" required placeholder="e.g. Hostel Block B, Room 204" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+          </div>
+
+          <!-- Priority Selector Pills -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Severity / Priority Level *</label>
+            <div id="priority-selector-group" class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <button type="button" data-priority="Low" class="priority-btn py-2 px-3 text-xs font-medium rounded-lg border border-slate-300 hover:border-slate-400 text-slate-700">
+                Low (Minor)
+              </button>
+              <button type="button" data-priority="Medium" class="priority-btn py-2 px-3 text-xs font-medium rounded-lg border border-amber-300 bg-amber-50 text-amber-800 ring-2 ring-offset-2 ring-blue-600 font-bold">
+                Medium (Standard)
+              </button>
+              <button type="button" data-priority="High" class="priority-btn py-2 px-3 text-xs font-medium rounded-lg border border-rose-300 bg-rose-50 text-rose-800">
+                High (Urgent)
+              </button>
+              <button type="button" data-priority="Emergency" class="priority-btn py-2 px-3 text-xs font-medium rounded-lg border border-red-700 bg-red-800 text-white">
+                Emergency (Hazard)
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Detailed Description *</label>
+            <textarea id="complaint-description" rows="3" required placeholder="Explain the problem clearly, when it started, and its impact on students..." class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+          </div>
+
+          <!-- Media Upload Dropzone -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Visual Evidence / Photo Proof (Optional)</label>
+            <input type="file" id="complaint-image-file" accept="image/*" class="hidden">
+            
+            <div id="image-dropzone" class="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl p-6 text-center cursor-pointer transition-colors bg-slate-50/50">
+              <i data-lucide="camera" class="w-8 h-8 text-slate-400 mx-auto mb-2"></i>
+              <div class="text-sm font-semibold text-slate-700">Click to upload photo or drag & drop</div>
+              <div class="text-xs text-slate-400 mt-0.5">PNG, JPG, JPEG, WEBP up to 10MB</div>
+            </div>
+
+            <!-- Preview box -->
+            <div id="image-preview-container" class="hidden relative mt-3 inline-block">
+              <img id="image-preview" src="#" alt="Preview" class="w-48 h-32 object-cover rounded-xl border border-slate-300 shadow-sm">
+              <button type="button" id="btn-remove-image" class="absolute -top-2 -right-2 bg-rose-600 text-white rounded-full p-1 shadow hover:bg-rose-700">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="pt-2">
+            <button type="submit" id="submit-complaint-btn" class="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-lg shadow-sm hover:shadow transition-all flex items-center justify-center">
+              <i data-lucide="send" class="w-4 h-4 mr-1.5 inline"></i> Register Grievance
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- TAB B: MY GRIEVANCES LIST -->
+      <div id="student-view-my" class="hidden space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-bold text-slate-800">Your Registered Grievances</h3>
+          <button onclick="loadStudentComplaints()" class="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1">
+            <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i> Refresh List
+          </button>
+        </div>
+
+        <div id="student-complaints-list" class="space-y-3">
+          <!-- Dynamic cards injected via student.js -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ====================================================================
+         VIEW 3: ADMIN CONTROL CENTER
+         ==================================================================== -->
+    <section id="admin-portal" class="hidden space-y-6">
+      
+      <!-- Modern Executive Glassmorphic Header -->
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5 p-7 sm:p-8 rounded-3xl admin-hero-card">
+        <div>
+          <div class="flex flex-wrap items-center gap-3">
+            <h2 class="text-2xl font-black text-white flex items-center gap-2.5 font-display">
+              <i data-lucide="shield" class="w-7 h-7 text-blue-300"></i> Administrative Control Center
+            </h2>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-white/15 text-blue-100 border border-white/20 backdrop-blur-sm shadow-sm">
+              KIET CampusCare HQ
+            </span>
+          </div>
+          <p class="text-sm text-blue-100/90 mt-1.5 font-normal max-w-2xl">Real-time civic monitoring, department SLA analytics, user administration & audit reporting.</p>
+          
+          <!-- View Switcher Tabs -->
+          <div class="admin-tab-container mt-5">
+            <button id="admin-tab-grievances" onclick="switchAdminPortalTab('grievances')" class="admin-tab-btn active">
+              <i data-lucide="inbox" class="w-4 h-4"></i> Grievances Engine
+            </button>
+            <button id="admin-tab-users" onclick="switchAdminPortalTab('users')" class="admin-tab-btn">
+              <i data-lucide="users" class="w-4 h-4"></i> User Directory
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Action Buttons -->
+        <div class="flex flex-wrap items-center gap-2.5">
+          <button onclick="openAddUserModal()" class="px-4 py-2.5 text-xs font-bold rounded-xl btn-glow-primary flex items-center gap-2 shadow-sm transition-all">
+            <i data-lucide="user-plus" class="w-4 h-4"></i> + Add New User
+          </button>
+          <button onclick="exportComplaintsCSV()" class="px-4 py-2.5 text-xs font-bold rounded-xl btn-glow-success flex items-center gap-2 shadow-sm transition-all">
+            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Export CSV
+          </button>
+          <button onclick="loadAdminDashboard()" class="px-3.5 py-2.5 text-xs font-semibold rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 flex items-center gap-1.5 transition-colors shadow-sm">
+            <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i> Refresh
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Cards Row with Hover Animation & Live Glow Dots -->
+      <div class="grid grid-cols-2 md:grid-cols-6 gap-3.5">
+        <div class="admin-kpi-card">
+          <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Issues</div>
+          <div id="admin-kpi-total" class="text-2xl font-black text-slate-800 mt-1">0</div>
+        </div>
+
+        <div class="admin-kpi-card kpi-pending">
+          <div class="text-[11px] font-bold text-amber-500 uppercase tracking-wider flex items-center">
+            <span class="status-dot dot-pending"></span> Unassigned / Pending
+          </div>
+          <div id="admin-kpi-pending" class="text-2xl font-black text-amber-600 mt-1">0</div>
+        </div>
+
+        <div class="admin-kpi-card kpi-progress">
+          <div class="text-[11px] font-bold text-sky-500 uppercase tracking-wider flex items-center">
+            <span class="status-dot dot-progress"></span> In Progress
+          </div>
+          <div id="admin-kpi-in-progress" class="text-2xl font-black text-sky-600 mt-1">0</div>
+        </div>
+
+        <div class="admin-kpi-card kpi-resolved">
+          <div class="text-[11px] font-bold text-emerald-500 uppercase tracking-wider flex items-center">
+            <span class="status-dot dot-resolved"></span> Resolved
+          </div>
+          <div id="admin-kpi-resolved" class="text-2xl font-black text-emerald-600 mt-1">0</div>
+        </div>
+
+        <div class="admin-kpi-card">
+          <div class="text-[11px] font-bold text-blue-500 uppercase tracking-wider">Resolution Rate</div>
+          <div id="admin-kpi-resolution-rate" class="text-2xl font-black text-blue-600 mt-1">0%</div>
+        </div>
+
+        <div class="admin-kpi-card kpi-overdue">
+          <div class="text-[11px] font-bold text-rose-500 uppercase tracking-wider flex items-center">
+            <span class="status-dot dot-rejected"></span> SLA Overdue
+          </div>
+          <div id="admin-kpi-sla-overdue" class="text-2xl font-black text-rose-600 mt-1">0</div>
+        </div>
+      </div>
+
+      <!-- SECTION 1: GRIEVANCES ENGINE & ANALYTICS -->
+      <div id="admin-section-grievances" class="space-y-6">
+
+        <!-- Analytics Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-blue-600"></i> Issues by Category
+            </h4>
+            <div class="h-48">
+              <canvas id="chart-categories"></canvas>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <i data-lucide="pie-chart" class="w-3.5 h-3.5 text-amber-600"></i> Priority Distribution
+            </h4>
+            <div class="h-48 flex items-center justify-center">
+              <canvas id="chart-priorities"></canvas>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between mb-2">
+              <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                <i data-lucide="building" class="w-3.5 h-3.5 text-purple-600"></i> By Department
+              </h4>
+              <div class="text-xs font-bold text-amber-500" id="admin-kpi-avg-rating">★ 0.0</div>
+            </div>
+            <div class="h-48">
+              <canvas id="chart-departments"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filterable Complaint Management Table Section -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          
+          <!-- Table Header & Filter Bar -->
+          <div class="p-4 border-b border-slate-200 bg-slate-50/50 space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                <i data-lucide="table" class="w-4 h-4 text-slate-500"></i> Grievance Management Engine
+              </h3>
+              
+              <!-- Search bar -->
+              <div class="relative max-w-xs w-full">
+                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
+                <input type="text" id="admin-search-input" oninput="loadAdminComplaints(1)" placeholder="Search keyword, location, student..." class="w-full pl-9 pr-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+              </div>
+            </div>
+
+            <!-- Dropdown Filters -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
+              <select id="admin-filter-status" onchange="loadAdminComplaints(1)" class="text-xs px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                <option value="all">All Statuses</option>
+                <option value="Pending">Pending</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Resolved">Resolved</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+
+              <select id="admin-filter-category" onchange="loadAdminComplaints(1)" class="text-xs px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                <option value="all">All Categories</option>
+              </select>
+
+              <select id="admin-filter-priority" onchange="loadAdminComplaints(1)" class="text-xs px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                <option value="all">All Priorities</option>
+                <option value="Emergency">Emergency</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Table Data -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-100/75 text-[11px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">
+                <tr>
+                  <th class="py-3 px-4">Ticket</th>
+                  <th class="py-3 px-3 text-center">Photo</th>
+                  <th class="py-3 px-4">Issue & Location</th>
+                  <th class="py-3 px-4">Category & SLA</th>
+                  <th class="py-3 px-4">Priority</th>
+                  <th class="py-3 px-4">Student Info</th>
+                  <th class="py-3 px-4">Current Status</th>
+                  <th class="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-table-body">
+                <!-- Dynamically populated via admin.js -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination Controls -->
+          <div class="p-3.5 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-xs text-slate-500">
+            <span id="admin-page-info">Page 1 of 1 (0 records)</span>
+            <div class="flex items-center gap-1.5">
+              <button id="admin-prev-page" onclick="loadAdminComplaints(currentAdminPage - 1)" class="px-3 py-1 rounded bg-white border border-slate-200 font-medium hover:bg-slate-100 disabled:opacity-40">Previous</button>
+              <button id="admin-next-page" onclick="loadAdminComplaints(currentAdminPage + 1)" class="px-3 py-1 rounded bg-white border border-slate-200 font-medium hover:bg-slate-100 disabled:opacity-40">Next</button>
+            </div>
+          </div>
+
+        </div>
+
+      </div> <!-- End of admin-section-grievances -->
+
+      <!-- SECTION 2: USER DIRECTORY & ROSTER (Toggled via Tab) -->
+      <div id="admin-section-users" class="hidden space-y-4">
+        
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <!-- User Roster Header & Search -->
+          <div class="p-4 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                <i data-lucide="users" class="w-4 h-4 text-blue-600"></i> Registered Campus Users Directory
+              </h3>
+              <span id="admin-users-count-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">0 Users</span>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+              <div class="relative max-w-xs w-full">
+                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
+                <input type="text" id="admin-users-search" oninput="loadAdminUsers()" placeholder="Search name, email, department..." class="w-full pl-9 pr-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+              </div>
+              <select id="admin-users-filter-role" onchange="loadAdminUsers()" class="text-xs px-3 py-1.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                <option value="">All Roles</option>
+                <option value="Student">Students</option>
+                <option value="Admin">Admins / Staff</option>
+              </select>
+              <button onclick="openAddUserModal()" class="px-3.5 py-1.5 text-xs font-bold rounded-lg btn-glow-primary flex items-center gap-1 shrink-0">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add User
+              </button>
+            </div>
+          </div>
+
+          <!-- Users Table -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-100/75 text-[11px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">
+                <tr>
+                  <th class="py-3 px-4">User ID</th>
+                  <th class="py-3 px-4">User Profile</th>
+                  <th class="py-3 px-4">Official College Email</th>
+                  <th class="py-3 px-4">Role</th>
+                  <th class="py-3 px-4">Department</th>
+                  <th class="py-3 px-4">Contact Phone</th>
+                  <th class="py-3 px-4 text-right">Registered On</th>
+                </tr>
+              </thead>
+              <tbody id="admin-users-table-body">
+                <!-- Dynamically populated via admin.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div> <!-- End of admin-section-users -->
+
+
+    </section>
+
+  </main>
+
+  <!-- ====================================================================
+       MODAL 1: TICKET TRACKING & STEPPER PROGRESS (Student & Admin View)
+       ==================================================================== -->
+  <div id="track-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+      <div id="track-modal-content">
+        <!-- Injected dynamically via student.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL 2: 5-STAR RESOLUTION FEEDBACK
+       ==================================================================== -->
+  <div id="feedback-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+        <h3 class="text-base font-bold text-slate-900 flex items-center gap-1.5">
+          <i data-lucide="star" class="w-4 h-4 text-amber-500"></i> Rate Issue Resolution
+        </h3>
+        <button onclick="closeFeedbackModal()" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <p id="feedback-ticket-title" class="text-xs font-semibold text-slate-600 mb-4 bg-slate-50 p-2.5 rounded-lg border border-slate-200"></p>
+
+      <form onsubmit="submitFeedback(event)" class="space-y-4">
+        <div class="text-center py-2">
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">How satisfied are you with the resolution?</label>
+          <div class="star-rating">
+            <input type="radio" id="star5" name="rating" value="5" /><label for="star5">★</label>
+            <input type="radio" id="star4" name="rating" value="4" /><label for="star4">★</label>
+            <input type="radio" id="star3" name="rating" value="3" /><label for="star3">★</label>
+            <input type="radio" id="star2" name="rating" value="2" /><label for="star2">★</label>
+            <input type="radio" id="star1" name="rating" value="1" /><label for="star1">★</label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Comments or Suggestions (Optional)</label>
+          <textarea id="feedback-comments" rows="3" placeholder="Share your feedback on the timeliness and quality of the repair..." class="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeFeedbackModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200">Cancel</button>
+          <button type="submit" id="feedback-submit-btn" class="px-4 py-2 text-xs font-semibold text-white bg-amber-500 hover:bg-amber-600 rounded-lg shadow-sm">Submit Feedback</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL 3: ADMIN ACTION & STATUS UPDATE MODAL
+       ==================================================================== -->
+  <div id="admin-action-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 max-h-[92vh] overflow-y-auto">
+      <div id="admin-action-content">
+        <!-- Injected dynamically via admin.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL 4: ADMIN ADD USER MODAL
+       ==================================================================== -->
+  <div id="admin-add-user-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
+    <div class="relative bg-white rounded-3xl max-w-xl w-full p-7 sm:p-8 shadow-2xl border border-slate-100 max-h-[92vh] overflow-y-auto transform transition-all">
+      <!-- Animated Accent Bar -->
+      <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 rounded-t-3xl"></div>
+
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-5 pt-1">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shadow-sm">
+            <i data-lucide="user-plus" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h3 class="text-xl font-extrabold text-slate-900 font-display">Add New College User</h3>
+            <p class="text-sm text-slate-500 mt-0.5">Register new student or staff account with official KIET ID.</p>
+          </div>
+        </div>
+        <button onclick="closeAddUserModal()" class="text-slate-400 hover:text-slate-700 p-2 rounded-xl hover:bg-slate-100 transition-colors">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div id="add-user-alert" class="hidden mb-4 p-3.5 rounded-xl text-sm font-semibold"></div>
+
+      <form onsubmit="handleAddUserSubmit(event)" class="space-y-4">
+        <!-- Role Switcher -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">User Role *</label>
+          <div class="grid grid-cols-2 gap-3">
+            <label class="cursor-pointer border-2 border-slate-200 rounded-2xl p-3.5 flex items-center gap-3 transition-all hover:border-blue-300 has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50/60 has-[:checked]:shadow-sm">
+              <input type="radio" name="new-user-role" value="Student" checked class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+              <div>
+                <strong class="block text-sm font-bold text-slate-900">Student</strong>
+                <span class="text-xs text-slate-500">Grievance lodging access</span>
+              </div>
+            </label>
+            <label class="cursor-pointer border-2 border-slate-200 rounded-2xl p-3.5 flex items-center gap-3 transition-all hover:border-purple-300 has-[:checked]:border-purple-600 has-[:checked]:bg-purple-50/60 has-[:checked]:shadow-sm">
+              <input type="radio" name="new-user-role" value="Admin" class="w-4 h-4 text-purple-600 focus:ring-purple-500">
+              <div>
+                <strong class="block text-sm font-bold text-slate-900">Admin / Staff</strong>
+                <span class="text-xs text-slate-500">Resolution management</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Full Legal Name *</label>
+          <input type="text" id="new-user-name" required placeholder="e.g. Rahul Sharma" class="w-full px-4 py-3 text-base border border-slate-300 rounded-xl focus:ring-4 focus:ring-blue-500/15 focus:border-blue-600 bg-slate-50/50 hover:bg-white transition-all">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Official College Email *</label>
+          <input type="email" id="new-user-email" required placeholder="rollnumber@kiet.edu or name@kiet.edu" class="w-full px-4 py-3 text-base border border-slate-300 rounded-xl focus:ring-4 focus:ring-blue-500/15 focus:border-blue-600 bg-slate-50/50 hover:bg-white transition-all">
+          <span class="text-xs text-slate-500 mt-1.5 block">Must be an official <code class="text-blue-600 font-bold bg-blue-50 px-1.5 py-0.5 rounded">@kiet.edu</code> ID</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3.5">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Course / Program *</label>
+            <select id="new-user-course" required class="w-full px-4 py-3 text-base border border-slate-300 rounded-xl focus:ring-4 focus:ring-blue-500/15 focus:border-blue-600 bg-white transition-all">
+              <option value="B.Tech" selected>B.Tech</option>
+              <option value="BCA">BCA</option>
+              <option value="BBA">BBA</option>
+              <option value="BA">BA</option>
+              <option value="MCA">MCA</option>
+              <option value="MBA">MBA</option>
+              <option value="B.Pharm">B.Pharm</option>
+              <option value="M.Pharm">M.Pharm</option>
+              <option value="M.Tech">M.Tech</option>
+              <option value="Staff/Faculty">Staff / Faculty</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Branch / Dept *</label>
+            <select id="new-user-department" required class="w-full px-4 py-3 text-base border border-slate-300 rounded-xl focus:ring-4 focus:ring-blue-500/15 focus:border-blue-600 bg-white transition-all">
+              <option value="" disabled selected>Select Branch / Dept</option>
+              <optgroup label="Engineering Branches (B.Tech / M.Tech)">
+                <option value="Computer Science & Engineering">CSE (Computer Science)</option>
+                <option value="CSE - Artificial Intelligence">CSE (Artificial Intelligence)</option>
+                <option value="CSE - AI & Machine Learning">CSE (AI & ML)</option>
+                <option value="Information Technology">IT (Information Tech)</option>
+                <option value="Computer Science">CS (Computer Science)</option>
+                <option value="Computer Science & IT">CSIT (CS & IT)</option>
+                <option value="Electronics & Communication">ECE (Electronics & Comm)</option>
+                <option value="Electrical & Electronics">EN (Electrical & Electronics)</option>
+                <option value="Mechanical Engineering">ME (Mechanical Engg)</option>
+                <option value="Civil Engineering">CE (Civil Engg)</option>
+                <option value="Applied Sciences & Humanities">AS&H (1st Year)</option>
+              </optgroup>
+              <optgroup label="Computer Applications (BCA / MCA)">
+                <option value="Bachelor of Computer Applications">BCA (Computer Applications)</option>
+                <option value="Master of Computer Applications">MCA (Computer Applications)</option>
+              </optgroup>
+              <optgroup label="Management Studies (BBA / MBA)">
+                <option value="Bachelor of Business Administration">BBA (Business Administration)</option>
+                <option value="Master of Business Administration">MBA (Business Administration)</option>
+              </optgroup>
+              <optgroup label="Humanities & Social Sciences (BA)">
+                <option value="Bachelor of Arts">BA (Humanities & Social Sciences)</option>
+              </optgroup>
+              <optgroup label="Pharmacy (B.Pharm / M.Pharm)">
+                <option value="Bachelor of Pharmacy">B.Pharm</option>
+                <option value="Master of Pharmacy">M.Pharm</option>
+              </optgroup>
+              <optgroup label="Administration & Campus Staff">
+                <option value="Campus Administration">Campus Administration</option>
+                <option value="Hostel Administration">Hostel Administration</option>
+                <option value="Maintenance & Estate Cell">Maintenance & Estate Cell</option>
+                <option value="IT Infrastructure Cell">IT Infrastructure Cell</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Phone Number (10-Digit Mobile, Optional)</label>
+          <input type="tel" id="new-user-phone" placeholder="9876543210" pattern="[6-9][0-9]{9}" maxlength="10" class="w-full px-4 py-3 text-base border border-slate-300 rounded-xl focus:ring-4 focus:ring-blue-500/15 focus:border-blue-600 bg-slate-50/50 hover:bg-white transition-all">
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Initial Password *</label>
+            <button type="button" onclick="generateRandomPassword()" class="text-xs font-bold text-blue-600 hover:text-blue-800 bg-blue-50 px-2.5 py-1 rounded-lg hover:bg-blue-100 transition-colors">Generate Strong</button>
+          </div>
+          <div class="relative">
+            <input type="password" id="new-user-password" required placeholder="Minimum 6 characters" class="w-full pl-4 pr-12 py-3 text-base border border-slate-300 rounded-xl focus:ring-4 focus:ring-blue-500/15 focus:border-blue-600 bg-slate-50/50 hover:bg-white transition-all">
+            <button type="button" onclick="toggleNewUserPassword()" class="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600 text-sm font-bold">👁</button>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+          <button type="button" onclick="closeAddUserModal()" class="px-5 py-3 text-sm font-bold text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors">Cancel</button>
+          <button type="submit" id="add-user-submit-btn" class="px-6 py-3 text-sm font-extrabold text-white btn-glow-primary rounded-xl shadow-lg hover:shadow-blue-500/25 flex items-center gap-2 transition-all">
+            Create User Account &rarr;
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL 5: FULL-SCREEN IMAGE LIGHTBOX MODAL
+       ==================================================================== -->
+  <div id="image-lightbox-modal" class="lightbox-modal" onclick="closeImageLightbox(event)">
+    <div class="lightbox-content" onclick="event.stopPropagation()">
+      <div class="lightbox-header">
+        <h4 id="lightbox-title" class="text-sm font-bold text-slate-800 flex items-center gap-2">
+          <i data-lucide="image" class="w-4 h-4 text-blue-600"></i> Evidence Photo
+        </h4>
+        <button onclick="closeImageLightbox()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="lightbox-body">
+        <img id="lightbox-img" src="" alt="Full Resolution Evidence">
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Application Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/page-transitions.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/student.js"></script>
+  <script src="js/admin.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) lucide.createIcons();
+      initAuth();
+    });
+  </script>
+</body>
+</html>
