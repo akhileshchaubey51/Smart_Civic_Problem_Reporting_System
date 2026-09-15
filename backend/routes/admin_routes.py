@@ -476,3 +476,56 @@ def admin_get_users():
         'total': len(users)
     })
 
+# ============================================================================
+# ADMINISTRATIVE NOTIFICATIONS (SYSTEM & REAL-TIME ALERTS)
+# ============================================================================
+
+@admin_bp.route('/notifications', methods=['GET'])
+@admin_required
+def get_admin_notifications():
+    """
+    Retrieve real-time system notifications for administrators.
+    Returns unread count and latest 25 notifications.
+    """
+    unread_res = query_db("SELECT COUNT(*) AS UnreadCount FROM dbo.Notifications WHERE IsRead = 0", one=True)
+    unread_count = unread_res['UnreadCount'] if unread_res else 0
+
+    notifications = query_db("""
+        SELECT TOP 25 
+            NotificationID, ComplaintID, Title, Message, Priority, 
+            CategoryName, StudentName, IsRead, CreatedAt
+        FROM dbo.Notifications
+        ORDER BY CreatedAt DESC
+    """)
+
+    return jsonify({
+        'success': True,
+        'unread_count': unread_count,
+        'notifications': notifications
+    })
+
+@admin_bp.route('/notifications/read/<int:notification_id>', methods=['POST'])
+@admin_required
+def mark_notification_read(notification_id):
+    """
+    Mark a single notification as read.
+    """
+    execute_db("UPDATE dbo.Notifications SET IsRead = 1 WHERE NotificationID = ?", (notification_id,))
+    return jsonify({
+        'success': True,
+        'message': f'Notification #{notification_id} marked as read.'
+    })
+
+@admin_bp.route('/notifications/read-all', methods=['POST'])
+@admin_required
+def mark_all_notifications_read():
+    """
+    Mark all notifications as read.
+    """
+    execute_db("UPDATE dbo.Notifications SET IsRead = 1 WHERE IsRead = 0")
+    return jsonify({
+        'success': True,
+        'message': 'All notifications marked as read.'
+    })
+
+

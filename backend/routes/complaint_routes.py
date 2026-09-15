@@ -136,6 +136,41 @@ def create_complaint():
     except Exception:
         pass  # non-critical for response
 
+    # Fetch student details for notifications
+    student = query_db("""
+        SELECT UserID, FullName, CollegeEmail, Department, Course, Phone 
+        FROM dbo.Users 
+        WHERE UserID = ?
+    """, (user_id,), one=True)
+
+    # 1. Insert System Notification into dbo.Notifications
+    try:
+        student_display = student['FullName'] if student else 'Student'
+        cat_name = category.get('CategoryName', 'Campus Service')
+        notif_title = f"New {priority} Grievance: {title[:60]}"
+        notif_msg = f"{student_display} ({student.get('Department', '-')}) reported {priority.lower()} priority grievance #{complaint_id} at {location}."
+        execute_db("""
+            INSERT INTO dbo.Notifications (ComplaintID, Title, Message, Priority, CategoryName, StudentName, IsRead)
+            VALUES (?, ?, ?, ?, ?, ?, 0)
+        """, (complaint_id, notif_title, notif_msg, priority, cat_name, student_display))
+    except Exception as notif_err:
+        print(f"[-] Non-critical error creating system notification: {notif_err}")
+
+    # 2. Dispatch Asynchronous Email Notification to Admin
+    try:
+        complaint_payload = {
+            'ComplaintID': complaint_id,
+            'Title': title,
+            'Description': description,
+            'Location': location,
+            'Priority': priority,
+            'Status': 'Pending'
+        }
+        from backend.services.email_service import dispatch_complaint_email
+        dispatch_complaint_email(complaint_payload, student, category)
+    except Exception as email_err:
+        print(f"[-] Non-critical error dispatching admin email notification: {email_err}")
+
     return jsonify({
         'success': True,
         'message': 'Grievance ticket registered successfully.',

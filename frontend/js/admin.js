@@ -16,6 +16,9 @@ async function loadAdminDashboard() {
   await fetchAndRenderStats();
   await loadAdminCategoriesFilter();
   await loadAdminComplaints(1);
+  if (typeof initNotificationPoller === 'function') {
+    initNotificationPoller();
+  }
 }
 
 // Fetch and Populate Category Filter
@@ -763,4 +766,293 @@ function closeImageLightbox(e) {
   if (modal) modal.classList.remove('show');
   if (img) img.src = '';
 }
+
+/* ==========================================================================
+   Administrative Notifications Center & Real-Time Alert System
+   ========================================================================== */
+
+let notifPollInterval = null;
+let lastKnownNotifId = null;
+let audioCtx = null;
+
+function playNotificationChime() {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    if (!audioCtx) audioCtx = new AudioContext();
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    
+    // Pleasant double chime: Note 1 (880Hz, A5) -> Note 2 (1174Hz, D6)
+    const now = audioCtx.currentTime;
+    const osc1 = audioCtx.createOscillator();
+    const gain1 = audioCtx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(880, now);
+    gain1.gain.setValueAtTime(0.15, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+    osc1.connect(gain1);
+    gain1.connect(audioCtx.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.35);
+
+    const osc2 = audioCtx.createOscillator();
+    const gain2 = audioCtx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(1174, now + 0.12);
+    gain2.gain.setValueAtTime(0.18, now + 0.12);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+    osc2.connect(gain2);
+    gain2.connect(audioCtx.destination);
+    osc2.start(now + 0.12);
+    osc2.stop(now + 0.55);
+  } catch (err) {
+    console.log("Audio chime skipped:", err);
+  }
+}
+
+function toggleNotificationDropdown(e) {
+  if (e) e.stopPropagation();
+  const menu = document.getElementById('notif-dropdown-menu');
+  if (!menu) return;
+
+  const isHidden = menu.classList.contains('hidden');
+  if (isHidden) {
+    menu.classList.remove('hidden');
+    fetchNotifications();
+  } else {
+    menu.classList.add('hidden');
+  }
+}
+
+// Close notification menu on outside click
+document.addEventListener('click', (e) => {
+  const wrapper = document.getElementById('notif-dropdown-wrapper');
+  const menu = document.getElementById('notif-dropdown-menu');
+  if (wrapper && menu && !wrapper.contains(e.target)) {
+    menu.classList.add('hidden');
+  }
+});
+
+async function fetchNotifications() {
+  const res = await apiFetch('/api/admin/notifications');
+  if (!res || !res.ok || !res.data.success) return;
+
+  const { unread_count, notifications } = res.data;
+  const badge = document.getElementById('notif-badge');
+  const unreadTag = document.getElementById('notif-unread-tag');
+  const container = document.getElementById('notif-list-container');
+
+  // Update badge count
+  if (badge) {
+    if (unread_count > 0) {
+      badge.textContent = unread_count > 99 ? '99+' : unread_count;
+      badge.classList.remove('hidden');
+    } else {
+      badge.classList.add('hidden');
+    }
+  }
+
+  if (unreadTag) {
+    if (unread_count > 0) {
+      unreadTag.textContent = `${unread_count} New`;
+      unreadTag.classList.remove('hidden');
+    } else {
+      unreadTag.classList.add('hidden');
+    }
+  }
+
+  // Check for newly arrived unread notifications
+  if (notifications && notifications.length > 0) {
+    const newest = notifications[0];
+    if (lastKnownNotifId !== null && newest.NotificationID > lastKnownNotifId && !newest.IsRead) {
+      // Trigger instant real-time alert!
+      playNotificationChime();
+      showFloatingNotificationToast(newest);
+      triggerDesktopNotification(newest);
+
+      // Auto-refresh grievances table & stats
+      if (typeof loadAdminComplaints === 'function') {
+        loadAdminComplaints(currentAdminPage || 1);
+        if (typeof fetchAndRenderStats === 'function') fetchAndRenderStats();
+      }
+    }
+    lastKnownNotifId = newest.NotificationID;
+  }
+
+  // Render list inside dropdown
+  if (container) {
+    if (!notifications || notifications.length === 0) {
+      container.innerHTML = `
+        <div class="p-8 text-center text-xs text-slate-400">
+          <i data-lucide="inbox" class="w-8 h-8 mx-auto text-slate-300 mb-2"></i>
+          No notification records yet.
+        </div>
+      `;
+    } else {
+      container.innerHTML = notifications.map(n => {
+        const priorityClass = `notif-icon-${(n.Priority || 'medium').toLowerCase()}`;
+        const timeAgo = formatTimeAgo(n.CreatedAt);
+        const unreadClass = n.IsRead ? '' : 'unread';
+
+        return `
+          <div class="notif-item ${unreadClass}" onclick="handleNotificationClick(${n.NotificationID}, ${n.ComplaintID})">
+            <div class="notif-icon-wrap ${priorityClass}">
+              <i data-lucide="${n.Priority === 'Emergency' ? 'alert-triangle' : 'file-text'}" class="w-4 h-4"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between gap-1 mb-0.5">
+                <span class="text-[11px] font-extrabold uppercase tracking-wide text-blue-600">${escapeHtml(n.CategoryName || 'Campus Issue')}</span>
+                <span class="notif-time">${timeAgo}</span>
+              </div>
+              <div class="notif-title">${escapeHtml(n.Title)}</div>
+              <div class="notif-desc">${escapeHtml(n.Message)}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    if (window.lucide) lucide.createIcons();
+  }
+}
+
+function showFloatingNotificationToast(notif) {
+  const existing = document.querySelector('.notif-toast-banner');
+  if (existing) existing.remove();
+
+  const toast = document.createElement('div');
+  toast.className = 'notif-toast-banner';
+  toast.onclick = () => {
+    handleNotificationClick(notif.NotificationID, notif.ComplaintID);
+    toast.remove();
+  };
+
+  const priorityColor = notif.Priority === 'Emergency' ? 'text-rose-600' : (notif.Priority === 'High' ? 'text-amber-600' : 'text-blue-600');
+
+  toast.innerHTML = `
+    <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0 shadow-sm border border-blue-100">
+      <i data-lucide="bell-ring" class="w-5 h-5 text-blue-600"></i>
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center justify-between mb-0.5">
+        <span class="text-xs font-black uppercase tracking-wider ${priorityColor}">
+          ✦ New ${escapeHtml(notif.Priority)} Grievance #${notif.ComplaintID}
+        </span>
+        <span class="text-[10px] text-slate-400 font-bold">Just Now</span>
+      </div>
+      <div class="text-xs font-bold text-slate-900 leading-snug truncate">${escapeHtml(notif.Title)}</div>
+      <div class="text-[11px] text-slate-500 mt-0.5 line-clamp-1">${escapeHtml(notif.Message)}</div>
+      <div class="text-[10px] font-bold text-blue-600 mt-1 flex items-center gap-1">
+        Click to review ticket &rarr;
+      </div>
+    </div>
+    <button type="button" onclick="event.stopPropagation(); this.closest('.notif-toast-banner').remove();" class="text-slate-400 hover:text-slate-600 p-1">
+      &times;
+    </button>
+  `;
+
+  document.body.appendChild(toast);
+  if (window.lucide) lucide.createIcons();
+
+  setTimeout(() => {
+    if (toast.parentElement) {
+      toast.classList.add('toast-hide');
+      setTimeout(() => toast.remove(), 300);
+    }
+  }, 8000);
+}
+
+function triggerDesktopNotification(notif) {
+  if (!('Notification' in window)) return;
+
+  if (Notification.permission === 'granted') {
+    try {
+      const n = new Notification(`CampusCare: ${notif.Priority} Grievance #${notif.ComplaintID}`, {
+        body: `${notif.Title}\n${notif.Message}`,
+        icon: 'images/logo.jpg',
+        badge: 'images/logo.jpg'
+      });
+      n.onclick = function() {
+        window.focus();
+        handleNotificationClick(notif.NotificationID, notif.ComplaintID);
+        n.close();
+      };
+    } catch (err) {
+      console.log("Desktop notification error:", err);
+    }
+  }
+}
+
+function requestDesktopNotificationPermission() {
+  if (!('Notification' in window)) {
+    alert("Desktop notifications are not supported in this browser.");
+    return;
+  }
+
+  Notification.requestPermission().then(permission => {
+    const btn = document.getElementById('btn-enable-desktop-notif');
+    if (permission === 'granted') {
+      if (btn) btn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i> <span class="text-emerald-700">Desktop Alerts Enabled</span>`;
+      new Notification("CampusCare Alerts Activated", {
+        body: "You will now receive desktop notifications whenever a student registers a grievance.",
+        icon: 'images/logo.jpg'
+      });
+    } else {
+      if (btn) btn.innerHTML = `<i data-lucide="x" class="w-3.5 h-3.5 text-rose-500"></i> <span class="text-rose-600">Permission Blocked</span>`;
+    }
+    if (window.lucide) lucide.createIcons();
+  });
+}
+
+async function handleNotificationClick(notifId, complaintId) {
+  const menu = document.getElementById('notif-dropdown-menu');
+  if (menu) menu.classList.add('hidden');
+
+  // Mark as read in background
+  apiFetch(`/api/admin/notifications/read/${notifId}`, { method: 'POST' }).then(() => {
+    fetchNotifications();
+  });
+
+  // Open status modal for this complaint
+  if (complaintId && typeof openStatusModal === 'function') {
+    openStatusModal(complaintId);
+  }
+}
+
+async function markAllNotificationsRead() {
+  const res = await apiFetch('/api/admin/notifications/read-all', { method: 'POST' });
+  if (res && res.ok) {
+    fetchNotifications();
+  }
+}
+
+function formatTimeAgo(isoString) {
+  if (!isoString) return '';
+  const date = new Date(isoString);
+  const now = new Date();
+  const diffSec = Math.floor((now - date) / 1000);
+
+  if (diffSec < 60) return 'Just now';
+  if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
+  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;
+  return `${Math.floor(diffSec / 86400)}d ago`;
+}
+
+function initNotificationPoller() {
+  fetchNotifications();
+  if (!notifPollInterval) {
+    notifPollInterval = setInterval(fetchNotifications, 12000); // 12s interval
+  }
+
+  // Update permission button text if already granted
+  if ('Notification' in window && Notification.permission === 'granted') {
+    const btn = document.getElementById('btn-enable-desktop-notif');
+    if (btn) {
+      btn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i> <span class="text-emerald-700">Desktop Alerts Enabled</span>`;
+      if (window.lucide) lucide.createIcons();
+    }
+  }
+}
+
 

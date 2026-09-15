@@ -100,7 +100,24 @@ CREATE TABLE dbo.Feedback (
 );
 GO
 
--- 8. Performance Indexes
+-- 8. Create Notifications Table (System & Real-Time Alerts)
+CREATE TABLE dbo.Notifications (
+    NotificationID INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Notifications PRIMARY KEY CLUSTERED,
+    ComplaintID INT NOT NULL,
+    Title NVARCHAR(200) NOT NULL,
+    Message NVARCHAR(500) NOT NULL,
+    Priority NVARCHAR(20) NOT NULL,
+    CategoryName NVARCHAR(50) NULL,
+    StudentName NVARCHAR(100) NULL,
+    IsRead BIT NOT NULL CONSTRAINT DF_Notifications_IsRead DEFAULT 0,
+    CreatedAt DATETIME2(0) NOT NULL CONSTRAINT DF_Notifications_CreatedAt DEFAULT SYSUTCDATETIME(),
+
+    CONSTRAINT FK_Notifications_Complaints FOREIGN KEY (ComplaintID)
+        REFERENCES dbo.Complaints(ComplaintID) ON DELETE CASCADE
+);
+GO
+
+-- 9. Performance Indexes
 CREATE NONCLUSTERED INDEX IX_Complaints_UserID 
     ON dbo.Complaints(UserID) 
     INCLUDE (Status, Priority, CreatedAt);

@@ -72,8 +72,46 @@
           </div>
         </div>
 
-        <!-- Right Side: User Profile Header -->
-        <div id="user-profile-header" class="hidden flex items-center gap-4">
+        <!-- Right Side: User Profile Header & Notifications -->
+        <div id="user-profile-header" class="hidden flex items-center gap-3 sm:gap-4">
+
+          <!-- NOTIFICATION BELL & DROPDOWN -->
+          <div class="relative" id="notif-dropdown-wrapper">
+            <button id="notif-bell-btn" onclick="toggleNotificationDropdown(event)" class="relative p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-sm transition-all hover:scale-105" title="System Notifications">
+              <i data-lucide="bell" class="w-5 h-5 text-slate-700"></i>
+              <!-- Unread Badge -->
+              <span id="notif-badge" class="hidden absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-600 px-1 text-[11px] font-black text-white shadow-md ring-2 ring-white animate-pulse">0</span>
+            </button>
+
+            <!-- NOTIFICATION DROPDOWN TRAY -->
+            <div id="notif-dropdown-menu" class="hidden absolute right-0 mt-3 w-80 sm:w-96 rounded-2xl bg-white/95 backdrop-blur-xl border border-slate-200 shadow-2xl shadow-slate-900/15 z-50 overflow-hidden transition-all">
+              <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+                <div class="flex items-center gap-2">
+                  <i data-lucide="bell-ring" class="w-4 h-4 text-blue-600"></i>
+                  <span class="text-xs font-black text-slate-800 uppercase tracking-wider font-display">System Alerts</span>
+                  <span id="notif-unread-tag" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 hidden">0 New</span>
+                </div>
+                <button onclick="markAllNotificationsRead()" class="text-[11px] font-bold text-blue-600 hover:text-blue-800 hover:underline">
+                  Mark all as read
+                </button>
+              </div>
+
+              <!-- NOTIFICATIONS LIST -->
+              <div id="notif-list-container" class="max-h-80 overflow-y-auto divide-y divide-slate-100">
+                <div class="p-6 text-center text-xs text-slate-400">
+                  <i data-lucide="inbox" class="w-8 h-8 mx-auto text-slate-300 mb-2"></i>
+                  No new notifications
+                </div>
+              </div>
+
+              <div class="p-2.5 border-t border-slate-100 bg-slate-50/50 text-center">
+                <button onclick="requestDesktopNotificationPermission()" id="btn-enable-desktop-notif" class="text-[11px] font-bold text-slate-600 hover:text-blue-600 flex items-center justify-center gap-1.5 w-full py-1">
+                  <i data-lucide="monitor" class="w-3.5 h-3.5"></i> <span>Enable Windows Desktop Alerts</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div class="text-right hidden sm:block">
             <div class="flex items-center justify-end gap-2">
               <span id="header-user-name" class="text-base sm:text-lg font-black text-slate-900 font-display"></span>

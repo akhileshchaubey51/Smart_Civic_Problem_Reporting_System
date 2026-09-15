@@ -12,6 +12,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
+    <!-- Bootstrap Icons CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
     <link rel="stylesheet" href="dashboard.css">
     <link rel="stylesheet" href="page-transitions.css">
 </head>
@@ -201,9 +204,9 @@
     <div class="issues-container">
 
         <!-- Card 1: Road Issues -->
-        <div class="issue-box">
+        <div class="issue-box card-road">
             <div class="issue-image">
-                <span class="issue-card-tag">MOBILITY &amp; ROADS</span>
+                <span class="issue-card-tag"><i class="bi bi-cone-striped"></i> MOBILITY &amp; ROADS</span>
                 <img src="images/road.jpg" alt="Road Issues" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=600&q=80';">
             </div>
             <h3>Road Issues</h3>
@@ -212,9 +215,9 @@
         </div>
 
         <!-- Card 2: Water Issues -->
-        <div class="issue-box">
+        <div class="issue-box card-water">
             <div class="issue-image">
-                <span class="issue-card-tag">WATER &amp; UTILITIES</span>
+                <span class="issue-card-tag"><i class="bi bi-droplet-half"></i> WATER &amp; UTILITIES</span>
                 <img src="images/water.jpg" alt="Water Issues" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1541888946425-d0fbb186c5f3?w=600&q=80';">
             </div>
             <h3>Water Issues</h3>
@@ -223,9 +226,9 @@
         </div>
 
         <!-- Card 3: Electricity & Lighting -->
-        <div class="issue-box">
+        <div class="issue-box card-electric">
             <div class="issue-image">
-                <span class="issue-card-tag">ELECTRICAL CELL</span>
+                <span class="issue-card-tag"><i class="bi bi-lightning-charge"></i> ELECTRICAL CELL</span>
                 <img src="images/electricity.jpg" alt="Electricity" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=600&q=80';">
             </div>
             <h3>Electricity &amp; Power</h3>
@@ -234,9 +237,9 @@
         </div>
 
         <!-- Card 4: Cleanliness & Hygiene -->
-        <div class="issue-box">
+        <div class="issue-box card-cleanliness">
             <div class="issue-image">
-                <span class="issue-card-tag">HYGIENE &amp; SANITATION</span>
+                <span class="issue-card-tag"><i class="bi bi-trash3"></i> HYGIENE &amp; SANITATION</span>
                 <img src="images/cleanliness.jpg" alt="Cleanliness" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1604187351574-c75ca79f5807?w=600&q=80';">
             </div>
             <h3>Cleanliness &amp; Hygiene</h3>
@@ -245,9 +248,9 @@
         </div>
 
         <!-- Card 5: Parking & Mobility -->
-        <div class="issue-box">
+        <div class="issue-box card-parking">
             <div class="issue-image">
-                <span class="issue-card-tag">ESTATE &amp; VEHICLES</span>
+                <span class="issue-card-tag"><i class="bi bi-p-square"></i> ESTATE &amp; VEHICLES</span>
                 <img src="images/parking.jpg" alt="Parking" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1506521781263-d8422e82f27a?w=600&q=80';">
             </div>
             <h3>Parking &amp; Mobility</h3>
@@ -256,9 +259,9 @@
         </div>
 
         <!-- Card 6: Infrastructure & Classrooms -->
-        <div class="issue-box">
+        <div class="issue-box card-infra">
             <div class="issue-image">
-                <span class="issue-card-tag">ACADEMIC BLOCKS</span>
+                <span class="issue-card-tag"><i class="bi bi-building"></i> ACADEMIC BLOCKS</span>
                 <img src="images/infrastructure.jpg" alt="Infrastructure" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1562774053-701939374585?w=600&q=80';">
             </div>
             <h3>Infrastructure &amp; Labs</h3>
@@ -267,9 +270,9 @@
         </div>
 
         <!-- Card 7: Internet & Wi-Fi -->
-        <div class="issue-box">
+        <div class="issue-box card-wifi">
             <div class="issue-image">
-                <span class="issue-card-tag">IT INFRASTRUCTURE</span>
+                <span class="issue-card-tag"><i class="bi bi-wifi"></i> IT INFRASTRUCTURE</span>
                 <img src="images/internet.jpg" alt="Internet / Wi-Fi" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=600&q=80';">
             </div>
             <h3>Internet &amp; Wi-Fi</h3>
@@ -278,9 +281,9 @@
         </div>
 
         <!-- Card 8: Hostel & Residential -->
-        <div class="issue-box">
+        <div class="issue-box card-hostel">
             <div class="issue-image">
-                <span class="issue-card-tag">HOSTEL RESIDENCE</span>
+                <span class="issue-card-tag"><i class="bi bi-houses"></i> HOSTEL RESIDENCE</span>
                 <img src="images/campus.webp" alt="Hostel" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=600&q=80';">
             </div>
             <h3>Hostel &amp; Living</h3>
@@ -289,10 +292,10 @@
         </div>
 
         <!-- Card 9: Mess & Cafeteria -->
-        <div class="issue-box">
+        <div class="issue-box card-mess">
             <div class="issue-image">
-                <span class="issue-card-tag">DINING &amp; FOOD</span>
-                <img src="https://images.unsplash.com/photo-1567521464027-f127ff144326?w=600&q=80" alt="Mess &amp; Cafeteria">
+                <span class="issue-card-tag"><i class="bi bi-cup-hot"></i> DINING &amp; FOOD</span>
+                <img src="images/Mess & Cafeteria.jpg" alt="Mess &amp; Cafeteria" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1567521464027-f127ff144326?w=600&q=80';">
             </div>
             <h3>Mess &amp; Cafeteria</h3>
             <p>Report food hygiene concerns, dining hall seating, drinking water points and canteen cleanliness.</p>
@@ -300,10 +303,10 @@
         </div>
 
         <!-- Card 10: Library & Reading Halls -->
-        <div class="issue-box">
+        <div class="issue-box card-library">
             <div class="issue-image">
-                <span class="issue-card-tag">LIBRARY &amp; STUDY</span>
-                <img src="https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=600&q=80" alt="Library &amp; Reading Halls">
+                <span class="issue-card-tag"><i class="bi bi-book"></i> LIBRARY &amp; STUDY</span>
+                <img src="images/Library & Reading Halls.jpg" alt="Library &amp; Reading Halls" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=600&q=80';">
             </div>
             <h3>Library &amp; Reading Halls</h3>
             <p>Report reading hall lighting, AC cooling, digital library terminals, book scanners and quiet zones.</p>
@@ -311,10 +314,10 @@
         </div>
 
         <!-- Card 11: Security & Campus Safety -->
-        <div class="issue-box">
+        <div class="issue-box card-security">
             <div class="issue-image">
-                <span class="issue-card-tag">SAFETY &amp; SECURITY</span>
-                <img src="https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=600&q=80" alt="Security &amp; Safety">
+                <span class="issue-card-tag"><i class="bi bi-shield-check"></i> SAFETY &amp; SECURITY</span>
+                <img src="images/Security & Safety.jpg" alt="Security &amp; Safety" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=600&q=80';">
             </div>
             <h3>Security &amp; Safety</h3>
             <p>Report streetlights during night hours, CCTV blindspots, boundary wall hazards and emergency access.</p>
@@ -322,9 +325,9 @@
         </div>
 
         <!-- Card 12: Other Issues -->
-        <div class="issue-box">
+        <div class="issue-box card-other">
             <div class="issue-image">
-                <span class="issue-card-tag">GENERAL GRIEVANCES</span>
+                <span class="issue-card-tag"><i class="bi bi-grid"></i> GENERAL GRIEVANCES</span>
                 <img src="images/other.jpg" alt="Other Issues" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1532619675605-1ede6c2ed2b0?w=600&q=80';">
             </div>
             <h3>Other Issues</h3>
@@ -352,7 +355,7 @@
 
     <div class="steps-container">
 
-        <div class="step-box">
+        <div class="step-box step-box-1">
             <div class="step-image">
                 <img src="images/capture.png" alt="Capture Campus Issue">
                 <span class="step-number">01</span>
@@ -364,7 +367,7 @@
             </div>
         </div>
 
-        <div class="step-box">
+        <div class="step-box step-box-2">
             <div class="step-image">
                 <img src="images/gps.png" alt="GPS Location">
                 <span class="step-number">02</span>
@@ -376,7 +379,7 @@
             </div>
         </div>
 
-        <div class="step-box">
+        <div class="step-box step-box-3">
             <div class="step-image">
                 <img src="images/ai-analysis.png" alt="AI Analysis">
                 <span class="step-number">03</span>
@@ -388,7 +391,7 @@
             </div>
         </div>
 
-        <div class="step-box">
+        <div class="step-box step-box-4">
             <div class="step-image">
                 <img src="images/track.jpg" alt="Track Complaint">
                 <span class="step-number">04</span>
@@ -424,25 +427,25 @@
 
     <div class="about-stats">
 
-        <div class="stat-card">
+        <div class="stat-card stat-card-1">
             <div class="stat-icon">⏱️</div>
             <strong>24/7</strong>
             <span>Issue Reporting</span>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card stat-card-2">
             <div class="stat-icon">🤖</div>
             <strong>AI</strong>
             <span>Smart Detection</span>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card stat-card-3">
             <div class="stat-icon">📍</div>
             <strong>GPS</strong>
             <span>Location Based</span>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card stat-card-4">
             <div class="stat-icon">✓</div>
             <strong>1</strong>
             <span>Unified Platform</span>
