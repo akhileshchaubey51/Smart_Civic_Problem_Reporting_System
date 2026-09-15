@@ -1,0 +1,15 @@
+﻿services:
+  - type: web
+    name: campuscare
+    env: python
+    region: singapore
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn backend.app:app
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: DEBUG
+        value: 'False'
+      - key: SECRET_KEY
+        generateValue: true
