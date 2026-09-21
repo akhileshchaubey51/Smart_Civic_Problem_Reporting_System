@@ -59,6 +59,14 @@ function applyUserSession(user) {
       roleBadge.className = 'px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider bg-blue-100 text-blue-900 border border-blue-300 shadow-sm';
       roleBadge.innerText = 'Student Portal';
     }
+
+    const headerAvatar = document.getElementById('header-user-avatar');
+    if (headerAvatar) {
+      const defaultAvatar = user.role === 'Admin'
+        ? 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80'
+        : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
+      headerAvatar.src = user.profile_image || user.ProfileImage || defaultAvatar;
+    }
   }
 
   document.getElementById('auth-view').classList.add('hidden');

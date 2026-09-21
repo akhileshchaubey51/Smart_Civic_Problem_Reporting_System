@@ -496,13 +496,15 @@ async function exportComplaintsCSV() {
 }
 
 /* ==========================================================================
-   Admin View Switcher: Grievance Engine vs User Directory
+   Admin View Switcher: Grievance Engine vs User Directory vs Media Files
    ========================================================================== */
 function switchAdminPortalTab(tab) {
   const tabGrievances = document.getElementById('admin-tab-grievances');
   const tabUsers = document.getElementById('admin-tab-users');
+  const tabFiles = document.getElementById('admin-tab-files');
   const secGrievances = document.getElementById('admin-section-grievances');
   const secUsers = document.getElementById('admin-section-users');
+  const secFiles = document.getElementById('admin-section-files');
 
   if (!tabGrievances || !tabUsers || !secGrievances || !secUsers) return;
 
@@ -511,20 +513,34 @@ function switchAdminPortalTab(tab) {
     setTimeout(() => CampusLoader.finishProgress(), 300);
   }
 
+  // Deactivate all tabs first
+  tabGrievances.classList.remove('active');
+  tabUsers.classList.remove('active');
+  if (tabFiles) tabFiles.classList.remove('active');
+
+  secGrievances.classList.add('hidden');
+  secUsers.classList.add('hidden');
+  if (secFiles) secFiles.classList.add('hidden');
+
   if (tab === 'users') {
     tabUsers.classList.add('active');
-    tabGrievances.classList.remove('active');
     secUsers.classList.remove('hidden');
-    secGrievances.classList.add('hidden');
     secUsers.classList.remove('tab-content-enter');
     void secUsers.offsetWidth; // Trigger reflow
     secUsers.classList.add('tab-content-enter');
     loadAdminUsers();
+  } else if (tab === 'files') {
+    if (tabFiles) tabFiles.classList.add('active');
+    if (secFiles) {
+      secFiles.classList.remove('hidden');
+      secFiles.classList.remove('tab-content-enter');
+      void secFiles.offsetWidth; // Trigger reflow
+      secFiles.classList.add('tab-content-enter');
+    }
+    loadAdminFiles();
   } else {
     tabGrievances.classList.add('active');
-    tabUsers.classList.remove('active');
     secGrievances.classList.remove('hidden');
-    secUsers.classList.add('hidden');
     secGrievances.classList.remove('tab-content-enter');
     void secGrievances.offsetWidth; // Trigger reflow
     secGrievances.classList.add('tab-content-enter');
@@ -569,18 +585,19 @@ async function loadAdminUsers() {
     const roleBadgeClass = isStudent 
       ? 'bg-blue-100 text-blue-700 border-blue-200' 
       : 'bg-purple-100 text-purple-700 border-purple-200';
-    const avatarLetter = (u.FullName || 'U').charAt(0).toUpperCase();
+    const defaultAvatar = isStudent
+      ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
+      : 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80';
+    const profileImgSrc = u.ProfileImage || defaultAvatar;
 
     return `
       <tr class="border-b border-slate-100 hover:bg-slate-50/80 transition-colors">
         <td class="py-3.5 px-4 font-mono font-bold text-slate-400">#UID-${u.UserID}</td>
         <td class="py-3.5 px-4">
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-full ${isStudent ? 'bg-blue-600' : 'bg-purple-600'} text-white font-bold text-xs flex items-center justify-center shrink-0">
-              ${avatarLetter}
-            </div>
+          <div class="flex items-center gap-3">
+            <img src="${profileImgSrc}" alt="${escapeHtml(u.FullName)}" class="w-9 h-9 rounded-full object-cover border border-slate-200 shadow-sm shrink-0" onerror="this.onerror=null; this.src='${defaultAvatar}';" />
             <div>
-              <strong class="text-slate-800 text-sm block">${escapeHtml(u.FullName)}</strong>
+              <strong class="text-slate-800 text-sm block font-bold">${escapeHtml(u.FullName)}</strong>
             </div>
           </div>
         </td>
@@ -602,8 +619,47 @@ async function loadAdminUsers() {
 }
 
 /* ==========================================================================
-   Add User Modal & Logic
+   Add User Modal & Logic (With Profile Photo Upload & Presets)
    ========================================================================== */
+const AVATAR_PRESETS = [
+  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80'
+];
+let currentPresetAvatarIndex = 0;
+let selectedNewUserPhotoFile = null;
+
+function handleNewUserPhotoSelect(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  selectedNewUserPhotoFile = file;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    updateNewUserPhotoPreview(e.target.result, `Selected: ${file.name} (${Math.round(file.size / 1024)} KB)`);
+  };
+  reader.readAsDataURL(file);
+}
+
+function cycleNewUserPresetAvatar() {
+  selectedNewUserPhotoFile = null;
+  const fileInput = document.getElementById('new-user-photo-input');
+  if (fileInput) fileInput.value = '';
+
+  currentPresetAvatarIndex = (currentPresetAvatarIndex + 1) % AVATAR_PRESETS.length;
+  updateNewUserPhotoPreview(AVATAR_PRESETS[currentPresetAvatarIndex], `Preset photo #${currentPresetAvatarIndex + 1} selected.`);
+}
+
+function updateNewUserPhotoPreview(src, statusText) {
+  const preview = document.getElementById('new-user-photo-preview');
+  if (preview) preview.src = src;
+  const status = document.getElementById('new-user-photo-status');
+  if (status) status.innerText = statusText;
+}
+
 function openAddUserModal() {
   const modal = document.getElementById('admin-add-user-modal');
   const alertBox = document.getElementById('add-user-alert');
@@ -620,6 +676,13 @@ function openAddUserModal() {
   if (courseSel) courseSel.selectedIndex = 0;
   document.getElementById('new-user-department').selectedIndex = 0;
   document.getElementById('new-user-phone').value = '';
+
+  // Clear photo selection
+  selectedNewUserPhotoFile = null;
+  currentPresetAvatarIndex = 0;
+  const photoInput = document.getElementById('new-user-photo-input');
+  if (photoInput) photoInput.value = '';
+  updateNewUserPhotoPreview(AVATAR_PRESETS[0], 'Default student portrait selected. You can upload an official ID photo.');
 
   if (modal) {
     modal.classList.remove('hidden');
@@ -700,18 +763,24 @@ async function handleAddUserSubmit(e) {
   submitBtn.innerHTML = `<span class="animate-spin inline-block mr-2">⟳</span> Creating Account...`;
 
   try {
+    const formData = new FormData();
+    formData.append('full_name', fullName);
+    formData.append('college_email', email);
+    formData.append('password', password);
+    formData.append('role', role);
+    formData.append('course', course);
+    formData.append('department', department);
+    formData.append('phone', phone);
+
+    if (selectedNewUserPhotoFile) {
+      formData.append('profile_image', selectedNewUserPhotoFile);
+    } else {
+      formData.append('profile_image', AVATAR_PRESETS[currentPresetAvatarIndex]);
+    }
+
     const res = await apiFetch('/api/admin/users/create', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        full_name: fullName,
-        college_email: email,
-        password: password,
-        role: role,
-        course: course,
-        department: department,
-        phone: phone
-      })
+      body: formData
     });
 
     if (res && res.ok && res.data.success) {
@@ -765,6 +834,142 @@ function closeImageLightbox(e) {
   const img = document.getElementById('lightbox-img');
   if (modal) modal.classList.remove('show');
   if (img) img.src = '';
+}
+
+/* ==========================================================================
+   Admin Uploaded Files & Media Repository Folder
+   ========================================================================== */
+let allAdminFiles = [];
+
+async function loadAdminFiles() {
+  const container = document.getElementById('admin-files-container');
+  const countBadge = document.getElementById('admin-files-count-badge');
+  if (!container) return;
+
+  container.innerHTML = `<div class="col-span-full py-12 text-center text-slate-400"><span class="animate-spin inline-block mr-2">⟳</span> Scanning backend/uploads/ media directory...</div>`;
+
+  try {
+    const res = await apiFetch('/api/admin/files');
+    if (!res || !res.ok || !res.data.success) {
+      container.innerHTML = `<div class="col-span-full py-10 text-center text-rose-500 font-medium">Failed to load media folder contents.</div>`;
+      return;
+    }
+
+    allAdminFiles = res.data.files || [];
+    if (countBadge) {
+      countBadge.innerText = `${res.data.total_files} Files (${res.data.total_size_mb} MB)`;
+    }
+
+    renderAdminFilesGrid(allAdminFiles);
+  } catch (err) {
+    console.error('Error loading files:', err);
+    container.innerHTML = `<div class="col-span-full py-10 text-center text-rose-500 font-medium">Error connecting to server.</div>`;
+  }
+}
+
+function filterAdminFiles() {
+  const search = document.getElementById('admin-files-search')?.value.trim().toLowerCase() || '';
+  const typeFilter = document.getElementById('admin-files-filter-type')?.value || 'all';
+
+  let filtered = allAdminFiles;
+
+  if (typeFilter === 'evidence') {
+    filtered = filtered.filter(f => f.association && f.association.type === 'Complaint Evidence');
+  } else if (typeFilter === 'avatar') {
+    filtered = filtered.filter(f => f.filename.startsWith('avatar_') || (f.association && f.association.type.includes('Profile')));
+  }
+
+  if (search) {
+    filtered = filtered.filter(f => {
+      const matchName = f.filename.toLowerCase().includes(search);
+      const matchAssoc = f.association && (
+        (f.association.title && f.association.title.toLowerCase().includes(search)) ||
+        (f.association.type && f.association.type.toLowerCase().includes(search)) ||
+        (f.association.id && String(f.association.id).includes(search))
+      );
+      return matchName || matchAssoc;
+    });
+  }
+
+  renderAdminFilesGrid(filtered);
+}
+
+function renderAdminFilesGrid(files) {
+  const container = document.getElementById('admin-files-container');
+  if (!container) return;
+
+  if (files.length === 0) {
+    container.innerHTML = `
+      <div class="col-span-full py-14 text-center text-slate-400">
+        <i data-lucide="folder-x" class="w-12 h-12 mx-auto text-slate-300 mb-2"></i>
+        <p class="text-sm font-bold text-slate-600">No media files found</p>
+        <p class="text-xs text-slate-400 mt-1">No uploaded files matched your search or filter.</p>
+      </div>
+    `;
+    if (window.lucide) lucide.createIcons();
+    return;
+  }
+
+  container.innerHTML = files.map(file => {
+    const isImage = file.is_image;
+    const assoc = file.association || { type: 'File', title: 'Campus Attachment' };
+    const isEvidence = assoc.type === 'Complaint Evidence';
+    const isAvatar = file.filename.startsWith('avatar_') || assoc.type.includes('Profile');
+
+    const badgeColor = isEvidence 
+      ? 'bg-amber-100 text-amber-800 border-amber-200' 
+      : (isAvatar ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-slate-100 text-slate-700 border-slate-200');
+
+    const displayTitle = assoc.title && assoc.title !== 'Profile Photo' ? assoc.title : file.filename;
+
+    return `
+      <div class="group relative bg-white rounded-2xl border border-slate-200 p-3 shadow-sm hover:shadow-md hover:border-blue-300 transition-all flex flex-col justify-between overflow-hidden">
+        
+        <!-- Thumbnail / Preview -->
+        <div class="relative w-full aspect-square rounded-xl bg-slate-50 overflow-hidden mb-2.5 flex items-center justify-center border border-slate-100">
+          ${isImage ? `
+            <img src="${file.url}" alt="${escapeHtml(file.filename)}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200 cursor-pointer" onclick="openImageLightbox('${file.url}', '${escapeHtml(displayTitle)}')" onerror="this.onerror=null; this.src='images/logo.jpg';" />
+            <button type="button" onclick="openImageLightbox('${file.url}', '${escapeHtml(displayTitle)}')" class="absolute top-2 right-2 p-1.5 rounded-lg bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80 shadow" title="Zoom image">
+              <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
+            </button>
+          ` : `
+            <div class="text-center p-3">
+              <i data-lucide="file-text" class="w-10 h-10 text-slate-400 mx-auto mb-1"></i>
+              <span class="text-[10px] uppercase font-bold text-slate-500 font-mono">${file.extension || 'FILE'}</span>
+            </div>
+          `}
+        </div>
+
+        <!-- Meta Info -->
+        <div class="space-y-1">
+          <div class="flex items-center justify-between gap-1">
+            <span class="inline-block text-[10px] font-bold px-1.5 py-0.5 rounded border ${badgeColor} truncate max-w-[110px]">
+              ${escapeHtml(assoc.type)}
+            </span>
+            <span class="text-[10px] text-slate-400 font-mono font-medium">${file.size_formatted}</span>
+          </div>
+
+          <h4 class="text-xs font-bold text-slate-800 truncate" title="${escapeHtml(displayTitle)}">
+            ${escapeHtml(displayTitle)}
+          </h4>
+          <p class="text-[10px] text-slate-400 truncate font-mono">${escapeHtml(file.filename)}</p>
+        </div>
+
+        <!-- Action Bar -->
+        <div class="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between">
+          <a href="${file.url}" download="${file.filename}" class="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-800 hover:underline">
+            <i data-lucide="download" class="w-3 h-3"></i> Save
+          </a>
+          <a href="${file.url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 hover:text-slate-700">
+            <i data-lucide="external-link" class="w-3 h-3"></i> View
+          </a>
+        </div>
+
+      </div>
+    `;
+  }).join('');
+
+  if (window.lucide) lucide.createIcons();
 }
 
 /* ==========================================================================

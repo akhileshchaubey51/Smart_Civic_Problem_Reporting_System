@@ -75,7 +75,8 @@ function populateStudentUI(user) {
     else course = 'B.Tech';
   }
 
-  const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1d4ed8&color=fff&bold=true`;
+  const DEFAULT_STUDENT_AVATAR = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80';
+  const avatarUrl = user.profile_image || user.ProfileImage || DEFAULT_STUDENT_AVATAR;
 
   // Navbar elements
   const profileName = document.getElementById('profileName');
@@ -84,6 +85,7 @@ function populateStudentUI(user) {
   const dropdownProfileName = document.getElementById('dropdownProfileName');
   const dropdownKietId = document.getElementById('dropdownKietId');
   const dropdownProfilePhoto = document.getElementById('dropdownProfilePhoto');
+  const viewProfilePhotoImg = document.getElementById('viewProfilePhotoImg');
 
   if (profileName) profileName.innerText = name;
   if (profileCourse) {
@@ -96,6 +98,7 @@ function populateStudentUI(user) {
   if (dropdownProfileName) dropdownProfileName.innerText = name;
   if (dropdownKietId) dropdownKietId.innerText = email;
   if (dropdownProfilePhoto) dropdownProfilePhoto.src = avatarUrl;
+  if (viewProfilePhotoImg) viewProfilePhotoImg.src = avatarUrl;
 
   // Profile View Modal elements
   const vName = document.getElementById('viewStudentName');
@@ -424,3 +427,66 @@ function escapeHtml(text) {
   div.innerText = text;
   return div.innerHTML;
 }
+
+/**
+ * 8. Handle Student Profile Photo Upload
+ */
+async function handleStudentPhotoUpload(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  const statusEl = document.getElementById('photoUploadStatus');
+  if (statusEl) {
+    statusEl.innerHTML = '<span style="color:#2563eb; font-weight:500;"><i class="bi bi-arrow-repeat animate-spin"></i> Uploading photo...</span>';
+  }
+
+  const formData = new FormData();
+  formData.append('profile_image', file);
+
+  try {
+    const res = await fetch('/api/auth/profile-photo', {
+      method: 'POST',
+      body: formData,
+      credentials: 'include'
+    });
+
+    const data = await res.json();
+    if (res.ok && data.profile_image) {
+      // Update displayed images across the student portal
+      const profilePhoto = document.getElementById('profilePhoto');
+      const dropdownProfilePhoto = document.getElementById('dropdownProfilePhoto');
+      const viewPhoto = document.getElementById('viewProfilePhotoImg');
+
+      if (profilePhoto) profilePhoto.src = data.profile_image;
+      if (dropdownProfilePhoto) dropdownProfilePhoto.src = data.profile_image;
+      if (viewPhoto) viewPhoto.src = data.profile_image;
+
+      // Update cached user session in localStorage
+      let cached = null;
+      try {
+        cached = JSON.parse(localStorage.getItem('campuscare_user') || '{}');
+      } catch (e) {
+        cached = {};
+      }
+      cached.profile_image = data.profile_image;
+      cached.ProfileImage = data.profile_image;
+      localStorage.setItem('campuscare_user', JSON.stringify(cached));
+
+      if (statusEl) {
+        statusEl.innerHTML = '<span style="color:#16a34a; font-weight:600;"><i class="bi bi-check-circle-fill"></i> Photo updated successfully!</span>';
+      }
+    } else {
+      if (statusEl) {
+        statusEl.innerHTML = `<span style="color:#dc2626;">Failed: ${data.message || 'Error uploading photo'}</span>`;
+      }
+    }
+  } catch (err) {
+    console.error('Error uploading photo:', err);
+    if (statusEl) {
+      statusEl.innerHTML = '<span style="color:#dc2626;">Network error during photo upload.</span>';
+    }
+  }
+}
+
+window.handleStudentPhotoUpload = handleStudentPhotoUpload;
+

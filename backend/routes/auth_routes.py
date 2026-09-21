@@ -7,13 +7,17 @@ from backend.db import query_db, execute_db
 from backend.auth import hash_password, verify_password, generate_token, token_required
 from backend.config import Config
 
-auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
-
+import os
 import re
+import uuid
+from werkzeug.utils import secure_filename
+
+auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 
 def infer_course(dept: str, explicit_course: str = '') -> str:
     if explicit_course:
         return explicit_course
+    dept_lower = (dept or '').lower()
     if 'bca' in dept_lower:
         return 'BCA'
     if 'mca' in dept_lower or 'computer applications' in dept_lower:
@@ -129,7 +133,7 @@ def register():
 @auth_bp.route('/login', methods=['POST'])
 def login():
     data = request.get_json() or {}
-    college_email = (data.get('college_email') or '').strip().lower()
+    college_email = (data.get('college_email') or data.get('email') or '').strip().lower()
     password = data.get('password') or ''
 
     if not college_email or not password:
@@ -147,7 +151,7 @@ def login():
             }), 403
 
     user = query_db("""
-        SELECT UserID, FullName, CollegeEmail, PasswordHash, Role, Department, Course, Phone, CreatedAt
+        SELECT UserID, FullName, CollegeEmail, PasswordHash, Role, Department, Course, Phone, ProfileImage, CreatedAt
         FROM dbo.Users 
         WHERE CollegeEmail = ?
     """, (college_email,), one=True)
@@ -168,7 +172,8 @@ def login():
             'role': user['Role'],
             'course': user.get('Course') or infer_course(user.get('Department', '')),
             'department': user['Department'],
-            'phone': user['Phone']
+            'phone': user['Phone'],
+            'profile_image': user.get('ProfileImage')
         }
     }), 200
 
@@ -176,7 +181,7 @@ def login():
 @token_required
 def get_current_user():
     user = query_db("""
-        SELECT UserID, FullName, CollegeEmail, Role, Department, Course, Phone, CreatedAt
+        SELECT UserID, FullName, CollegeEmail, Role, Department, Course, Phone, ProfileImage, CreatedAt
         FROM dbo.Users 
         WHERE UserID = ?
     """, (request.current_user['user_id'],), one=True)
@@ -185,7 +190,45 @@ def get_current_user():
         return jsonify({'success': False, 'message': 'User record not found.'}), 404
 
     user['course'] = user.get('Course') or infer_course(user.get('Department', ''))
+    user['profile_image'] = user.get('ProfileImage')
     return jsonify({'success': True, 'user': user})
+
+@auth_bp.route('/profile-photo', methods=['POST'])
+@token_required
+def update_profile_photo():
+    """
+    Update profile photo for the logged-in user.
+    Supports file upload (multipart/form-data) or JSON { "profile_image": "URL" }.
+    """
+    user_id = request.current_user['user_id']
+    image_url = None
+
+    if 'profile_image' in request.files or 'profile_photo' in request.files or 'image' in request.files:
+        photo_file = request.files.get('profile_image') or request.files.get('profile_photo') or request.files.get('image')
+        if photo_file and photo_file.filename:
+            ext = photo_file.filename.rsplit('.', 1)[-1].lower() if '.' in photo_file.filename else ''
+            if ext not in Config.ALLOWED_EXTENSIONS:
+                return jsonify({'success': False, 'message': f'Invalid file format. Allowed: {", ".join(Config.ALLOWED_EXTENSIONS)}'}), 400
+
+            os.makedirs(Config.UPLOAD_FOLDER, exist_ok=True)
+            unique_filename = f"avatar_{uuid.uuid4().hex[:10]}_{secure_filename(photo_file.filename)}"
+            save_path = os.path.join(Config.UPLOAD_FOLDER, unique_filename)
+            photo_file.save(save_path)
+            image_url = f"/uploads/{unique_filename}"
+    else:
+        data = request.get_json(silent=True) or request.form or {}
+        image_url = (data.get('profile_image') or data.get('profile_photo') or '').strip()
+
+    if not image_url:
+        return jsonify({'success': False, 'message': 'No profile photo file or image URL provided.'}), 400
+
+    execute_db("UPDATE dbo.Users SET ProfileImage = ? WHERE UserID = ?", (image_url, user_id))
+
+    return jsonify({
+        'success': True,
+        'message': 'Profile picture updated successfully.',
+        'profile_image': image_url
+    }), 200
 
 @auth_bp.route('/change-password', methods=['POST'])
 @token_required

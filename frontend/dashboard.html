@@ -87,7 +87,7 @@
 
                 <img 
                     id="profilePhoto" 
-                    src="https://ui-avatars.com/api/?name=Student&background=2563eb&color=fff&bold=true" 
+                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" 
                     alt="Student Profile">
 
                 <div class="profile-info">
@@ -105,7 +105,7 @@
                 <div class="profile-header">
                     <img 
                         id="dropdownProfilePhoto" 
-                        src="https://ui-avatars.com/api/?name=Student&background=2563eb&color=fff&bold=true" 
+                        src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" 
                         alt="Student Profile">
 
                     <div>
@@ -516,6 +516,18 @@
 
         <h2>Student Profile</h2>
         <p class="modal-description">Official KIET registration record.</p>
+
+        <!-- Profile Photo & Upload Section -->
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px; padding: 12px 16px; background: #f8fafc; border-radius: 16px; border: 1px solid #e2e8f0;">
+            <img id="viewProfilePhotoImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Student Profile Photo" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2.5px solid #2563eb; shrink-0;" />
+            <div style="flex: 1;">
+                <label for="studentPhotoUploadInput" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 600; color: #2563eb; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;">
+                    <i class="bi bi-camera"></i> Change Photo
+                </label>
+                <input type="file" id="studentPhotoUploadInput" accept="image/*" style="display: none;" onchange="handleStudentPhotoUpload(event)" />
+                <span id="photoUploadStatus" style="display: block; font-size: 11px; color: #64748b; margin-top: 4px;">Upload your real college ID / portrait photo</span>
+            </div>
+        </div>
 
         <div class="profile-info-grid">
             <div class="info-tile">

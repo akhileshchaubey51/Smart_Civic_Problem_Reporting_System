@@ -64,8 +64,18 @@ def _ensure_sqlite_initialized():
         Department TEXT NOT NULL,
         Course TEXT NULL,
         Phone TEXT NULL,
+        ProfileImage TEXT NULL,
         CreatedAt TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%S', 'now'))
     )""")
+
+    # Self-migration: ensure ProfileImage column exists on Users table
+    cur.execute("PRAGMA table_info(Users)")
+    existing_cols = [col[1] for col in cur.fetchall()]
+    if 'ProfileImage' not in existing_cols:
+        try:
+            cur.execute("ALTER TABLE Users ADD COLUMN ProfileImage TEXT NULL")
+        except Exception:
+            pass
 
     cur.execute("""
     CREATE TABLE IF NOT EXISTS dbo.Categories (
@@ -134,16 +144,25 @@ def _ensure_sqlite_initialized():
     cur.execute("SELECT COUNT(*) FROM dbo.Users")
     if cur.fetchone()[0] == 0:
         cur.execute("""
-        INSERT INTO dbo.Users (FullName, CollegeEmail, PasswordHash, Role, Department, Course, Phone)
+        INSERT INTO dbo.Users (FullName, CollegeEmail, PasswordHash, Role, Department, Course, Phone, ProfileImage)
         VALUES 
-        ('Dr. Ramesh Sharma (Dean of Student Affairs)', 'admin@kiet.edu', ?, 'Admin', 'Campus Administration', 'Staff/Faculty', '9876543210'),
-        ('KIET System Admin', 'admin1@kiet.edu', ?, 'Admin', 'Information Technology', 'Staff/Faculty', '9876543211'),
-        ('Aarav Patel', 'student@kiet.edu', ?, 'Student', 'Computer Science & Engineering', 'B.Tech', '9876543212')
+        ('Dr. Ramesh Sharma (Dean of Student Affairs)', 'admin@kiet.edu', ?, 'Admin', 'Campus Administration', 'Staff/Faculty', '9876543210', 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80'),
+        ('KIET System Admin', 'admin1@kiet.edu', ?, 'Admin', 'Information Technology', 'Staff/Faculty', '9876543211', 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80'),
+        ('Aarav Patel', 'student@kiet.edu', ?, 'Student', 'Computer Science & Engineering', 'B.Tech', '9876543212', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80')
         """, (
             generate_password_hash('Admin@123'),
             generate_password_hash('Admin@123'),
             generate_password_hash('Student@123')
         ))
+    else:
+        cur.execute("""
+            UPDATE Users
+            SET ProfileImage = CASE 
+                WHEN Role = 'Admin' THEN 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80'
+                ELSE 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'
+            END
+            WHERE ProfileImage IS NULL OR ProfileImage = '';
+        """)
 
     # Seed default Categories if empty
     cur.execute("SELECT COUNT(*) FROM dbo.Categories")
@@ -181,6 +200,28 @@ def get_engine():
         import pyodbc
         conn_str = Config.get_connection_string()
         conn = pyodbc.connect(conn_str, timeout=2)
+        try:
+            cur = conn.cursor()
+            cur.execute("""
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Users') AND name = 'ProfileImage')
+                BEGIN
+                    ALTER TABLE dbo.Users ADD ProfileImage NVARCHAR(500) NULL;
+                END
+            """)
+            conn.commit()
+
+            # Self-healing: Assign realistic portrait photo to existing users with NULL/empty avatar
+            cur.execute("""
+                UPDATE dbo.Users
+                SET ProfileImage = CASE 
+                    WHEN Role = 'Admin' THEN 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80'
+                    ELSE 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'
+                END
+                WHERE ProfileImage IS NULL OR ProfileImage = '';
+            """)
+            conn.commit()
+        except Exception:
+            pass
         conn.close()
         _ENGINE = 'mssql'
     except Exception:

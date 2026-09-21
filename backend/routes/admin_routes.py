@@ -3,9 +3,13 @@ CampusCare Administrator Routes
 Handles Complaint listing with filtering/pagination, Status transitions with timeline audit,
 KPI metrics for analytics charts, and CSV report export.
 """
-import csv
+import os
 import io
+import csv
+import uuid
+from datetime import datetime, timezone
 from flask import Blueprint, request, jsonify, Response
+from werkzeug.utils import secure_filename
 from backend.db import query_db, execute_db, execute_transaction
 from backend.auth import admin_required, hash_password
 from backend.config import Config
@@ -334,8 +338,15 @@ def admin_create_user():
     """
     Allow Administrator to register a new Student or Admin/Staff user.
     Enforces @kiet.edu domain compulsory validation.
+    Supports profile image file upload or avatar URL.
     """
-    data = request.get_json() or {}
+    if request.is_json:
+        data = request.get_json() or {}
+        image_file = None
+    else:
+        data = request.form or {}
+        image_file = request.files.get('profile_image') or request.files.get('profile_photo')
+
     full_name = (data.get('full_name') or '').strip()
     college_email = (data.get('college_email') or '').strip().lower()
     password = data.get('password') or ''
@@ -343,6 +354,24 @@ def admin_create_user():
     department = (data.get('department') or '').strip()
     course = (data.get('course') or '').strip()
     phone = (data.get('phone') or '').strip()
+    profile_image = (data.get('profile_image') or '').strip()
+
+    # Handle image file upload if uploaded
+    if image_file and image_file.filename:
+        ext = image_file.filename.rsplit('.', 1)[-1].lower() if '.' in image_file.filename else ''
+        if ext in Config.ALLOWED_EXTENSIONS:
+            os.makedirs(Config.UPLOAD_FOLDER, exist_ok=True)
+            unique_name = f"avatar_{uuid.uuid4().hex[:10]}_{secure_filename(image_file.filename)}"
+            save_path = os.path.join(Config.UPLOAD_FOLDER, unique_name)
+            image_file.save(save_path)
+            profile_image = f"/uploads/{unique_name}"
+
+    if not profile_image:
+        # Assign a clean photo portrait avatar based on role
+        if role == 'Admin':
+            profile_image = 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80'
+        else:
+            profile_image = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80'
 
     if not full_name or not college_email or not password or not department:
         return jsonify({
@@ -415,10 +444,10 @@ def admin_create_user():
     pwd_hash = hash_password(password)
 
     inserted = execute_db("""
-        INSERT INTO dbo.Users (FullName, CollegeEmail, PasswordHash, Role, Department, Course, Phone)
-        OUTPUT INSERTED.UserID, INSERTED.FullName, INSERTED.CollegeEmail, INSERTED.Role, INSERTED.Department, INSERTED.Course, INSERTED.Phone, INSERTED.CreatedAt
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, (full_name, college_email, pwd_hash, role, department, course, phone))
+        INSERT INTO dbo.Users (FullName, CollegeEmail, PasswordHash, Role, Department, Course, Phone, ProfileImage)
+        OUTPUT INSERTED.UserID, INSERTED.FullName, INSERTED.CollegeEmail, INSERTED.Role, INSERTED.Department, INSERTED.Course, INSERTED.Phone, INSERTED.ProfileImage, INSERTED.CreatedAt
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """, (full_name, college_email, pwd_hash, role, department, course, phone, profile_image))
 
     if not inserted:
         return jsonify({'success': False, 'message': 'Failed to create user account in database.'}), 500
@@ -436,6 +465,7 @@ def admin_create_user():
             'course': new_user['Course'] or course,
             'department': new_user['Department'],
             'phone': new_user['Phone'],
+            'profile_image': new_user.get('ProfileImage'),
             'created_at': new_user['CreatedAt']
         }
     }), 201
@@ -444,7 +474,7 @@ def admin_create_user():
 @admin_required
 def admin_get_users():
     """
-    Fetch all users with optional search and role filtering.
+    Fetch all users with optional search and role filtering, including profile images.
     """
     search = (request.args.get('search') or '').strip()
     role = (request.args.get('role') or '').strip().capitalize()
@@ -464,7 +494,7 @@ def admin_get_users():
     where_sql = " AND ".join(where_clauses)
 
     users = query_db(f"""
-        SELECT UserID, FullName, CollegeEmail, Role, Department, Course, Phone, CreatedAt
+        SELECT UserID, FullName, CollegeEmail, Role, Department, Course, Phone, ProfileImage, CreatedAt
         FROM dbo.Users
         WHERE {where_sql}
         ORDER BY CreatedAt DESC
@@ -474,6 +504,103 @@ def admin_get_users():
         'success': True,
         'users': users,
         'total': len(users)
+    })
+
+@admin_bp.route('/files', methods=['GET'])
+@admin_required
+def admin_get_uploaded_files():
+    """
+    Returns all uploaded files, complaint evidence photos, and user profile images
+    from the backend/uploads directory with metadata.
+    """
+    upload_dir = Config.UPLOAD_FOLDER
+    os.makedirs(upload_dir, exist_ok=True)
+    files = []
+
+    # Map filenames to complaint info
+    complaint_rows = query_db("SELECT ComplaintID, Title, ImageAttachmentURL, CreatedAt FROM dbo.Complaints WHERE ImageAttachmentURL IS NOT NULL")
+    complaint_map = {}
+    for c in (complaint_rows or []):
+        if c.get('ImageAttachmentURL'):
+            fname = c['ImageAttachmentURL'].split('/')[-1]
+            complaint_map[fname] = c
+
+    # Map filenames to user info
+    user_rows = query_db("SELECT UserID, FullName, Role, ProfileImage FROM dbo.Users WHERE ProfileImage IS NOT NULL")
+    user_map = {}
+    for u in (user_rows or []):
+        if u.get('ProfileImage'):
+            fname = u['ProfileImage'].split('/')[-1]
+            user_map[fname] = u
+
+    total_bytes = 0
+    for entry in os.scandir(upload_dir):
+        if entry.is_file() and entry.name != '.gitkeep':
+            try:
+                stat = entry.stat()
+                size = stat.st_size
+                total_bytes += size
+                ext = entry.name.rsplit('.', 1)[-1].lower() if '.' in entry.name else ''
+                
+                # Format human-readable size
+                if size < 1024:
+                    size_str = f"{size} B"
+                elif size < 1024 * 1024:
+                    size_str = f"{size / 1024:.1f} KB"
+                else:
+                    size_str = f"{size / (1024 * 1024):.1f} MB"
+
+                # Determine category / association
+                assoc = None
+                if entry.name in complaint_map:
+                    c = complaint_map[entry.name]
+                    assoc = {
+                        'type': 'Complaint Evidence',
+                        'id': c['ComplaintID'],
+                        'title': c['Title']
+                    }
+                elif entry.name in user_map:
+                    u = user_map[entry.name]
+                    assoc = {
+                        'type': f"{u['Role']} Profile",
+                        'id': u['UserID'],
+                        'title': u['FullName']
+                    }
+                elif entry.name.startswith('avatar_'):
+                    assoc = {
+                        'type': 'User Avatar',
+                        'id': None,
+                        'title': 'Profile Photo'
+                    }
+                else:
+                    assoc = {
+                        'type': 'Uploaded File',
+                        'id': None,
+                        'title': 'Campus Document / Evidence'
+                    }
+
+                files.append({
+                    'filename': entry.name,
+                    'url': f"/uploads/{entry.name}",
+                    'size_bytes': size,
+                    'size_formatted': size_str,
+                    'extension': ext,
+                    'is_image': ext in ('png', 'jpg', 'jpeg', 'webp', 'gif'),
+                    'modified_at': datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc).isoformat(),
+                    'association': assoc
+                })
+            except Exception:
+                continue
+
+    # Sort newest first
+    files.sort(key=lambda x: x['modified_at'], reverse=True)
+
+    total_mb = round(total_bytes / (1024 * 1024), 2)
+    return jsonify({
+        'success': True,
+        'files': files,
+        'total_files': len(files),
+        'total_size_mb': total_mb
     })
 
 # ============================================================================
