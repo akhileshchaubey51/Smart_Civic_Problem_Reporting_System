@@ -63,8 +63,8 @@ function applyUserSession(user) {
     const headerAvatar = document.getElementById('header-user-avatar');
     if (headerAvatar) {
       const defaultAvatar = user.role === 'Admin'
-        ? 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80'
-        : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
+        ? 'profile images/image2.jpg'
+        : 'profile images/image1.jpg';
       headerAvatar.src = user.profile_image || user.ProfileImage || defaultAvatar;
     }
   }

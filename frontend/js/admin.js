@@ -586,8 +586,8 @@ async function loadAdminUsers() {
       ? 'bg-blue-100 text-blue-700 border-blue-200' 
       : 'bg-purple-100 text-purple-700 border-purple-200';
     const defaultAvatar = isStudent
-      ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
-      : 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80';
+      ? 'profile images/image1.jpg'
+      : 'profile images/image2.jpg';
     const profileImgSrc = u.ProfileImage || defaultAvatar;
 
     return `
@@ -622,12 +622,19 @@ async function loadAdminUsers() {
    Add User Modal & Logic (With Profile Photo Upload & Presets)
    ========================================================================== */
 const AVATAR_PRESETS = [
-  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80'
+  'profile images/image1.jpg',
+  'profile images/image2.jpg',
+  'profile images/image3.jpg',
+  'profile images/image4.jpg',
+  'profile images/image5.jpg',
+  'profile images/image6.jpg',
+  'profile images/image7.jpg',
+  'profile images/image8.jpg',
+  'profile images/image9.jpg',
+  'profile images/image10.jpg',
+  'profile images/image11.jpg',
+  'profile images/image12.jpg',
+  'profile images/image13.jpg'
 ];
 let currentPresetAvatarIndex = 0;
 let selectedNewUserPhotoFile = null;

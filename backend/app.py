@@ -122,6 +122,15 @@ def create_app():
     def serve_images(filename):
         return send_from_directory(str(frontend_dir / 'images'), filename)
 
+    @app.route('/profile images/<path:filename>')
+    @app.route('/profile%20images/<path:filename>')
+    @app.route('/profile-images/<path:filename>')
+    def serve_profile_images(filename):
+        folder = frontend_dir / 'profile images'
+        if not folder.exists():
+            folder = frontend_dir / 'images' / 'profile-images'
+        return send_from_directory(str(folder), filename)
+
     @app.route('/video/<path:filename>')
     def serve_video(filename):
         return send_from_directory(str(frontend_dir / 'video'), filename)

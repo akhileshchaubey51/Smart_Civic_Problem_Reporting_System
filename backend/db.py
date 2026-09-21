@@ -146,9 +146,9 @@ def _ensure_sqlite_initialized():
         cur.execute("""
         INSERT INTO dbo.Users (FullName, CollegeEmail, PasswordHash, Role, Department, Course, Phone, ProfileImage)
         VALUES 
-        ('Dr. Ramesh Sharma (Dean of Student Affairs)', 'admin@kiet.edu', ?, 'Admin', 'Campus Administration', 'Staff/Faculty', '9876543210', 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80'),
-        ('KIET System Admin', 'admin1@kiet.edu', ?, 'Admin', 'Information Technology', 'Staff/Faculty', '9876543211', 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80'),
-        ('Aarav Patel', 'student@kiet.edu', ?, 'Student', 'Computer Science & Engineering', 'B.Tech', '9876543212', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80')
+        ('Dr. Ramesh Sharma (Dean of Student Affairs)', 'admin@kiet.edu', ?, 'Admin', 'Campus Administration', 'Staff/Faculty', '9876543210', 'profile images/image2.jpg'),
+        ('KIET System Admin', 'admin1@kiet.edu', ?, 'Admin', 'Information Technology', 'Staff/Faculty', '9876543211', 'profile images/image2.jpg'),
+        ('Aarav Patel', 'student@kiet.edu', ?, 'Student', 'Computer Science & Engineering', 'B.Tech', '9876543212', 'profile images/image1.jpg')
         """, (
             generate_password_hash('Admin@123'),
             generate_password_hash('Admin@123'),
@@ -158,10 +158,10 @@ def _ensure_sqlite_initialized():
         cur.execute("""
             UPDATE Users
             SET ProfileImage = CASE 
-                WHEN Role = 'Admin' THEN 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80'
-                ELSE 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'
+                WHEN Role = 'Admin' THEN 'profile images/image2.jpg'
+                ELSE 'profile images/image1.jpg'
             END
-            WHERE ProfileImage IS NULL OR ProfileImage = '';
+            WHERE ProfileImage IS NULL OR ProfileImage = '' OR ProfileImage LIKE 'https://images.unsplash.com%';
         """)
 
     # Seed default Categories if empty
@@ -214,10 +214,10 @@ def get_engine():
             cur.execute("""
                 UPDATE dbo.Users
                 SET ProfileImage = CASE 
-                    WHEN Role = 'Admin' THEN 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80'
-                    ELSE 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'
+                    WHEN Role = 'Admin' THEN 'profile images/image2.jpg'
+                    ELSE 'profile images/image1.jpg'
                 END
-                WHERE ProfileImage IS NULL OR ProfileImage = '';
+                WHERE ProfileImage IS NULL OR ProfileImage = '' OR ProfileImage LIKE 'https://images.unsplash.com%';
             """)
             conn.commit()
         except Exception:

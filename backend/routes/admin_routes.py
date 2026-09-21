@@ -12,7 +12,7 @@ from flask import Blueprint, request, jsonify, Response
 from werkzeug.utils import secure_filename
 from backend.db import query_db, execute_db, execute_transaction
 from backend.auth import admin_required, hash_password
-from backend.config import Config
+from backend.config import Config, BASE_DIR
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/api/admin')
 
@@ -367,11 +367,11 @@ def admin_create_user():
             profile_image = f"/uploads/{unique_name}"
 
     if not profile_image:
-        # Assign a clean photo portrait avatar based on role
+        # Assign avatar from profile images folder based on role
         if role == 'Admin':
-            profile_image = 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80'
+            profile_image = 'profile images/image2.jpg'
         else:
-            profile_image = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80'
+            profile_image = 'profile images/image1.jpg'
 
     if not full_name or not college_email or not password or not department:
         return jsonify({
@@ -591,6 +591,38 @@ def admin_get_uploaded_files():
                 })
             except Exception:
                 continue
+
+    # Also include profile images uploaded in frontend/profile images
+    profile_dir = BASE_DIR / 'frontend' / 'profile images'
+    if profile_dir.exists():
+        for entry in os.scandir(profile_dir):
+            if entry.is_file() and not entry.name.startswith('.'):
+                try:
+                    stat = entry.stat()
+                    size = stat.st_size
+                    total_bytes += size
+                    ext = entry.name.rsplit('.', 1)[-1].lower() if '.' in entry.name else ''
+                    size_str = f"{size / 1024:.1f} KB" if size >= 1024 else f"{size} B"
+
+                    assoc = None
+                    if entry.name in user_map:
+                        u = user_map[entry.name]
+                        assoc = {'type': f"{u['Role']} Profile", 'id': u['UserID'], 'title': u['FullName']}
+                    else:
+                        assoc = {'type': 'Profile Avatar', 'id': None, 'title': f'Campus Avatar ({entry.name})'}
+
+                    files.append({
+                        'filename': entry.name,
+                        'url': f"/profile images/{entry.name}",
+                        'size_bytes': size,
+                        'size_formatted': size_str,
+                        'extension': ext,
+                        'is_image': ext in ('png', 'jpg', 'jpeg', 'webp', 'gif'),
+                        'modified_at': datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc).isoformat(),
+                        'association': assoc
+                    })
+                except Exception:
+                    continue
 
     # Sort newest first
     files.sort(key=lambda x: x['modified_at'], reverse=True)

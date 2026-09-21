@@ -75,7 +75,7 @@ function populateStudentUI(user) {
     else course = 'B.Tech';
   }
 
-  const DEFAULT_STUDENT_AVATAR = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80';
+  const DEFAULT_STUDENT_AVATAR = 'profile images/image1.jpg';
   const avatarUrl = user.profile_image || user.ProfileImage || DEFAULT_STUDENT_AVATAR;
 
   // Navbar elements
