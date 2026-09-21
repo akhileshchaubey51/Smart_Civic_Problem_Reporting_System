@@ -34,8 +34,8 @@ html {
 }
 
 body {
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 17.5px; /* Scaled up base body font */
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 15.5px;
   background-color: #f8fafc;
   background-image: 
     radial-gradient(at 10% 12%, rgba(99, 102, 241, 0.08) 0px, transparent 40%),
@@ -44,17 +44,17 @@ body {
     radial-gradient(at 85% 75%, rgba(16, 185, 129, 0.07) 0px, transparent 45%);
   background-attachment: fixed;
   color: var(--text-body);
-  line-height: 1.7;
+  line-height: 1.6;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Sora', sans-serif;
-  font-weight: 800;
-  letter-spacing: -0.03em;
+  font-family: inherit;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   color: var(--primary-navy);
-  line-height: 1.25;
+  line-height: 1.3;
 }
 
 /* --------------------------------------------------------------------------

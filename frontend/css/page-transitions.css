@@ -123,11 +123,10 @@
 }
 
 .cc-loader-title {
-  font-family: 'Sora', sans-serif;
-  font-size: 17px;
-  font-weight: 800;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
   color: #0f172a;
-  letter-spacing: -0.02em;
   margin: 0 0 6px 0;
 }
 
@@ -263,11 +262,10 @@
 }
 
 .cc-signout-title {
-  font-family: 'Sora', sans-serif;
-  font-size: 22px;
-  font-weight: 800;
+  font-family: inherit;
+  font-size: 18px;
+  font-weight: 600;
   color: #0f172a;
-  letter-spacing: -0.02em;
   margin: 0 0 6px 0;
 }
 
