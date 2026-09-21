@@ -10,10 +10,10 @@ from datetime import datetime, timezone, date
 from decimal import Decimal
 from contextlib import contextmanager
 from werkzeug.security import generate_password_hash
-from backend.config import Config
+from backend.config import Config, BASE_DIR
 
 _ENGINE = None  # 'mssql' or 'sqlite'
-SQLITE_DB_PATH = str(Config.BASE_DIR / 'backend' / 'campuscare.db')
+SQLITE_DB_PATH = str(BASE_DIR / 'backend' / 'campuscare.db')
 
 def dict_row(cursor, row):
     """Convert cursor row object into a clean JSON-serializable dictionary."""

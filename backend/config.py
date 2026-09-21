@@ -12,6 +12,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / '.env')
 
 class Config:
+    BASE_DIR = BASE_DIR
+
     # Flask & Security
     SECRET_KEY = os.getenv('SECRET_KEY', 'campuscare_jwt_production_secret_key_default')
     JWT_EXPIRATION_HOURS = int(os.getenv('JWT_EXPIRATION_HOURS', 24))
