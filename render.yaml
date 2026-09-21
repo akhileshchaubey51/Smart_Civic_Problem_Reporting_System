@@ -1,4 +1,4 @@
-﻿services:
+services:
   - type: web
     name: campuscare
     env: python
@@ -11,5 +11,7 @@
         value: 10000
       - key: DEBUG
         value: 'False'
+      - key: DATABASE_ENGINE
+        value: 'sqlite'
       - key: SECRET_KEY
         generateValue: true
