@@ -506,6 +506,150 @@ def admin_get_users():
         'total': len(users)
     })
 
+@admin_bp.route('/users/<int:user_id>', methods=['GET'])
+@admin_required
+def admin_get_user_details(user_id):
+    """
+    Fetch a single user record by UserID for inspection or pre-filling edit modals.
+    """
+    user = query_db("""
+        SELECT UserID, FullName, CollegeEmail, Role, Department, Course, Phone, ProfileImage, CreatedAt
+        FROM dbo.Users
+        WHERE UserID = ?
+    """, (user_id,), one=True)
+
+    if not user:
+        return jsonify({'success': False, 'message': 'User record not found.'}), 404
+
+    return jsonify({'success': True, 'user': user})
+
+@admin_bp.route('/users/<int:user_id>', methods=['PUT', 'POST'])
+@admin_bp.route('/users/<int:user_id>/update', methods=['POST'])
+@admin_required
+def admin_update_user(user_id):
+    """
+    Allow Administrator to update and correct an existing student or user account.
+    Supports updating FullName, CollegeEmail, Department, Course, Phone, ProfileImage, and Password.
+    """
+    user = query_db("""
+        SELECT UserID, FullName, CollegeEmail, Role, Department, Course, Phone, ProfileImage 
+        FROM dbo.Users WHERE UserID = ?
+    """, (user_id,), one=True)
+    if not user:
+        return jsonify({'success': False, 'message': 'User record not found.'}), 404
+
+    if request.is_json:
+        data = request.get_json() or {}
+        image_file = None
+    else:
+        data = request.form or {}
+        image_file = request.files.get('profile_image') or request.files.get('profile_photo')
+
+    full_name = (data.get('full_name') or user.get('FullName') or '').strip()
+    college_email = (data.get('college_email') or user.get('CollegeEmail') or '').strip().lower()
+    department = (data.get('department') or user.get('Department') or '').strip()
+    course = (data.get('course') or user.get('Course') or '').strip()
+    phone = (data.get('phone') or '').strip()
+    profile_image = (data.get('profile_image') or user.get('ProfileImage') or '').strip()
+    new_password = (data.get('password') or '').strip()
+
+    # Handle image file upload if provided
+    if image_file and image_file.filename:
+        ext = image_file.filename.rsplit('.', 1)[-1].lower() if '.' in image_file.filename else ''
+        if ext in Config.ALLOWED_EXTENSIONS:
+            os.makedirs(Config.UPLOAD_FOLDER, exist_ok=True)
+            unique_name = f"avatar_{uuid.uuid4().hex[:10]}_{secure_filename(image_file.filename)}"
+            save_path = os.path.join(Config.UPLOAD_FOLDER, unique_name)
+            image_file.save(save_path)
+            profile_image = f"/uploads/{unique_name}"
+
+    if not full_name:
+        return jsonify({'success': False, 'message': 'Full name cannot be empty.'}), 400
+    if len(full_name) < 2 or len(full_name) > 100:
+        return jsonify({'success': False, 'message': 'Full name must be between 2 and 100 characters.'}), 400
+
+    if not college_email:
+        return jsonify({'success': False, 'message': 'College email cannot be empty.'}), 400
+
+    # Compulsory @kiet.edu domain check
+    domain = Config.ALLOWED_EMAIL_DOMAIN
+    if domain and domain != '*':
+        if '@' not in college_email:
+            college_email = f"{college_email}@{domain}"
+        elif not college_email.endswith(f"@{domain}"):
+            return jsonify({
+                'success': False,
+                'message': f'Access restricted: Only official @{domain} email addresses are allowed.'
+            }), 400
+
+    # Check for email conflict with other users
+    existing = query_db("SELECT UserID FROM dbo.Users WHERE CollegeEmail = ? AND UserID != ?", (college_email, user_id), one=True)
+    if existing:
+        return jsonify({
+            'success': False,
+            'message': f'Another account with email {college_email} already exists.'
+        }), 409
+
+    # Phone validation
+    if phone:
+        import re
+        clean_phone = re.sub(r'[\s\-+]', '', phone)
+        if clean_phone.startswith('91') and len(clean_phone) == 12:
+            clean_phone = clean_phone[2:]
+        if not re.match(r'^[6-9]\d{9}$', clean_phone):
+            return jsonify({'success': False, 'message': 'Invalid phone number. Must be a valid 10-digit mobile number.'}), 400
+        phone = clean_phone
+    else:
+        phone = user.get('Phone')
+
+    # Resolve course if not supplied
+    if not course:
+        dept_lower = department.lower()
+        if 'bca' in dept_lower:
+            course = 'BCA'
+        elif 'mca' in dept_lower or 'computer applications' in dept_lower:
+            course = 'MCA'
+        elif 'bba' in dept_lower:
+            course = 'BBA'
+        elif 'mba' in dept_lower or 'management' in dept_lower:
+            course = 'MBA'
+        elif 'pharm' in dept_lower:
+            course = 'B.Pharm'
+        elif 'm.tech' in dept_lower:
+            course = 'M.Tech'
+        elif user.get('Role') == 'Admin':
+            course = 'Staff/Faculty'
+        else:
+            course = user.get('Course') or 'B.Tech'
+
+    # Execute DB Update
+    if new_password:
+        if len(new_password) < 6 or len(new_password) > 100:
+            return jsonify({'success': False, 'message': 'New password must be between 6 and 100 characters long.'}), 400
+        pwd_hash = hash_password(new_password)
+        execute_db("""
+            UPDATE dbo.Users
+            SET FullName = ?, CollegeEmail = ?, PasswordHash = ?, Department = ?, Course = ?, Phone = ?, ProfileImage = ?
+            WHERE UserID = ?
+        """, (full_name, college_email, pwd_hash, department, course, phone, profile_image, user_id))
+    else:
+        execute_db("""
+            UPDATE dbo.Users
+            SET FullName = ?, CollegeEmail = ?, Department = ?, Course = ?, Phone = ?, ProfileImage = ?
+            WHERE UserID = ?
+        """, (full_name, college_email, department, course, phone, profile_image, user_id))
+
+    updated_user = query_db("""
+        SELECT UserID, FullName, CollegeEmail, Role, Department, Course, Phone, ProfileImage, CreatedAt
+        FROM dbo.Users WHERE UserID = ?
+    """, (user_id,), one=True)
+
+    return jsonify({
+        'success': True,
+        'message': f'Record for {full_name} corrected and updated successfully!',
+        'user': updated_user
+    })
+
 @admin_bp.route('/files', methods=['GET'])
 @admin_required
 def admin_get_uploaded_files():

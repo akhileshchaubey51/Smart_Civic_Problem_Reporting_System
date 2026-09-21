@@ -16,10 +16,12 @@ venv/
 env/
 ENV/
 
-# Scratch & Temporary Testing Files
+# Scratch & Temporary Testing Files & Databases
 scratch/
 tests/scratch/
 *.log
+*.db
+backend/*.db
 
 # Uploaded dynamic complaint images
 backend/uploads/*

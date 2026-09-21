@@ -50,8 +50,13 @@ def _datediff(unit, start, end):
         return 0
 
 def _ensure_sqlite_initialized():
-    conn = sqlite3.connect(SQLITE_DB_PATH)
+    conn = sqlite3.connect(SQLITE_DB_PATH, timeout=30)
     cur = conn.cursor()
+    try:
+        cur.execute("PRAGMA journal_mode = WAL")
+        cur.execute("PRAGMA busy_timeout = 30000")
+    except Exception:
+        pass
     cur.execute(f"ATTACH DATABASE '{SQLITE_DB_PATH}' AS dbo")
 
     cur.execute("""
@@ -148,8 +153,10 @@ def _ensure_sqlite_initialized():
         VALUES 
         ('Dr. Ramesh Sharma (Dean of Student Affairs)', 'admin@kiet.edu', ?, 'Admin', 'Campus Administration', 'Staff/Faculty', '9876543210', 'profile images/image2.jpg'),
         ('KIET System Admin', 'admin1@kiet.edu', ?, 'Admin', 'Information Technology', 'Staff/Faculty', '9876543211', 'profile images/image2.jpg'),
+        ('Student Records Admin (Academic Office)', 'student.admin@kiet.edu', ?, 'Admin', 'Academic Affairs & Student Records', 'Staff/Faculty', '9876543299', 'profile images/image2.jpg'),
         ('Aarav Patel', 'student@kiet.edu', ?, 'Student', 'Computer Science & Engineering', 'B.Tech', '9876543212', 'profile images/image1.jpg')
         """, (
+            generate_password_hash('Admin@123'),
             generate_password_hash('Admin@123'),
             generate_password_hash('Admin@123'),
             generate_password_hash('Student@123')
@@ -163,6 +170,13 @@ def _ensure_sqlite_initialized():
             END
             WHERE ProfileImage IS NULL OR ProfileImage = '' OR ProfileImage LIKE 'https://images.unsplash.com%';
         """)
+        # Ensure student.admin exists in SQLite
+        cur.execute("SELECT 1 FROM dbo.Users WHERE CollegeEmail = 'student.admin@kiet.edu'")
+        if not cur.fetchone():
+            cur.execute("""
+                INSERT INTO dbo.Users (FullName, CollegeEmail, PasswordHash, Role, Department, Course, Phone, ProfileImage)
+                VALUES ('Student Records Admin (Academic Office)', 'student.admin@kiet.edu', ?, 'Admin', 'Academic Affairs & Student Records', 'Staff/Faculty', '9876543299', 'profile images/image2.jpg')
+            """, (generate_password_hash('Admin@123'),))
 
     # Seed default Categories if empty
     cur.execute("SELECT COUNT(*) FROM dbo.Categories")
@@ -220,6 +234,16 @@ def get_engine():
                 WHERE ProfileImage IS NULL OR ProfileImage = '' OR ProfileImage LIKE 'https://images.unsplash.com%';
             """)
             conn.commit()
+
+            # Ensure student.admin exists in MSSQL
+            cur.execute("""
+                IF NOT EXISTS (SELECT 1 FROM dbo.Users WHERE CollegeEmail = 'student.admin@kiet.edu')
+                BEGIN
+                    INSERT INTO dbo.Users (FullName, CollegeEmail, PasswordHash, Role, Department, Course, Phone, ProfileImage)
+                    VALUES ('Student Records Admin (Academic Office)', 'student.admin@kiet.edu', ?, 'Admin', 'Academic Affairs & Student Records', 'Staff/Faculty', '9876543299', 'profile images/image2.jpg');
+                END
+            """, (generate_password_hash('Admin@123'),))
+            conn.commit()
         except Exception:
             pass
         conn.close()
@@ -257,7 +281,8 @@ def _adapt_sqlite_sql(query, params):
 def get_db_connection():
     engine = get_engine()
     if engine == 'sqlite':
-        conn = sqlite3.connect(SQLITE_DB_PATH)
+        conn = sqlite3.connect(SQLITE_DB_PATH, timeout=30)
+        conn.execute("PRAGMA busy_timeout = 30000")
         conn.create_function('DATEDIFF', 3, _datediff)
         conn.create_function('SYSUTCDATETIME', 0, lambda: datetime.now(timezone.utc).isoformat())
         cur = conn.cursor()

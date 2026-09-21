@@ -609,6 +609,7 @@
                   <th class="py-3 px-4">Role</th>
                   <th class="py-3 px-4">Department</th>
                   <th class="py-3 px-4">Contact Phone</th>
+                  <th class="py-3 px-4 text-center">Action</th>
                   <th class="py-3 px-4 text-right">Registered On</th>
                 </tr>
               </thead>
@@ -898,6 +899,163 @@
           <button type="button" onclick="closeAddUserModal()" class="px-5 py-3 text-sm font-bold text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors">Cancel</button>
           <button type="submit" id="add-user-submit-btn" class="px-6 py-3 text-sm font-extrabold text-white btn-glow-primary rounded-xl shadow-lg hover:shadow-blue-500/25 flex items-center gap-2 transition-all">
             Create User Account &rarr;
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL 6: STUDENT DATA CORRECTION / EDIT USER MODAL
+       ==================================================================== -->
+  <div id="admin-edit-user-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-xl max-h-[90vh] overflow-y-auto p-6 space-y-5 animate-in fade-in zoom-in-95 duration-200">
+      
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200 shadow-sm shrink-0">
+            <i data-lucide="user-cog" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-slate-900">Student Record Correction</h3>
+            <p class="text-xs text-slate-500">Correct student profile details, department, contact info, or reset password.</p>
+          </div>
+        </div>
+        <button onclick="closeEditUserModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div id="edit-user-alert" class="hidden p-3.5 rounded-xl text-sm font-semibold"></div>
+
+      <form onsubmit="handleEditUserSubmit(event)" class="space-y-4">
+        <input type="hidden" id="edit-user-id" />
+        <input type="hidden" id="edit-user-preset-avatar" />
+
+        <!-- User Identity Badge & Status -->
+        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200/80">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-slate-500 font-mono" id="edit-user-id-badge">#UID-00</span>
+            <span id="edit-user-role-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">Student</span>
+          </div>
+          <span class="text-[11px] text-slate-400 font-medium">Official College Record</span>
+        </div>
+
+        <!-- Profile Photo Selection / Upload -->
+        <div class="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-2">
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Profile Photo / Avatar</label>
+          <div class="flex items-center gap-4">
+            <div class="relative shrink-0">
+              <img id="edit-user-photo-preview" src="profile images/image1.jpg" alt="Preview" class="w-14 h-14 rounded-2xl object-cover border-2 border-amber-500 shadow-sm" onerror="this.onerror=null; this.src='profile images/image1.jpg';" />
+              <span class="absolute -bottom-1 -right-1 w-5 h-5 bg-amber-600 text-white rounded-full flex items-center justify-center text-[10px] shadow">
+                <i data-lucide="camera" class="w-3 h-3"></i>
+              </span>
+            </div>
+            <div class="flex-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <label for="edit-user-photo-input" class="cursor-pointer px-3 py-1.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg inline-flex items-center gap-1.5 transition-colors">
+                  <i data-lucide="upload" class="w-3.5 h-3.5"></i> Upload Custom Photo
+                </label>
+                <input type="file" id="edit-user-photo-input" accept="image/*" class="hidden" onchange="handleEditUserPhotoSelect(event)" />
+                <button type="button" onclick="cycleEditUserPresetAvatar()" class="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg inline-flex items-center gap-1 transition-colors">
+                  <i data-lucide="shuffle" class="w-3.5 h-3.5"></i> Preset Avatar
+                </button>
+              </div>
+              <p class="text-[11px] text-slate-500 mt-1" id="edit-user-photo-status">Select avatar preset or upload a new photo.</p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Full Name *</label>
+          <input type="text" id="edit-user-fullname" required placeholder="e.g. Akhilesh Chaubey" class="w-full px-4 py-3 text-base border border-slate-300 rounded-xl focus:ring-4 focus:ring-amber-500/15 focus:border-amber-600 bg-slate-50/50 hover:bg-white transition-all">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Official College Email (@kiet.edu) *</label>
+          <input type="email" id="edit-user-email" required placeholder="rollno@kiet.edu" class="w-full px-4 py-3 text-base border border-slate-300 rounded-xl focus:ring-4 focus:ring-amber-500/15 focus:border-amber-600 bg-slate-50/50 hover:bg-white transition-all">
+          <p class="text-[11px] text-slate-500 mt-1 font-mono">Must end with @kiet.edu domain.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Course / Degree</label>
+            <select id="edit-user-course" class="w-full px-4 py-3 text-base border border-slate-300 rounded-xl focus:ring-4 focus:ring-amber-500/15 focus:border-amber-600 bg-slate-50/50 hover:bg-white transition-all">
+              <option value="B.Tech">B.Tech</option>
+              <option value="MCA">MCA</option>
+              <option value="BCA">BCA</option>
+              <option value="MBA">MBA</option>
+              <option value="BBA">BBA</option>
+              <option value="B.Pharm">B.Pharm</option>
+              <option value="M.Pharm">M.Pharm</option>
+              <option value="M.Tech">M.Tech</option>
+              <option value="BA">BA</option>
+              <option value="Staff/Faculty">Staff/Faculty</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Department *</label>
+            <select id="edit-user-department" required class="w-full px-4 py-3 text-base border border-slate-300 rounded-xl focus:ring-4 focus:ring-amber-500/15 focus:border-amber-600 bg-slate-50/50 hover:bg-white transition-all">
+              <optgroup label="Engineering Departments (B.Tech / M.Tech)">
+                <option value="Computer Science & Engineering">CSE (Computer Science)</option>
+                <option value="Information Technology">IT (Information Technology)</option>
+                <option value="Computer Science & Information Technology">CSIT (CS &amp; IT)</option>
+                <option value="Computer Science (AI & ML)">CS-AIML (Artificial Intelligence)</option>
+                <option value="Computer Science">CS (Core)</option>
+                <option value="Electronics & Communication">ECE (Electronics &amp; Comm)</option>
+                <option value="Electrical & Electronics">EN (Electrical &amp; Electronics)</option>
+                <option value="Mechanical Engineering">ME (Mechanical Engg)</option>
+                <option value="Civil Engineering">CE (Civil Engg)</option>
+                <option value="Applied Sciences & Humanities">AS&amp;H (1st Year)</option>
+              </optgroup>
+              <optgroup label="Computer Applications (BCA / MCA)">
+                <option value="Bachelor of Computer Applications">BCA (Computer Applications)</option>
+                <option value="Master of Computer Applications">MCA (Computer Applications)</option>
+              </optgroup>
+              <optgroup label="Management Studies (BBA / MBA)">
+                <option value="Bachelor of Business Administration">BBA (Business Administration)</option>
+                <option value="Master of Business Administration">MBA (Business Administration)</option>
+              </optgroup>
+              <optgroup label="Humanities & Social Sciences (BA)">
+                <option value="Bachelor of Arts">BA (Humanities &amp; Social Sciences)</option>
+              </optgroup>
+              <optgroup label="Pharmacy (B.Pharm / M.Pharm)">
+                <option value="Bachelor of Pharmacy">B.Pharm</option>
+                <option value="Master of Pharmacy">M.Pharm</option>
+              </optgroup>
+              <optgroup label="Administration & Campus Staff">
+                <option value="Campus Administration">Campus Administration</option>
+                <option value="Hostel Administration">Hostel Administration</option>
+                <option value="Maintenance & Estate Cell">Maintenance &amp; Estate Cell</option>
+                <option value="IT Infrastructure Cell">IT Infrastructure Cell</option>
+                <option value="Academic Affairs & Student Records">Academic Affairs &amp; Student Records</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Phone Number (10-Digit Mobile)</label>
+          <input type="tel" id="edit-user-phone" placeholder="9876543210" pattern="[6-9][0-9]{9}" maxlength="10" class="w-full px-4 py-3 text-base border border-slate-300 rounded-xl focus:ring-4 focus:ring-amber-500/15 focus:border-amber-600 bg-slate-50/50 hover:bg-white transition-all">
+        </div>
+
+        <div class="pt-2 border-t border-slate-100">
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Reset Password (Optional)</label>
+            <button type="button" onclick="generateEditUserPassword()" class="text-xs font-bold text-amber-600 hover:text-amber-800 bg-amber-50 px-2.5 py-1 rounded-lg hover:bg-amber-100 transition-colors">Generate Password</button>
+          </div>
+          <div class="relative">
+            <input type="password" id="edit-user-password" placeholder="Leave empty to keep current password" class="w-full pl-4 pr-12 py-3 text-base border border-slate-300 rounded-xl focus:ring-4 focus:ring-amber-500/15 focus:border-amber-600 bg-slate-50/50 hover:bg-white transition-all">
+            <button type="button" onclick="toggleEditUserPassword()" class="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600 text-sm font-bold">👁</button>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-1">Only fill this field if the student needs their password reset.</p>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+          <button type="button" onclick="closeEditUserModal()" class="px-5 py-3 text-sm font-bold text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors">Cancel</button>
+          <button type="submit" id="edit-user-submit-btn" class="px-6 py-3 text-sm font-extrabold text-white bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 rounded-xl shadow-lg hover:shadow-amber-500/25 flex items-center gap-2 transition-all">
+            <i data-lucide="check" class="w-4 h-4"></i> Save Corrections &rarr;
           </button>
         </div>
       </form>

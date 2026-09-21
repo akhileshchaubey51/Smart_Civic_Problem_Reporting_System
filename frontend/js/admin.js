@@ -564,11 +564,11 @@ async function loadAdminUsers() {
   if (search) params.append('search', search);
   if (role) params.append('role', role);
 
-  tbody.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-slate-400"><span class="animate-spin inline-block mr-2">⟳</span> Fetching college users roster...</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="8" class="py-12 text-center text-slate-400"><span class="animate-spin inline-block mr-2">⟳</span> Fetching college users roster...</td></tr>`;
 
   const res = await apiFetch(`/api/admin/users?${params.toString()}`);
   if (!res || !res.ok || !res.data.success) {
-    tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-rose-500">Failed to load user records.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-rose-500">Failed to load user records.</td></tr>`;
     return;
   }
 
@@ -576,7 +576,7 @@ async function loadAdminUsers() {
   if (countBadge) countBadge.innerText = `${total} User${total === 1 ? '' : 's'}`;
 
   if (users.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-slate-500">No users found matching current filter.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" class="py-12 text-center text-slate-500">No users found matching current filter.</td></tr>`;
     return;
   }
 
@@ -612,10 +612,20 @@ async function loadAdminUsers() {
           ${escapeHtml(u.Department || '—')}
         </td>
         <td class="py-3.5 px-4 text-xs text-slate-500 font-mono">${escapeHtml(u.Phone || '—')}</td>
+        <td class="py-3.5 px-4 text-center">
+          <button onclick="openEditUserModal(${u.UserID})" class="px-2.5 py-1.5 text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg inline-flex items-center gap-1 transition-all shadow-sm hover:shadow" title="Edit &amp; correct student details">
+            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+            <span>Correction</span>
+          </button>
+        </td>
         <td class="py-3.5 px-4 text-right text-xs text-slate-400">${formatDate(u.CreatedAt)}</td>
       </tr>
     `;
   }).join('');
+
+  if (window.lucide) {
+    lucide.createIcons();
+  }
 }
 
 /* ==========================================================================
@@ -817,6 +827,234 @@ function showAlertInModal(msg, type) {
     : 'mb-4 p-3 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200';
   alertBox.innerText = msg;
   alertBox.classList.remove('hidden');
+}
+
+/* ==========================================================================
+   Edit / Correction User Modal & Logic
+   ========================================================================== */
+let selectedEditUserPhotoFile = null;
+let currentEditPresetIndex = 0;
+
+async function openEditUserModal(userId) {
+  const modal = document.getElementById('admin-edit-user-modal');
+  const alertBox = document.getElementById('edit-user-alert');
+  if (!modal) return;
+
+  if (alertBox) {
+    alertBox.className = 'hidden p-3.5 rounded-xl text-sm font-semibold';
+    alertBox.innerText = '';
+  }
+
+  selectedEditUserPhotoFile = null;
+  const photoInput = document.getElementById('edit-user-photo-input');
+  if (photoInput) photoInput.value = '';
+
+  // Show modal with loading state
+  modal.classList.remove('hidden');
+  const submitBtn = document.getElementById('edit-user-submit-btn');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<span class="animate-spin inline-block mr-2">⟳</span> Loading Details...`;
+  }
+
+  const res = await apiFetch(`/api/admin/users/${userId}`);
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Save Corrections &rarr;`;
+  }
+
+  if (!res || !res.ok || !res.data.success) {
+    if (alertBox) {
+      alertBox.className = 'p-3.5 rounded-xl text-sm font-semibold bg-rose-50 text-rose-700 border border-rose-200 block';
+      alertBox.innerText = 'Failed to load user details for editing.';
+    }
+    return;
+  }
+
+  const u = res.data.user;
+  document.getElementById('edit-user-id').value = u.UserID;
+  document.getElementById('edit-user-id-badge').innerText = `#UID-${u.UserID}`;
+
+  const roleBadge = document.getElementById('edit-user-role-badge');
+  if (roleBadge) {
+    roleBadge.innerText = u.Role;
+    if (u.Role === 'Student') {
+      roleBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200';
+    } else {
+      roleBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-700 border border-purple-200';
+    }
+  }
+
+  document.getElementById('edit-user-fullname').value = u.FullName || '';
+  document.getElementById('edit-user-email').value = u.CollegeEmail || '';
+  document.getElementById('edit-user-phone').value = u.Phone || '';
+  document.getElementById('edit-user-password').value = '';
+
+  const courseSelect = document.getElementById('edit-user-course');
+  if (courseSelect && u.Course) {
+    courseSelect.value = u.Course;
+  }
+
+  const deptSelect = document.getElementById('edit-user-department');
+  if (deptSelect && u.Department) {
+    deptSelect.value = u.Department;
+  }
+
+  // Profile Photo
+  const defaultAvatar = u.Role === 'Admin' ? 'profile images/image2.jpg' : 'profile images/image1.jpg';
+  const currentAvatar = u.ProfileImage || defaultAvatar;
+  document.getElementById('edit-user-preset-avatar').value = currentAvatar;
+
+  const previewImg = document.getElementById('edit-user-photo-preview');
+  if (previewImg) previewImg.src = currentAvatar;
+
+  const photoStatus = document.getElementById('edit-user-photo-status');
+  if (photoStatus) photoStatus.innerText = 'Current profile photo loaded.';
+
+  if (window.lucide) lucide.createIcons();
+}
+
+function closeEditUserModal() {
+  const modal = document.getElementById('admin-edit-user-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function handleEditUserPhotoSelect(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  selectedEditUserPhotoFile = file;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const previewImg = document.getElementById('edit-user-photo-preview');
+    if (previewImg) previewImg.src = e.target.result;
+    const photoStatus = document.getElementById('edit-user-photo-status');
+    if (photoStatus) photoStatus.innerText = `Selected photo: ${file.name} (${Math.round(file.size / 1024)} KB)`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function cycleEditUserPresetAvatar() {
+  selectedEditUserPhotoFile = null;
+  const photoInput = document.getElementById('edit-user-photo-input');
+  if (photoInput) photoInput.value = '';
+
+  currentEditPresetIndex = (currentEditPresetIndex + 1) % AVATAR_PRESETS.length;
+  const preset = AVATAR_PRESETS[currentEditPresetIndex];
+  document.getElementById('edit-user-preset-avatar').value = preset;
+
+  const previewImg = document.getElementById('edit-user-photo-preview');
+  if (previewImg) previewImg.src = preset;
+
+  const photoStatus = document.getElementById('edit-user-photo-status');
+  if (photoStatus) photoStatus.innerText = `Preset Avatar #${currentEditPresetIndex + 1} of ${AVATAR_PRESETS.length}`;
+}
+
+function toggleEditUserPassword() {
+  const input = document.getElementById('edit-user-password');
+  if (!input) return;
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+function generateEditUserPassword() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
+  let pwd = '';
+  for (let i = 0; i < 10; i++) {
+    pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  const input = document.getElementById('edit-user-password');
+  if (input) {
+    input.value = pwd;
+    input.type = 'text';
+    showToast('Strong password generated for user.', 'info');
+  }
+}
+
+async function handleEditUserSubmit(e) {
+  e.preventDefault();
+  const alertBox = document.getElementById('edit-user-alert');
+  const submitBtn = document.getElementById('edit-user-submit-btn');
+  const userId = document.getElementById('edit-user-id')?.value;
+
+  if (!userId) return;
+
+  const fullName = document.getElementById('edit-user-fullname')?.value.trim();
+  const email = document.getElementById('edit-user-email')?.value.trim();
+  const department = document.getElementById('edit-user-department')?.value.trim();
+  const course = document.getElementById('edit-user-course')?.value.trim();
+  const phone = document.getElementById('edit-user-phone')?.value.trim();
+  const password = document.getElementById('edit-user-password')?.value.trim();
+  const presetAvatar = document.getElementById('edit-user-preset-avatar')?.value.trim();
+
+  if (!fullName || !email || !department) {
+    if (alertBox) {
+      alertBox.className = 'p-3.5 rounded-xl text-sm font-semibold bg-rose-50 text-rose-700 border border-rose-200 block';
+      alertBox.innerText = 'Full Name, Email, and Department are required.';
+    }
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = `<span class="animate-spin inline-block mr-2">⟳</span> Saving Changes...`;
+
+  try {
+    let res;
+    if (selectedEditUserPhotoFile) {
+      const formData = new FormData();
+      formData.append('full_name', fullName);
+      formData.append('college_email', email);
+      formData.append('department', department);
+      formData.append('course', course);
+      formData.append('phone', phone);
+      if (password) formData.append('password', password);
+      formData.append('profile_image', selectedEditUserPhotoFile);
+
+      res = await apiFetch(`/api/admin/users/${userId}/update`, {
+        method: 'POST',
+        body: formData
+      });
+    } else {
+      res = await apiFetch(`/api/admin/users/${userId}/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          full_name: fullName,
+          college_email: email,
+          department,
+          course,
+          phone,
+          password: password || undefined,
+          profile_image: presetAvatar
+        })
+      });
+    }
+
+    if (res && res.ok && res.data.success) {
+      if (alertBox) {
+        alertBox.className = 'p-3.5 rounded-xl text-sm font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 block';
+        alertBox.innerText = res.data.message || 'Student record updated successfully!';
+      }
+      showToast(res.data.message || 'Student record updated successfully!', 'success');
+      setTimeout(() => {
+        closeEditUserModal();
+        loadAdminUsers();
+      }, 700);
+    } else {
+      if (alertBox) {
+        alertBox.className = 'p-3.5 rounded-xl text-sm font-semibold bg-rose-50 text-rose-700 border border-rose-200 block';
+        alertBox.innerText = res?.data?.message || 'Failed to update user record.';
+      }
+    }
+  } catch (err) {
+    if (alertBox) {
+      alertBox.className = 'p-3.5 rounded-xl text-sm font-semibold bg-rose-50 text-rose-700 border border-rose-200 block';
+      alertBox.innerText = `Error: ${err.message}`;
+    }
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Save Corrections &rarr;`;
+    if (window.lucide) lucide.createIcons();
+  }
 }
 
 /* ==========================================================================
