@@ -16,17 +16,28 @@ _ENGINE = None  # 'mssql' or 'sqlite'
 SQLITE_DB_PATH = str(BASE_DIR / 'backend' / 'campuscare.db')
 
 def dict_row(cursor, row):
-    """Convert cursor row object into a clean JSON-serializable dictionary."""
+    """Convert cursor row object into a clean JSON-serializable dictionary with standard UTC ISO format."""
     if row is None:
         return None
     d = {}
     for idx, col in enumerate(cursor.description):
         name = col[0]
         val = row[idx]
-        if isinstance(val, (datetime, date)):
+        if isinstance(val, datetime):
+            if val.tzinfo is None:
+                d[name] = val.strftime('%Y-%m-%dT%H:%M:%SZ')
+            else:
+                d[name] = val.astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+        elif isinstance(val, date):
             d[name] = val.isoformat()
         elif isinstance(val, Decimal):
             d[name] = float(val)
+        elif isinstance(val, str) and (name.endswith('At') or name.endswith('Time') or name == 'Timestamp'):
+            clean_val = val.strip()
+            if clean_val and not clean_val.endswith('Z') and not re.search(r'[+-]\d{2}:?\d{2}$', clean_val):
+                d[name] = clean_val + 'Z'
+            else:
+                d[name] = clean_val
         else:
             d[name] = val
     return d
@@ -134,6 +145,7 @@ def _ensure_sqlite_initialized():
     cur.execute("""
     CREATE TABLE IF NOT EXISTS dbo.Notifications (
         NotificationID INTEGER PRIMARY KEY AUTOINCREMENT,
+        UserID INTEGER NULL,
         ComplaintID INTEGER NOT NULL,
         Title TEXT NOT NULL,
         Message TEXT NOT NULL,
@@ -141,9 +153,19 @@ def _ensure_sqlite_initialized():
         CategoryName TEXT NULL,
         StudentName TEXT NULL,
         IsRead INTEGER NOT NULL DEFAULT 0,
-        CreatedAt TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%S', 'now')),
-        FOREIGN KEY (ComplaintID) REFERENCES Complaints(ComplaintID) ON DELETE CASCADE
+        CreatedAt TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+        FOREIGN KEY (ComplaintID) REFERENCES Complaints(ComplaintID) ON DELETE CASCADE,
+        FOREIGN KEY (UserID) REFERENCES Users(UserID)
     )""")
+
+    # Self-migration: ensure UserID column exists on Notifications table
+    cur.execute("PRAGMA table_info(Notifications)")
+    existing_notif_cols = [col[1] for col in cur.fetchall()]
+    if 'UserID' not in existing_notif_cols:
+        try:
+            cur.execute("ALTER TABLE Notifications ADD COLUMN UserID INTEGER NULL")
+        except Exception:
+            pass
 
     # Seed default Users if empty
     cur.execute("SELECT COUNT(*) FROM dbo.Users")
@@ -222,6 +244,12 @@ def get_engine():
                     ALTER TABLE dbo.Users ADD ProfileImage NVARCHAR(500) NULL;
                 END
             """)
+            cur.execute("""
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Notifications') AND name = 'UserID')
+                BEGIN
+                    ALTER TABLE dbo.Notifications ADD UserID INT NULL;
+                END
+            """)
             conn.commit()
 
             # Self-healing: Assign realistic portrait photo to existing users with NULL/empty avatar
@@ -243,6 +271,15 @@ def get_engine():
                     VALUES ('Student Records Admin (Academic Office)', 'student.admin@kiet.edu', ?, 'Admin', 'Academic Affairs & Student Records', 'Staff/Faculty', '9876543299', 'profile images/image2.jpg');
                 END
             """, (generate_password_hash('Admin@123'),))
+
+            # Ensure default test student exists in MSSQL
+            cur.execute("""
+                IF NOT EXISTS (SELECT 1 FROM dbo.Users WHERE CollegeEmail = 'student@kiet.edu')
+                BEGIN
+                    INSERT INTO dbo.Users (FullName, CollegeEmail, PasswordHash, Role, Department, Course, Phone, ProfileImage)
+                    VALUES ('Aarav Patel', 'student@kiet.edu', ?, 'Student', 'Computer Science & Engineering', 'B.Tech', '9876543212', 'profile images/image1.jpg');
+                END
+            """, (generate_password_hash('Student@123'),))
             conn.commit()
         except Exception:
             pass
@@ -284,7 +321,7 @@ def get_db_connection():
         conn = sqlite3.connect(SQLITE_DB_PATH, timeout=30)
         conn.execute("PRAGMA busy_timeout = 30000")
         conn.create_function('DATEDIFF', 3, _datediff)
-        conn.create_function('SYSUTCDATETIME', 0, lambda: datetime.now(timezone.utc).isoformat())
+        conn.create_function('SYSUTCDATETIME', 0, lambda: datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'))
         cur = conn.cursor()
         cur.execute(f"ATTACH DATABASE '{SQLITE_DB_PATH}' AS dbo")
         try:

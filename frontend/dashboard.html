@@ -76,63 +76,106 @@
 
         </ul>
 
-        <!-- STUDENT PROFILE -->
-        <div class="student-profile" id="studentProfileContainer">
+        <!-- RIGHT ACTIONS: NOTIFICATIONS + PROFILE -->
+        <div class="navbar-right-actions">
 
-            <!-- PROFILE BUTTON -->
-            <button 
-                type="button" 
-                class="profile-button" 
-                onclick="toggleProfileMenu(event)">
+            <!-- STUDENT NOTIFICATION BELL & DROPDOWN -->
+            <div class="student-notif-wrapper" id="studentNotifWrapper">
+                <button 
+                    type="button" 
+                    class="student-notif-btn" 
+                    id="studentNotifBtn" 
+                    onclick="toggleStudentNotifMenu(event)" 
+                    aria-label="Student Notifications" 
+                    title="Real-time Grievance Updates & Admin Remarks">
+                    <i class="bi bi-bell-fill"></i>
+                    <span class="student-notif-badge" id="studentNotifBadge" style="display:none;">0</span>
+                </button>
 
-                <img 
-                    id="profilePhoto" 
-                    src="profile images/image1.jpg" 
-                    alt="Student Profile">
+                <div class="student-notif-dropdown" id="studentNotifDropdown" onclick="event.stopPropagation()">
+                    <div class="notif-drop-header">
+                        <div class="notif-drop-title">
+                            <span class="bell-icon-heading">🔔</span>
+                            <strong>Notifications</strong>
+                            <span class="notif-count-tag" id="notifHeaderCount">0 New</span>
+                        </div>
+                        <button type="button" class="notif-mark-all-btn" onclick="markAllStudentNotifsRead()">Mark all as read</button>
+                    </div>
 
-                <div class="profile-info">
-                    <strong id="profileName">Student</strong>
-                    <span id="profileCourse">Loading...</span>
+                    <div class="notif-drop-body" id="studentNotifList">
+                        <div class="notif-loading">
+                            <div class="loading-spinner"></div>
+                            <p>Fetching notifications...</p>
+                        </div>
+                    </div>
+
+                    <div class="notif-drop-footer">
+                        <button type="button" class="notif-view-complaints-btn" onclick="openMyComplaintsFromNotif()">
+                            <span>📋</span> View All Grievance Tickets
+                        </button>
+                    </div>
                 </div>
+            </div>
 
-                <span class="profile-arrow">▾</span>
+            <!-- STUDENT PROFILE -->
+            <div class="student-profile" id="studentProfileContainer">
 
-            </button>
+                <!-- PROFILE BUTTON -->
+                <button 
+                    type="button" 
+                    class="profile-button" 
+                    onclick="toggleProfileMenu(event)">
 
-            <!-- PROFILE DROPDOWN MENU -->
-            <div class="profile-dropdown" id="profileDropdown" onclick="event.stopPropagation()">
-
-                <div class="profile-header">
                     <img 
-                        id="dropdownProfilePhoto" 
+                        id="profilePhoto" 
                         src="profile images/image1.jpg" 
                         alt="Student Profile">
 
-                    <div>
-                        <strong id="dropdownProfileName">Student</strong>
-                        <span id="dropdownKietId">Loading...</span>
+                    <div class="profile-info">
+                        <strong id="profileName">Student</strong>
+                        <span id="profileCourse">Loading...</span>
                     </div>
+
+                    <span class="profile-arrow">▾</span>
+
+                </button>
+
+                <!-- PROFILE DROPDOWN MENU -->
+                <div class="profile-dropdown" id="profileDropdown" onclick="event.stopPropagation()">
+
+                    <div class="profile-header">
+                        <img 
+                            id="dropdownProfilePhoto" 
+                            src="profile images/image1.jpg" 
+                            alt="Student Profile">
+
+                        <div>
+                            <strong id="dropdownProfileName">Student</strong>
+                            <span id="dropdownKietId">Loading...</span>
+                        </div>
+                    </div>
+
+                    <div class="profile-divider"></div>
+
+                    <button type="button" onclick="openMyProfile()">
+                        <span>👤</span> My Profile
+                    </button>
+
+                    <button type="button" onclick="openMyComplaints()">
+                        <span>📋</span> My Complaints
+                    </button>
+
+                    <button type="button" onclick="openChangePassword()">
+                        <span>🔐</span> Change Password
+                    </button>
+
+                    <div class="profile-divider"></div>
+
+                    <button type="button" class="logout-button" onclick="logoutUser()">
+                        <span>🚪</span> Logout
+                    </button>
+
                 </div>
-
-                <div class="profile-divider"></div>
-
-                <button type="button" onclick="openMyProfile()">
-                    <span>👤</span> My Profile
-                </button>
-
-                <button type="button" onclick="openMyComplaints()">
-                    <span>📋</span> My Complaints
-                </button>
-
-                <button type="button" onclick="openChangePassword()">
-                    <span>🔐</span> Change Password
-                </button>
-
-                <div class="profile-divider"></div>
-
-                <button type="button" class="logout-button" onclick="logoutUser()">
-                    <span>🚪</span> Logout
-                </button>
 
             </div>
 

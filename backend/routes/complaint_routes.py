@@ -153,6 +153,14 @@ def create_complaint():
             INSERT INTO dbo.Notifications (ComplaintID, Title, Message, Priority, CategoryName, StudentName, IsRead)
             VALUES (?, ?, ?, ?, ?, ?, 0)
         """, (complaint_id, notif_title, notif_msg, priority, cat_name, student_display))
+
+        # Insert Confirmation Notification for the Student
+        student_notif_title = f"Grievance #CMP-{complaint_id} Registered"
+        student_notif_msg = f"Your grievance regarding '{title[:60]}' has been successfully lodged and assigned for review."
+        execute_db("""
+            INSERT INTO dbo.Notifications (UserID, ComplaintID, Title, Message, Priority, CategoryName, StudentName, IsRead)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 0)
+        """, (user_id, complaint_id, student_notif_title, student_notif_msg, priority, cat_name, student_display))
     except Exception as notif_err:
         print(f"[-] Non-critical error creating system notification: {notif_err}")
 
@@ -336,3 +344,105 @@ def submit_feedback():
         'message': 'Thank you! Your feedback has been recorded.',
         'feedback': result[0] if result else None
     }), 201
+
+# ============================================================================
+# STUDENT NOTIFICATIONS (REAL-TIME STATUS UPDATES & ADMIN REMARKS)
+# ============================================================================
+
+@complaint_bp.route('/complaints/notifications', methods=['GET'])
+@token_required
+def get_student_notifications():
+    """
+    Retrieve real-time notifications for the logged-in student.
+    Returns unread count and latest 25 notifications.
+    Includes auto-backfill from complaints/timeline if empty.
+    """
+    user_id = request.current_user['user_id']
+
+    # Auto-backfill existing complaints/timeline for this student if zero notifications exist
+    existing_count = query_db("SELECT COUNT(*) AS Cnt FROM dbo.Notifications WHERE UserID = ?", (user_id,), one=True)
+    if existing_count and (existing_count.get('Cnt', 0) == 0 or existing_count.get('Cnt') is None):
+        try:
+            # Backfill from timeline updates
+            timeline_updates = query_db("""
+                SELECT t.ComplaintID, t.NewStatus, t.Remarks, t.Timestamp, c.Title, c.Priority, cat.CategoryName, u.FullName AS AdminName
+                FROM dbo.ComplaintTimeline t
+                INNER JOIN dbo.Complaints c ON t.ComplaintID = c.ComplaintID
+                LEFT JOIN dbo.Categories cat ON c.CategoryID = cat.CategoryID
+                LEFT JOIN dbo.Users u ON t.UpdatedByUserID = u.UserID
+                WHERE c.UserID = ? AND t.UpdatedByUserID != ?
+                ORDER BY t.Timestamp ASC
+            """, (user_id, user_id))
+
+            for t in timeline_updates:
+                n_title = f"Issue #CMP-{t['ComplaintID']} marked as {t['NewStatus']}"
+                n_msg = f"Admin Remark: \"{t['Remarks']}\""
+                execute_db("""
+                    INSERT INTO dbo.Notifications (UserID, ComplaintID, Title, Message, Priority, CategoryName, StudentName, IsRead)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, 0)
+                """, (user_id, t['ComplaintID'], n_title, n_msg, t['Priority'] or 'Medium', t['CategoryName'] or 'General', t['AdminName'] or 'Campus Admin'))
+
+            # If no admin updates yet, add registration notification for user's complaints
+            user_complaints = query_db("""
+                SELECT c.ComplaintID, c.Title, c.Priority, cat.CategoryName
+                FROM dbo.Complaints c
+                LEFT JOIN dbo.Categories cat ON c.CategoryID = cat.CategoryID
+                WHERE c.UserID = ?
+                ORDER BY c.CreatedAt ASC
+            """, (user_id,))
+            for uc in user_complaints:
+                check_notif = query_db("SELECT 1 FROM dbo.Notifications WHERE UserID = ? AND ComplaintID = ?", (user_id, uc['ComplaintID']), one=True)
+                if not check_notif:
+                    reg_title = f"Grievance #CMP-{uc['ComplaintID']} Registered"
+                    reg_msg = f"Your grievance regarding '{uc['Title'][:60]}' has been successfully lodged."
+                    execute_db("""
+                        INSERT INTO dbo.Notifications (UserID, ComplaintID, Title, Message, Priority, CategoryName, StudentName, IsRead)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, 0)
+                    """, (user_id, uc['ComplaintID'], reg_title, reg_msg, uc['Priority'] or 'Medium', uc['CategoryName'] or 'General', 'Student'))
+        except Exception as backfill_err:
+            print(f"[-] Non-critical error auto-backfilling student notifications: {backfill_err}")
+
+    unread_res = query_db("SELECT COUNT(*) AS UnreadCount FROM dbo.Notifications WHERE UserID = ? AND IsRead = 0", (user_id,), one=True)
+    unread_count = unread_res['UnreadCount'] if unread_res else 0
+
+    notifications = query_db("""
+        SELECT TOP 25
+            NotificationID, ComplaintID, Title, Message, Priority,
+            CategoryName, StudentName, IsRead, CreatedAt
+        FROM dbo.Notifications
+        WHERE UserID = ?
+        ORDER BY CreatedAt DESC
+    """, (user_id,))
+
+    return jsonify({
+        'success': True,
+        'unread_count': unread_count,
+        'notifications': notifications or []
+    })
+
+@complaint_bp.route('/complaints/notifications/read/<int:notification_id>', methods=['POST'])
+@token_required
+def mark_student_notification_read(notification_id):
+    """
+    Mark a single student notification as read.
+    """
+    user_id = request.current_user['user_id']
+    execute_db("UPDATE dbo.Notifications SET IsRead = 1 WHERE NotificationID = ? AND UserID = ?", (notification_id, user_id))
+    return jsonify({
+        'success': True,
+        'message': f'Notification #{notification_id} marked as read.'
+    })
+
+@complaint_bp.route('/complaints/notifications/read-all', methods=['POST'])
+@token_required
+def mark_all_student_notifications_read():
+    """
+    Mark all notifications for the current student as read.
+    """
+    user_id = request.current_user['user_id']
+    execute_db("UPDATE dbo.Notifications SET IsRead = 1 WHERE UserID = ? AND IsRead = 0", (user_id,))
+    return jsonify({
+        'success': True,
+        'message': 'All notifications marked as read.'
+    })
+

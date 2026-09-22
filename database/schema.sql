@@ -103,6 +103,7 @@ GO
 -- 8. Create Notifications Table (System & Real-Time Alerts)
 CREATE TABLE dbo.Notifications (
     NotificationID INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Notifications PRIMARY KEY CLUSTERED,
+    UserID INT NULL,
     ComplaintID INT NOT NULL,
     Title NVARCHAR(200) NOT NULL,
     Message NVARCHAR(500) NOT NULL,
@@ -113,7 +114,9 @@ CREATE TABLE dbo.Notifications (
     CreatedAt DATETIME2(0) NOT NULL CONSTRAINT DF_Notifications_CreatedAt DEFAULT SYSUTCDATETIME(),
 
     CONSTRAINT FK_Notifications_Complaints FOREIGN KEY (ComplaintID)
-        REFERENCES dbo.Complaints(ComplaintID) ON DELETE CASCADE
+        REFERENCES dbo.Complaints(ComplaintID) ON DELETE CASCADE,
+    CONSTRAINT FK_Notifications_Users FOREIGN KEY (UserID)
+        REFERENCES dbo.Users(UserID)
 );
 GO
 

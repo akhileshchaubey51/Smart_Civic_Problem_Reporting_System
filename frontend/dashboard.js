@@ -21,17 +21,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Close profile dropdown when clicking outside
+  // Close profile and notification dropdowns when clicking outside
   document.addEventListener('click', (e) => {
-    const dropdown = document.getElementById('profileDropdown');
+    const profileDropdown = document.getElementById('profileDropdown');
     const profileBtn = document.querySelector('.profile-button');
-    if (dropdown && dropdown.classList.contains('show')) {
-      if (!dropdown.contains(e.target) && !profileBtn.contains(e.target)) {
-        dropdown.classList.remove('show');
+    if (profileDropdown && profileDropdown.classList.contains('show')) {
+      if (!profileDropdown.contains(e.target) && !profileBtn.contains(e.target)) {
+        profileDropdown.classList.remove('show');
         resetProfileArrow();
       }
     }
+
+    const notifDropdown = document.getElementById('studentNotifDropdown');
+    const notifBtn = document.getElementById('studentNotifBtn');
+    if (notifDropdown && notifDropdown.classList.contains('show')) {
+      if (!notifDropdown.contains(e.target) && !notifBtn.contains(e.target)) {
+        notifDropdown.classList.remove('show');
+      }
+    }
   });
+
+  // Initial load of student notifications & periodic polling
+  if (authToken) {
+    fetchStudentNotifications();
+    setInterval(fetchStudentNotifications, 25000);
+  }
 
   // Close modals on Escape key or backdrop click
   document.querySelectorAll('.modal-overlay').forEach(overlay => {
@@ -241,9 +255,9 @@ async function loadStudentComplaints() {
       const inProgressLog = timeline.find(t => t.NewStatus === 'In Progress');
       const resolvedLog = timeline.find(t => t.NewStatus === 'Resolved' || t.NewStatus === 'Rejected');
 
-      const lodgedTimeStr = item.CreatedAt ? new Date(item.CreatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'Lodged';
-      const inProgressTimeStr = inProgressLog ? new Date(inProgressLog.Timestamp).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : (step === 3 ? 'Active Now' : (step > 3 ? 'Done' : 'Queued'));
-      const resolvedTimeStr = resolvedLog ? new Date(resolvedLog.Timestamp).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : (step >= 4 ? (isRejected ? 'Rejected' : 'Resolved') : (item.SLA_Hours ? `${item.SLA_Hours}h SLA` : 'Final'));
+      const lodgedTimeStr = item.CreatedAt ? formatStepDate(item.CreatedAt) : 'Lodged';
+      const inProgressTimeStr = inProgressLog ? formatStepDate(inProgressLog.Timestamp) : (step === 3 ? 'Active Now' : (step > 3 ? 'Done' : 'Queued'));
+      const resolvedTimeStr = resolvedLog ? formatStepDate(resolvedLog.Timestamp) : (step >= 4 ? (isRejected ? 'Rejected' : 'Resolved') : (item.SLA_Hours ? `${item.SLA_Hours}h SLA` : 'Final'));
 
       html += `
         <div class="complaint-card">
@@ -408,17 +422,45 @@ async function loadStudentComplaints() {
 }
 
 /**
- * Format ISO datetime string for clean Indian English display
+ * Format ISO datetime string for clean Indian English display (e.g., 22 Sep 2026, 08:30 AM)
  */
 function formatDateTime(isoStr) {
   if (!isoStr) return '';
   try {
-    const d = new Date(isoStr);
+    let cleanStr = String(isoStr).trim();
+    if (!cleanStr.endsWith('Z') && !/[+-]\d{2}(:?\d{2})?$/.test(cleanStr)) {
+      cleanStr += 'Z';
+    }
+    const d = new Date(cleanStr);
     if (isNaN(d.getTime())) return isoStr;
-    return d.toLocaleDateString('en-IN', {
+    return d.toLocaleString('en-IN', {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  } catch (e) {
+    return isoStr;
+  }
+}
+
+/**
+ * Format ISO datetime string for compact step badge display (e.g., 22 Sep, 08:30 AM)
+ */
+function formatStepDate(isoStr) {
+  if (!isoStr) return '';
+  try {
+    let cleanStr = String(isoStr).trim();
+    if (!cleanStr.endsWith('Z') && !/[+-]\d{2}(:?\d{2})?$/.test(cleanStr)) {
+      cleanStr += 'Z';
+    }
+    const d = new Date(cleanStr);
+    if (isNaN(d.getTime())) return isoStr;
+    return d.toLocaleString('en-IN', {
+      day: 'numeric',
+      month: 'short',
       hour: '2-digit',
       minute: '2-digit',
       hour12: true
@@ -610,4 +652,193 @@ function escapeHtml(text) {
   div.innerText = text;
   return div.innerHTML;
 }
+
+/**
+ * ============================================================================
+ * 8. STUDENT NOTIFICATION CENTER CONTROLLER
+ * ============================================================================
+ */
+
+function toggleStudentNotifMenu(event) {
+  if (event) event.stopPropagation();
+  const dropdown = document.getElementById('studentNotifDropdown');
+  const profileDropdown = document.getElementById('profileDropdown');
+  if (profileDropdown) {
+    profileDropdown.classList.remove('show');
+    resetProfileArrow();
+  }
+  if (!dropdown) return;
+
+  const willOpen = !dropdown.classList.contains('show');
+  dropdown.classList.toggle('show');
+
+  if (willOpen) {
+    fetchStudentNotifications();
+  }
+}
+
+function closeStudentNotifMenu() {
+  const dropdown = document.getElementById('studentNotifDropdown');
+  if (dropdown) dropdown.classList.remove('show');
+}
+
+async function fetchStudentNotifications() {
+  const badge = document.getElementById('studentNotifBadge');
+  const notifList = document.getElementById('studentNotifList');
+  const countTag = document.getElementById('notifHeaderCount');
+
+  if (!authToken) {
+    if (badge) badge.style.display = 'none';
+    if (notifList) {
+      notifList.innerHTML = `
+        <div class="notif-empty">
+          <span class="empty-icon">🔒</span>
+          <p>Login to view notifications</p>
+        </div>
+      `;
+    }
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/complaints/notifications', {
+      headers: {
+        'Authorization': `Bearer ${authToken}`
+      }
+    });
+
+    if (!res.ok) return;
+
+    const data = await res.json();
+    if (!data.success) return;
+
+    const unreadCount = data.unread_count || 0;
+    const notifications = data.notifications || [];
+
+    // Update badge in navbar
+    if (badge) {
+      if (unreadCount > 0) {
+        badge.innerText = unreadCount > 99 ? '99+' : unreadCount;
+        badge.style.display = 'flex';
+        badge.classList.add('pulse');
+      } else {
+        badge.style.display = 'none';
+        badge.classList.remove('pulse');
+      }
+    }
+
+    if (countTag) {
+      countTag.innerText = unreadCount > 0 ? `${unreadCount} New` : 'All caught up';
+      countTag.className = `notif-count-tag ${unreadCount > 0 ? 'has-unread' : 'caught-up'}`;
+    }
+
+    if (!notifList) return;
+
+    if (notifications.length === 0) {
+      notifList.innerHTML = `
+        <div class="notif-empty">
+          <span class="empty-icon">🔕</span>
+          <p>No notifications yet</p>
+          <span class="empty-sub">Updates on your grievances &amp; admin remarks will appear here in real time.</span>
+        </div>
+      `;
+      return;
+    }
+
+    let html = '';
+    notifications.forEach(n => {
+      const isUnread = !n.IsRead;
+      let iconHtml = '<i class="bi bi-bell-fill"></i>';
+      let iconType = 'info';
+
+      const titleLower = (n.Title || '').toLowerCase();
+      if (titleLower.includes('resolved')) {
+        iconHtml = '<i class="bi bi-check-circle-fill"></i>';
+        iconType = 'resolved';
+      } else if (titleLower.includes('rejected')) {
+        iconHtml = '<i class="bi bi-x-circle-fill"></i>';
+        iconType = 'rejected';
+      } else if (titleLower.includes('in progress')) {
+        iconHtml = '<i class="bi bi-tools"></i>';
+        iconType = 'in-progress';
+      } else if (titleLower.includes('pending') || titleLower.includes('registered')) {
+        iconHtml = '<i class="bi bi-clipboard-check-fill"></i>';
+        iconType = 'registered';
+      }
+
+      const formattedTime = formatDateTime(n.CreatedAt);
+
+      html += `
+        <div class="notif-item ${isUnread ? 'unread' : ''}" onclick="markStudentNotifRead(${n.NotificationID}, ${n.ComplaintID})">
+          <div class="notif-icon-circle ${iconType}">
+            ${iconHtml}
+          </div>
+          <div class="notif-item-body">
+            <div class="notif-item-header">
+              <span class="notif-item-title">${escapeHtml(n.Title)}</span>
+              ${isUnread ? '<span class="notif-unread-dot" title="Unread"></span>' : ''}
+            </div>
+            ${n.Message ? `
+              <div class="notif-item-msg">${escapeHtml(n.Message)}</div>
+            ` : ''}
+            <div class="notif-item-meta">
+              <span class="notif-item-time">🕒 ${formattedTime}</span>
+              ${n.ComplaintID ? `<span class="notif-item-tkt">#CMP-${n.ComplaintID}</span>` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    notifList.innerHTML = html;
+
+  } catch (err) {
+    console.warn('Failed to fetch student notifications:', err);
+  }
+}
+
+async function markStudentNotifRead(notificationId, complaintId) {
+  closeStudentNotifMenu();
+
+  if (authToken && notificationId) {
+    try {
+      await fetch(`/api/complaints/notifications/read/${notificationId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+      fetchStudentNotifications();
+    } catch (e) {
+      console.error('Error marking notification read:', e);
+    }
+  }
+
+  // Open complaints modal
+  openMyComplaints();
+}
+
+async function markAllStudentNotifsRead() {
+  if (!authToken) return;
+
+  try {
+    const res = await fetch('/api/complaints/notifications/read-all', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${authToken}`
+      }
+    });
+    if (res.ok) {
+      fetchStudentNotifications();
+    }
+  } catch (e) {
+    console.error('Error marking all notifications read:', e);
+  }
+}
+
+function openMyComplaintsFromNotif() {
+  closeStudentNotifMenu();
+  openMyComplaints();
+}
+
 

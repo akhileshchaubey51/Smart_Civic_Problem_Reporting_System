@@ -99,13 +99,18 @@ async function apiFetch(endpoint, options = {}) {
 // Format ISO UTC Date to Readable Local String
 function formatDate(isoStr) {
   if (!isoStr) return 'N/A';
-  const d = new Date(isoStr + (isoStr.endsWith('Z') ? '' : 'Z'));
-  return d.toLocaleString('en-US', {
-    month: 'short',
+  let cleanStr = String(isoStr).trim();
+  if (!cleanStr.endsWith('Z') && !/[+-]\d{2}(:?\d{2})?$/.test(cleanStr)) {
+    cleanStr += 'Z';
+  }
+  const d = new Date(cleanStr);
+  return d.toLocaleString('en-IN', {
     day: 'numeric',
+    month: 'short',
     year: 'numeric',
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
+    hour12: true
   });
 }
 

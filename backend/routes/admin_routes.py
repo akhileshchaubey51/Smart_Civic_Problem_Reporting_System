@@ -120,16 +120,29 @@ def update_complaint_status(complaint_id):
         return jsonify({'success': False, 'message': 'Invalid status. Allowed: Pending, In Progress, Resolved, Rejected'}), 400
 
     # Fetch current complaint
-    current = query_db("SELECT ComplaintID, Status FROM dbo.Complaints WHERE ComplaintID = ?", (complaint_id,), one=True)
+    current = query_db("""
+        SELECT c.ComplaintID, c.Status, c.UserID, c.Title, c.Priority, cat.CategoryName, u.FullName AS StudentName
+        FROM dbo.Complaints c
+        LEFT JOIN dbo.Categories cat ON c.CategoryID = cat.CategoryID
+        LEFT JOIN dbo.Users u ON c.UserID = u.UserID
+        WHERE c.ComplaintID = ?
+    """, (complaint_id,), one=True)
     if not current:
         return jsonify({'success': False, 'message': 'Complaint not found.'}), 404
 
     prev_status = current['Status']
     admin_id = request.current_user['user_id']
+    student_id = current.get('UserID')
+    student_name = current.get('StudentName') or 'Student'
+    cat_name = current.get('CategoryName') or 'Campus Service'
+    priority = current.get('Priority') or 'Medium'
+
+    notif_title = f"Issue #CMP-{complaint_id} marked as {new_status}"
+    notif_msg = f"Admin Remark: \"{remarks}\""
 
     # Execute atomic status update and history log insertion
     try:
-        execute_transaction([
+        operations = [
             (
                 "UPDATE dbo.Complaints SET Status = ?, UpdatedAt = SYSUTCDATETIME() WHERE ComplaintID = ?",
                 (new_status, complaint_id)
@@ -141,7 +154,16 @@ def update_complaint_status(complaint_id):
                 """,
                 (complaint_id, admin_id, prev_status, new_status, remarks)
             )
-        ])
+        ]
+        if student_id:
+            operations.append((
+                """
+                INSERT INTO dbo.Notifications (UserID, ComplaintID, Title, Message, Priority, CategoryName, StudentName, IsRead)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 0)
+                """,
+                (student_id, complaint_id, notif_title, notif_msg, priority, cat_name, student_name)
+            ))
+        execute_transaction(operations)
     except Exception as e:
         return jsonify({'success': False, 'message': f'Failed to update complaint status: {str(e)}'}), 500
 
@@ -790,7 +812,7 @@ def get_admin_notifications():
     Retrieve real-time system notifications for administrators.
     Returns unread count and latest 25 notifications.
     """
-    unread_res = query_db("SELECT COUNT(*) AS UnreadCount FROM dbo.Notifications WHERE IsRead = 0", one=True)
+    unread_res = query_db("SELECT COUNT(*) AS UnreadCount FROM dbo.Notifications WHERE IsRead = 0 AND UserID IS NULL", one=True)
     unread_count = unread_res['UnreadCount'] if unread_res else 0
 
     notifications = query_db("""
@@ -798,6 +820,7 @@ def get_admin_notifications():
             NotificationID, ComplaintID, Title, Message, Priority, 
             CategoryName, StudentName, IsRead, CreatedAt
         FROM dbo.Notifications
+        WHERE UserID IS NULL
         ORDER BY CreatedAt DESC
     """)
 
@@ -825,7 +848,7 @@ def mark_all_notifications_read():
     """
     Mark all notifications as read.
     """
-    execute_db("UPDATE dbo.Notifications SET IsRead = 1 WHERE IsRead = 0")
+    execute_db("UPDATE dbo.Notifications SET IsRead = 1 WHERE IsRead = 0 AND UserID IS NULL")
     return jsonify({
         'success': True,
         'message': 'All notifications marked as read.'
