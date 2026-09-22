@@ -17,6 +17,14 @@ class CampusCareAPITestCase(unittest.TestCase):
         self.client = self.app.test_client()
         self.student_token = None
         self.admin_token = None
+        from backend.db import query_db, execute_db
+        from werkzeug.security import generate_password_hash
+        user = query_db("SELECT UserID FROM dbo.Users WHERE CollegeEmail = 'student@kiet.edu'", one=True)
+        if not user:
+            execute_db("""
+                INSERT INTO dbo.Users (FullName, CollegeEmail, PasswordHash, Role, Department, Course, Phone, ProfileImage)
+                VALUES ('Aarav Patel', 'student@kiet.edu', ?, 'Student', 'Computer Science & Engineering', 'B.Tech', '9876543212', 'profile images/image1.jpg')
+            """, (generate_password_hash('Student@123'),))
 
     def test_01_student_login(self):
         res = self.client.post('/api/auth/login', json={
