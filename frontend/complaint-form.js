@@ -342,6 +342,7 @@ function showAlert(msg, type = 'error') {
   const box = document.getElementById('formAlert');
   if (!box) return;
   box.className = `alert-box ${type}`;
+  box.style.display = 'block';
   box.innerText = msg;
 }
 
@@ -351,3 +352,4 @@ function hideAlert() {
     box.style.display = 'none';
   }
 }
+

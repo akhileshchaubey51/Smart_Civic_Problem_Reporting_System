@@ -336,5 +336,29 @@ class CampusCareAPITestCase(unittest.TestCase):
         self.assertEqual(short_remarks.status_code, 400)
         self.assertIn('between 5 and 500', short_remarks.get_json()['message'])
 
+    @classmethod
+    def tearDownClass(cls):
+        from backend.db import execute_db, query_db
+        # Clean up complaints created by test users
+        test_emails = [
+            'student@kiet.edu', 'test_stranger@kiet.edu'
+        ]
+        u_rows = query_db("""
+            SELECT UserID FROM dbo.Users 
+            WHERE CollegeEmail IN ('student@kiet.edu') 
+               OR CollegeEmail LIKE 'mca_%@kiet.edu' 
+               OR CollegeEmail LIKE 'pharm_%@kiet.edu'
+               OR CollegeEmail LIKE 'newstudent_%@kiet.edu'
+               OR CollegeEmail LIKE 'test_%@kiet.edu'
+        """)
+        user_ids = [u['UserID'] for u in (u_rows or [])]
+        if user_ids:
+            for uid in user_ids:
+                execute_db("DELETE FROM dbo.Feedback WHERE UserID = ? OR ComplaintID IN (SELECT ComplaintID FROM dbo.Complaints WHERE UserID = ?)", (uid, uid))
+                execute_db("DELETE FROM dbo.ComplaintTimeline WHERE UpdatedByUserID = ? OR ComplaintID IN (SELECT ComplaintID FROM dbo.Complaints WHERE UserID = ?)", (uid, uid))
+                execute_db("DELETE FROM dbo.Notifications WHERE UserID = ? OR ComplaintID IN (SELECT ComplaintID FROM dbo.Complaints WHERE UserID = ?)", (uid, uid))
+                execute_db("DELETE FROM dbo.Complaints WHERE UserID = ?", (uid,))
+                execute_db("DELETE FROM dbo.Users WHERE UserID = ?", (uid,))
+
 if __name__ == '__main__':
     unittest.main()

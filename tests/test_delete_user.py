@@ -21,6 +21,9 @@ class TestDeleteUser(unittest.TestCase):
             'Department': 'Campus Administration'
         })
 
+    def tearDown(self):
+        execute_db("DELETE FROM dbo.Users WHERE CollegeEmail LIKE 'delete_me%'")
+
     def test_cannot_delete_root_admin(self):
         res = self.client.delete(f'/api/admin/users/{self.admin_id}', headers={'Authorization': f'Bearer {self.admin_token}'})
         self.assertEqual(res.status_code, 400)

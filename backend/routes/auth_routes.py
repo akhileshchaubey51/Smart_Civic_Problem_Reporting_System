@@ -103,11 +103,12 @@ def register():
 
     # Hash password and insert
     pwd_hash = hash_password(password)
+    default_avatar = 'profile images/image1.jpg'
     result = execute_db("""
-        INSERT INTO dbo.Users (FullName, CollegeEmail, PasswordHash, Role, Department, Course, Phone)
-        OUTPUT INSERTED.UserID, INSERTED.FullName, INSERTED.CollegeEmail, INSERTED.Role, INSERTED.Department, INSERTED.Course, INSERTED.Phone, INSERTED.CreatedAt
-        VALUES (?, ?, ?, 'Student', ?, ?, ?)
-    """, (full_name, college_email, pwd_hash, department, course, phone))
+        INSERT INTO dbo.Users (FullName, CollegeEmail, PasswordHash, Role, Department, Course, Phone, ProfileImage)
+        OUTPUT INSERTED.UserID, INSERTED.FullName, INSERTED.CollegeEmail, INSERTED.Role, INSERTED.Department, INSERTED.Course, INSERTED.Phone, INSERTED.ProfileImage, INSERTED.CreatedAt
+        VALUES (?, ?, ?, 'Student', ?, ?, ?, ?)
+    """, (full_name, college_email, pwd_hash, department, course, phone, default_avatar))
 
     if not result:
         return jsonify({'success': False, 'message': 'Failed to create student account.'}), 500
@@ -126,7 +127,8 @@ def register():
             'role': user['Role'],
             'course': user['Course'] or course,
             'department': user['Department'],
-            'phone': user['Phone']
+            'phone': user['Phone'],
+            'profile_image': user.get('ProfileImage') or default_avatar
         }
     }), 201
 

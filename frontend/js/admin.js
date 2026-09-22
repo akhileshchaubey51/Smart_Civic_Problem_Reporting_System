@@ -242,6 +242,9 @@ async function loadAdminComplaints(page = 1) {
         <div class="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
           <i data-lucide="map-pin" class="w-3 h-3 text-slate-400"></i> ${escapeHtml(c.Location)}
         </div>
+        <div class="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1">
+          <i data-lucide="clock" class="w-3 h-3 text-slate-400"></i> Lodged: ${formatDate(c.CreatedAt)}
+        </div>
       </td>
       <td class="py-3.5 px-4">
         <div class="text-xs font-medium text-slate-700">${escapeHtml(c.CategoryName)}</div>
@@ -573,6 +576,7 @@ async function loadAdminUsers() {
   }
 
   const { users, total } = res.data;
+  window.adminUsersList = users;
   if (countBadge) countBadge.innerText = `${total} User${total === 1 ? '' : 's'}`;
 
   if (users.length === 0) {
@@ -624,7 +628,7 @@ async function loadAdminUsers() {
                 <span>Protected</span>
               </span>
             ` : `
-              <button onclick="openDeleteUserModal(${u.UserID}, '${escapeHtml(u.FullName).replace(/'/g, "\\'")}', '${escapeHtml(u.CollegeEmail).replace(/'/g, "\\'")}', '${u.Role}', '${profileImgSrc}')" class="px-2.5 py-1.5 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg inline-flex items-center gap-1 transition-all shadow-sm hover:shadow" title="Delete this user account">
+              <button onclick="openDeleteUserModal(${u.UserID})" class="px-2.5 py-1.5 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg inline-flex items-center gap-1 transition-all shadow-sm hover:shadow" title="Delete this user account">
                 <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                 <span>Delete</span>
               </button>
@@ -1094,6 +1098,17 @@ function openDeleteUserModal(userId, fullName, collegeEmail, role, avatarUrl) {
   if (!modal) return;
 
   pendingDeleteUserId = userId;
+
+  if (!fullName && window.adminUsersList) {
+    const userObj = window.adminUsersList.find(u => u.UserID === userId);
+    if (userObj) {
+      fullName = userObj.FullName;
+      collegeEmail = userObj.CollegeEmail;
+      role = userObj.Role;
+      const defaultAvatar = role === 'Admin' ? 'profile images/image2.jpg' : 'profile images/image1.jpg';
+      avatarUrl = userObj.ProfileImage || defaultAvatar;
+    }
+  }
 
   const nameEl = document.getElementById('delete-user-name');
   const emailEl = document.getElementById('delete-user-email');
