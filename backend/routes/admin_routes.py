@@ -362,12 +362,7 @@ def admin_create_user():
     Enforces @kiet.edu domain compulsory validation.
     Supports profile image file upload or avatar URL.
     """
-    if request.is_json:
-        data = request.get_json() or {}
-        image_file = None
-    else:
-        data = request.form or {}
-        image_file = request.files.get('profile_image') or request.files.get('profile_photo')
+    data = request.get_json(silent=True) or request.form or {}
 
     full_name = (data.get('full_name') or '').strip()
     college_email = (data.get('college_email') or '').strip().lower()
@@ -377,16 +372,6 @@ def admin_create_user():
     course = (data.get('course') or '').strip()
     phone = (data.get('phone') or '').strip()
     profile_image = (data.get('profile_image') or '').strip()
-
-    # Handle image file upload if uploaded
-    if image_file and image_file.filename:
-        ext = image_file.filename.rsplit('.', 1)[-1].lower() if '.' in image_file.filename else ''
-        if ext in Config.ALLOWED_EXTENSIONS:
-            os.makedirs(Config.UPLOAD_FOLDER, exist_ok=True)
-            unique_name = f"avatar_{uuid.uuid4().hex[:10]}_{secure_filename(image_file.filename)}"
-            save_path = os.path.join(Config.UPLOAD_FOLDER, unique_name)
-            image_file.save(save_path)
-            profile_image = f"/uploads/{unique_name}"
 
     if not profile_image:
         # Assign avatar from profile images folder based on role
@@ -560,12 +545,7 @@ def admin_update_user(user_id):
     if not user:
         return jsonify({'success': False, 'message': 'User record not found.'}), 404
 
-    if request.is_json:
-        data = request.get_json() or {}
-        image_file = None
-    else:
-        data = request.form or {}
-        image_file = request.files.get('profile_image') or request.files.get('profile_photo')
+    data = request.get_json(silent=True) or request.form or {}
 
     full_name = (data.get('full_name') or user.get('FullName') or '').strip()
     college_email = (data.get('college_email') or user.get('CollegeEmail') or '').strip().lower()
@@ -574,16 +554,6 @@ def admin_update_user(user_id):
     phone = (data.get('phone') or '').strip()
     profile_image = (data.get('profile_image') or user.get('ProfileImage') or '').strip()
     new_password = (data.get('password') or '').strip()
-
-    # Handle image file upload if provided
-    if image_file and image_file.filename:
-        ext = image_file.filename.rsplit('.', 1)[-1].lower() if '.' in image_file.filename else ''
-        if ext in Config.ALLOWED_EXTENSIONS:
-            os.makedirs(Config.UPLOAD_FOLDER, exist_ok=True)
-            unique_name = f"avatar_{uuid.uuid4().hex[:10]}_{secure_filename(image_file.filename)}"
-            save_path = os.path.join(Config.UPLOAD_FOLDER, unique_name)
-            image_file.save(save_path)
-            profile_image = f"/uploads/{unique_name}"
 
     if not full_name:
         return jsonify({'success': False, 'message': 'Full name cannot be empty.'}), 400
@@ -713,8 +683,8 @@ def admin_delete_user(user_id):
 @admin_required
 def admin_get_uploaded_files():
     """
-    Returns all uploaded files, complaint evidence photos, and user profile images
-    from the backend/uploads directory with metadata.
+    Returns all grievance evidence files uploaded to the backend/uploads directory with metadata.
+    Decoupled from static preset avatars.
     """
     upload_dir = Config.UPLOAD_FOLDER
     os.makedirs(upload_dir, exist_ok=True)
@@ -727,14 +697,6 @@ def admin_get_uploaded_files():
         if c.get('ImageAttachmentURL'):
             fname = c['ImageAttachmentURL'].split('/')[-1]
             complaint_map[fname] = c
-
-    # Map filenames to user info
-    user_rows = query_db("SELECT UserID, FullName, Role, ProfileImage FROM dbo.Users WHERE ProfileImage IS NOT NULL")
-    user_map = {}
-    for u in (user_rows or []):
-        if u.get('ProfileImage'):
-            fname = u['ProfileImage'].split('/')[-1]
-            user_map[fname] = u
 
     total_bytes = 0
     for entry in os.scandir(upload_dir):
@@ -762,24 +724,11 @@ def admin_get_uploaded_files():
                         'id': c['ComplaintID'],
                         'title': c['Title']
                     }
-                elif entry.name in user_map:
-                    u = user_map[entry.name]
-                    assoc = {
-                        'type': f"{u['Role']} Profile",
-                        'id': u['UserID'],
-                        'title': u['FullName']
-                    }
-                elif entry.name.startswith('avatar_'):
-                    assoc = {
-                        'type': 'User Avatar',
-                        'id': None,
-                        'title': 'Profile Photo'
-                    }
                 else:
                     assoc = {
                         'type': 'Uploaded File',
                         'id': None,
-                        'title': 'Campus Document / Evidence'
+                        'title': 'Grievance Evidence'
                     }
 
                 files.append({
@@ -794,38 +743,6 @@ def admin_get_uploaded_files():
                 })
             except Exception:
                 continue
-
-    # Also include profile images uploaded in frontend/profile images
-    profile_dir = BASE_DIR / 'frontend' / 'profile images'
-    if profile_dir.exists():
-        for entry in os.scandir(profile_dir):
-            if entry.is_file() and not entry.name.startswith('.'):
-                try:
-                    stat = entry.stat()
-                    size = stat.st_size
-                    total_bytes += size
-                    ext = entry.name.rsplit('.', 1)[-1].lower() if '.' in entry.name else ''
-                    size_str = f"{size / 1024:.1f} KB" if size >= 1024 else f"{size} B"
-
-                    assoc = None
-                    if entry.name in user_map:
-                        u = user_map[entry.name]
-                        assoc = {'type': f"{u['Role']} Profile", 'id': u['UserID'], 'title': u['FullName']}
-                    else:
-                        assoc = {'type': 'Profile Avatar', 'id': None, 'title': f'Campus Avatar ({entry.name})'}
-
-                    files.append({
-                        'filename': entry.name,
-                        'url': f"/profile images/{entry.name}",
-                        'size_bytes': size,
-                        'size_formatted': size_str,
-                        'extension': ext,
-                        'is_image': ext in ('png', 'jpg', 'jpeg', 'webp', 'gif'),
-                        'modified_at': datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc).isoformat(),
-                        'association': assoc
-                    })
-                except Exception:
-                    continue
 
     # Sort newest first
     files.sort(key=lambda x: x['modified_at'], reverse=True)
