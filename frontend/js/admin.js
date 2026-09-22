@@ -647,81 +647,43 @@ async function loadAdminUsers() {
 
 /* ==========================================================================
    Add User Modal & Logic (With Profile Photo Upload & Presets)
+/* ==========================================================================
+   Add User Modal & Logic (Photo File Upload / Insertion by Admin)
    ========================================================================== */
-const AVATAR_PRESETS = [
-  'profile images/image1.jpg',
-  'profile images/image2.jpg',
-  'profile images/image3.jpg',
-  'profile images/image4.jpg',
-  'profile images/image5.jpg',
-  'profile images/image6.jpg',
-  'profile images/image7.jpg',
-  'profile images/image8.jpg',
-  'profile images/image9.jpg',
-  'profile images/image10.jpg',
-  'profile images/image11.jpg',
-  'profile images/image12.jpg',
-  'profile images/image13.jpg'
-];
-let currentPresetAvatarIndex = 0;
+let selectedNewUserPhotoFile = null;
 
-function updateNewUserPhotoPreview(src, statusText) {
+function handleNewUserPhotoSelect(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  if (file.size > 5 * 1024 * 1024) {
+    showAlertInModal('Photo size must be under 5MB.', 'error');
+    return;
+  }
+
+  selectedNewUserPhotoFile = file;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const preview = document.getElementById('new-user-photo-preview');
+    if (preview) preview.src = e.target.result;
+    const status = document.getElementById('new-user-photo-status');
+    if (status) status.innerText = `${file.name} (${Math.round(file.size / 1024)} KB)`;
+    const clearBtn = document.getElementById('new-user-photo-clear-btn');
+    if (clearBtn) clearBtn.classList.remove('hidden');
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearNewUserPhoto() {
+  selectedNewUserPhotoFile = null;
+  const input = document.getElementById('new-user-photo-input');
+  if (input) input.value = '';
   const preview = document.getElementById('new-user-photo-preview');
-  if (preview) preview.src = src;
+  if (preview) preview.src = 'images/logo.jpg';
   const status = document.getElementById('new-user-photo-status');
-  if (status) status.innerText = statusText;
-  const input = document.getElementById('new-user-preset-avatar');
-  if (input) input.value = src;
-}
-
-function selectNewUserPresetAvatar(src, idx) {
-  currentPresetAvatarIndex = idx;
-  updateNewUserPhotoPreview(src, `Avatar #${idx + 1}`);
-  renderAvatarPresetGrids();
-}
-
-function cycleNewUserPresetAvatar() {
-  currentPresetAvatarIndex = (currentPresetAvatarIndex + 1) % AVATAR_PRESETS.length;
-  selectNewUserPresetAvatar(AVATAR_PRESETS[currentPresetAvatarIndex], currentPresetAvatarIndex);
-}
-
-function prevNewUserPresetAvatar() {
-  currentPresetAvatarIndex = (currentPresetAvatarIndex - 1 + AVATAR_PRESETS.length) % AVATAR_PRESETS.length;
-  selectNewUserPresetAvatar(AVATAR_PRESETS[currentPresetAvatarIndex], currentPresetAvatarIndex);
-}
-
-function randomNewUserPresetAvatar() {
-  const rIdx = Math.floor(Math.random() * AVATAR_PRESETS.length);
-  selectNewUserPresetAvatar(AVATAR_PRESETS[rIdx], rIdx);
-}
-
-function renderAvatarPresetGrids() {
-  const newGrid = document.getElementById('new-user-avatar-grid');
-  const editGrid = document.getElementById('edit-user-avatar-grid');
-
-  if (newGrid) {
-    const currentNew = document.getElementById('new-user-preset-avatar')?.value || AVATAR_PRESETS[currentPresetAvatarIndex] || AVATAR_PRESETS[0];
-    newGrid.innerHTML = AVATAR_PRESETS.map((src, idx) => {
-      const isSel = src === currentNew;
-      return `
-        <button type="button" onclick="selectNewUserPresetAvatar('${src}', ${idx})" class="p-0.5 rounded-xl border-2 transition-all ${isSel ? 'border-blue-600 scale-110 shadow-sm bg-blue-50 ring-2 ring-blue-400/40' : 'border-slate-200 hover:border-slate-400 bg-white opacity-80 hover:opacity-100'}" title="Preset Avatar #${idx+1}">
-          <img src="${src}" alt="Avatar #${idx+1}" class="w-8 h-8 rounded-lg object-cover" onerror="this.onerror=null; this.src='profile images/image1.jpg';" />
-        </button>
-      `;
-    }).join('');
-  }
-
-  if (editGrid) {
-    const currentEdit = document.getElementById('edit-user-preset-avatar')?.value || AVATAR_PRESETS[currentEditPresetIndex] || AVATAR_PRESETS[0];
-    editGrid.innerHTML = AVATAR_PRESETS.map((src, idx) => {
-      const isSel = src === currentEdit;
-      return `
-        <button type="button" onclick="selectEditUserPresetAvatar('${src}', ${idx})" class="p-0.5 rounded-xl border-2 transition-all ${isSel ? 'border-amber-500 scale-110 shadow-sm bg-amber-50 ring-2 ring-amber-400/40' : 'border-slate-200 hover:border-slate-400 bg-white opacity-80 hover:opacity-100'}" title="Preset Avatar #${idx+1}">
-          <img src="${src}" alt="Avatar #${idx+1}" class="w-8 h-8 rounded-lg object-cover" onerror="this.onerror=null; this.src='profile images/image1.jpg';" />
-        </button>
-      `;
-    }).join('');
-  }
+  if (status) status.innerText = 'No photo selected';
+  const clearBtn = document.getElementById('new-user-photo-clear-btn');
+  if (clearBtn) clearBtn.classList.add('hidden');
 }
 
 function openAddUserModal() {
@@ -741,10 +703,7 @@ function openAddUserModal() {
   document.getElementById('new-user-department').selectedIndex = 0;
   document.getElementById('new-user-phone').value = '';
 
-  // Set default preset avatar
-  currentPresetAvatarIndex = 0;
-  updateNewUserPhotoPreview(AVATAR_PRESETS[0], 'Avatar #1');
-  renderAvatarPresetGrids();
+  clearNewUserPhoto();
 
   if (modal) {
     modal.classList.remove('hidden');
@@ -825,21 +784,38 @@ async function handleAddUserSubmit(e) {
   submitBtn.innerHTML = `<span class="animate-spin inline-block mr-2">⟳</span> Creating Account...`;
 
   try {
-    const presetAvatar = document.getElementById('new-user-preset-avatar')?.value || AVATAR_PRESETS[currentPresetAvatarIndex] || AVATAR_PRESETS[0];
+    let res;
+    if (selectedNewUserPhotoFile) {
+      const formData = new FormData();
+      formData.append('full_name', fullName);
+      formData.append('college_email', email);
+      formData.append('password', password);
+      formData.append('role', role);
+      formData.append('course', course);
+      formData.append('department', department);
+      formData.append('phone', phone);
+      formData.append('profile_image', selectedNewUserPhotoFile);
 
-    const res = await apiFetch('/api/admin/users/create', {
-      method: 'POST',
-      body: JSON.stringify({
-        full_name: fullName,
-        college_email: email,
-        password: password,
-        role: role,
-        course: course,
-        department: department,
-        phone: phone,
-        profile_image: presetAvatar
-      })
-    });
+      res = await apiFetch('/api/admin/users/create', {
+        method: 'POST',
+        body: formData
+      });
+    } else {
+      res = await apiFetch('/api/admin/users/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          full_name: fullName,
+          college_email: email,
+          password: password,
+          role: role,
+          course: course,
+          department: department,
+          phone: phone,
+          profile_image: 'images/logo.jpg'
+        })
+      });
+    }
 
     if (res && res.ok && res.data.success) {
       showToast(res.data.message || 'User created successfully!', 'success');
@@ -871,9 +847,44 @@ function showAlertInModal(msg, type) {
 }
 
 /* ==========================================================================
-   Edit / Correction User Modal & Logic
+   Edit / Correction User Modal & Logic (Photo File Upload / Replacement)
    ========================================================================== */
-let currentEditPresetIndex = 0;
+let selectedEditUserPhotoFile = null;
+
+function handleEditUserPhotoSelect(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('Photo size must be under 5MB.', 'error');
+    return;
+  }
+
+  selectedEditUserPhotoFile = file;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const preview = document.getElementById('edit-user-photo-preview');
+    if (preview) preview.src = e.target.result;
+    const status = document.getElementById('edit-user-photo-status');
+    if (status) status.innerText = `Selected: ${file.name} (${Math.round(file.size / 1024)} KB)`;
+    const clearBtn = document.getElementById('edit-user-photo-clear-btn');
+    if (clearBtn) clearBtn.classList.remove('hidden');
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearEditUserPhoto() {
+  selectedEditUserPhotoFile = null;
+  const input = document.getElementById('edit-user-photo-input');
+  if (input) input.value = '';
+  const currentPhoto = document.getElementById('edit-user-current-avatar-url')?.value || 'images/logo.jpg';
+  const preview = document.getElementById('edit-user-photo-preview');
+  if (preview) preview.src = currentPhoto;
+  const status = document.getElementById('edit-user-photo-status');
+  if (status) status.innerText = 'Current photo loaded';
+  const clearBtn = document.getElementById('edit-user-photo-clear-btn');
+  if (clearBtn) clearBtn.classList.add('hidden');
+}
 
 async function openEditUserModal(userId) {
   const modal = document.getElementById('admin-edit-user-modal');
@@ -884,6 +895,12 @@ async function openEditUserModal(userId) {
     alertBox.className = 'hidden p-3.5 rounded-xl text-sm font-semibold';
     alertBox.innerText = '';
   }
+
+  selectedEditUserPhotoFile = null;
+  const photoInput = document.getElementById('edit-user-photo-input');
+  if (photoInput) photoInput.value = '';
+  const clearBtn = document.getElementById('edit-user-photo-clear-btn');
+  if (clearBtn) clearBtn.classList.add('hidden');
 
   // Show modal with loading state
   modal.classList.remove('hidden');
@@ -937,20 +954,15 @@ async function openEditUserModal(userId) {
   }
 
   // Profile Photo
-  const defaultAvatar = u.Role === 'Admin' ? 'profile images/image2.jpg' : 'profile images/image1.jpg';
-  const currentAvatar = u.ProfileImage || defaultAvatar;
-  document.getElementById('edit-user-preset-avatar').value = currentAvatar;
+  const currentPhoto = u.ProfileImage || 'images/logo.jpg';
+  const photoHidden = document.getElementById('edit-user-current-avatar-url');
+  if (photoHidden) photoHidden.value = currentPhoto;
 
   const previewImg = document.getElementById('edit-user-photo-preview');
-  if (previewImg) previewImg.src = currentAvatar;
-
-  const curIdx = AVATAR_PRESETS.indexOf(currentAvatar);
-  currentEditPresetIndex = curIdx >= 0 ? curIdx : 0;
+  if (previewImg) previewImg.src = currentPhoto;
 
   const photoStatus = document.getElementById('edit-user-photo-status');
-  if (photoStatus) photoStatus.innerText = `Preset Avatar #${currentEditPresetIndex + 1} of ${AVATAR_PRESETS.length}`;
-
-  renderAvatarPresetGrids();
+  if (photoStatus) photoStatus.innerText = u.ProfileImage ? 'Current photo loaded' : 'No photo uploaded';
 
   // Handle Delete button in modal
   const deleteBtn = document.getElementById('edit-user-delete-btn');
@@ -961,7 +973,7 @@ async function openEditUserModal(userId) {
       deleteBtn.style.display = 'inline-flex';
       deleteBtn.onclick = () => {
         closeEditUserModal();
-        openDeleteUserModal(u.UserID, u.FullName, u.CollegeEmail, u.Role, currentAvatar);
+        openDeleteUserModal(u.UserID, u.FullName, u.CollegeEmail, u.Role, currentPhoto);
       };
     }
   }
@@ -972,32 +984,6 @@ async function openEditUserModal(userId) {
 function closeEditUserModal() {
   const modal = document.getElementById('admin-edit-user-modal');
   if (modal) modal.classList.add('hidden');
-}
-
-function selectEditUserPresetAvatar(src, idx) {
-  currentEditPresetIndex = idx;
-  const input = document.getElementById('edit-user-preset-avatar');
-  if (input) input.value = src;
-  const previewImg = document.getElementById('edit-user-photo-preview');
-  if (previewImg) previewImg.src = src;
-  const photoStatus = document.getElementById('edit-user-photo-status');
-  if (photoStatus) photoStatus.innerText = `Preset Avatar #${idx + 1} of ${AVATAR_PRESETS.length}`;
-  renderAvatarPresetGrids();
-}
-
-function cycleEditUserPresetAvatar() {
-  currentEditPresetIndex = (currentEditPresetIndex + 1) % AVATAR_PRESETS.length;
-  selectEditUserPresetAvatar(AVATAR_PRESETS[currentEditPresetIndex], currentEditPresetIndex);
-}
-
-function prevEditUserPresetAvatar() {
-  currentEditPresetIndex = (currentEditPresetIndex - 1 + AVATAR_PRESETS.length) % AVATAR_PRESETS.length;
-  selectEditUserPresetAvatar(AVATAR_PRESETS[currentEditPresetIndex], currentEditPresetIndex);
-}
-
-function randomEditUserPresetAvatar() {
-  const rIdx = Math.floor(Math.random() * AVATAR_PRESETS.length);
-  selectEditUserPresetAvatar(AVATAR_PRESETS[rIdx], rIdx);
 }
 
 function toggleEditUserPassword() {
@@ -1034,7 +1020,6 @@ async function handleEditUserSubmit(e) {
   const course = document.getElementById('edit-user-course')?.value.trim();
   const phone = document.getElementById('edit-user-phone')?.value.trim();
   const password = document.getElementById('edit-user-password')?.value.trim();
-  const presetAvatar = document.getElementById('edit-user-preset-avatar')?.value.trim();
 
   if (!fullName || !email || !department) {
     if (alertBox) {
@@ -1048,19 +1033,35 @@ async function handleEditUserSubmit(e) {
   submitBtn.innerHTML = `<span class="animate-spin inline-block mr-2">⟳</span> Saving Changes...`;
 
   try {
-    const res = await apiFetch(`/api/admin/users/${userId}/update`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        full_name: fullName,
-        college_email: email,
-        department,
-        course,
-        phone,
-        password: password || undefined,
-        profile_image: presetAvatar
-      })
-    });
+    let res;
+    if (selectedEditUserPhotoFile) {
+      const formData = new FormData();
+      formData.append('full_name', fullName);
+      formData.append('college_email', email);
+      formData.append('department', department);
+      formData.append('course', course);
+      formData.append('phone', phone);
+      if (password) formData.append('password', password);
+      formData.append('profile_image', selectedEditUserPhotoFile);
+
+      res = await apiFetch(`/api/admin/users/${userId}/update`, {
+        method: 'POST',
+        body: formData
+      });
+    } else {
+      res = await apiFetch(`/api/admin/users/${userId}/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          full_name: fullName,
+          college_email: email,
+          department,
+          course,
+          phone,
+          password: password || undefined
+        })
+      });
+    }
 
     if (res && res.ok && res.data.success) {
       if (alertBox) {
