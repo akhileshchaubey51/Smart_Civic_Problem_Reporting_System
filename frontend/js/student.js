@@ -248,6 +248,21 @@ async function loadStudentComplaints() {
 
         <p class="text-sm text-slate-600 mb-3 line-clamp-2">${escapeHtml(c.Description)}</p>
 
+        ${c.LatestAdminRemark ? `
+          <div class="mb-3.5 p-3 rounded-xl bg-amber-50/90 border border-amber-200/90 text-xs shadow-sm">
+            <div class="flex items-center justify-between text-amber-900 font-bold mb-1.5">
+              <span class="flex items-center gap-1.5">
+                <i data-lucide="message-square" class="w-3.5 h-3.5 text-amber-600"></i>
+                Official Admin Remark:
+              </span>
+              <span class="text-[11px] font-semibold text-amber-700">
+                👔 ${escapeHtml(c.LatestAdminName || 'Campus Admin')} ${c.LatestAdminTime ? `• ${formatDate(c.LatestAdminTime)}` : ''}
+              </span>
+            </div>
+            <p class="text-slate-900 font-semibold pl-2.5 border-l-2 border-amber-500 italic text-[12.5px]">"${escapeHtml(c.LatestAdminRemark)}"</p>
+          </div>
+        ` : ''}
+
         ${c.ImageAttachmentURL ? `
           <div class="mb-3.5 flex items-center gap-3 p-2 bg-slate-50 border border-slate-200 rounded-lg">
             <div class="w-16 h-12 rounded overflow-hidden bg-slate-200 shrink-0 cursor-pointer border border-slate-300 relative group" onclick="openImageLightbox('${c.ImageAttachmentURL}', '${escapeHtml(c.Title)}')">

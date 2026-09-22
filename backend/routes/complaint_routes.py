@@ -197,6 +197,33 @@ def get_student_complaints():
         ORDER BY c.CreatedAt DESC
     """, (user_id,))
 
+    # Attach full timeline history and latest admin remarks for live tracking
+    for c in complaints:
+        cid = c['ComplaintID']
+        timeline = query_db("""
+            SELECT 
+                t.LogID, t.PreviousStatus, t.NewStatus, t.Remarks, t.Timestamp,
+                u.FullName AS UpdatedByName, u.Role AS UpdatedByRole
+            FROM dbo.ComplaintTimeline t
+            INNER JOIN dbo.Users u ON t.UpdatedByUserID = u.UserID
+            WHERE t.ComplaintID = ?
+            ORDER BY t.Timestamp ASC
+        """, (cid,)) or []
+
+        c['Timeline'] = timeline
+
+        # Extract admin remarks (most recent admin comment/note)
+        admin_logs = [t for t in timeline if t.get('UpdatedByRole') == 'Admin' and t.get('Remarks')]
+        if admin_logs:
+            latest = admin_logs[-1]
+            c['LatestAdminRemark'] = latest['Remarks']
+            c['LatestAdminName'] = latest['UpdatedByName']
+            c['LatestAdminTime'] = latest['Timestamp']
+        else:
+            c['LatestAdminRemark'] = None
+            c['LatestAdminName'] = None
+            c['LatestAdminTime'] = None
+
     # Compute quick metrics
     total = len(complaints)
     pending = sum(1 for c in complaints if c['Status'] == 'Pending')

@@ -221,9 +221,29 @@ async function loadStudentComplaints() {
     let html = '';
     data.complaints.forEach(item => {
       const statusClass = item.Status.replace(/\s+/g, '-');
-      const dateStr = item.CreatedAt ? new Date(item.CreatedAt).toLocaleDateString('en-IN', {
-        day: 'numeric', month: 'short', year: 'numeric'
-      }) : 'Recently';
+      const dateStr = item.CreatedAt ? formatDateTime(item.CreatedAt) : 'Recently';
+
+      // Stepper Stage Calculation (1: Lodged, 2: Under Review, 3: In Progress, 4: Resolved / Rejected)
+      const status = item.Status;
+      const isRejected = status === 'Rejected';
+      let step = 1;
+
+      if (status === 'Pending') {
+        step = 2; // Under Review
+      } else if (status === 'In Progress') {
+        step = 3; // Work ongoing
+      } else if (status === 'Resolved' || isRejected) {
+        step = 4; // Finalized
+      }
+
+      // Check dates from timeline logs
+      const timeline = item.Timeline || [];
+      const inProgressLog = timeline.find(t => t.NewStatus === 'In Progress');
+      const resolvedLog = timeline.find(t => t.NewStatus === 'Resolved' || t.NewStatus === 'Rejected');
+
+      const lodgedTimeStr = item.CreatedAt ? new Date(item.CreatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'Lodged';
+      const inProgressTimeStr = inProgressLog ? new Date(inProgressLog.Timestamp).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : (step === 3 ? 'Active Now' : (step > 3 ? 'Done' : 'Queued'));
+      const resolvedTimeStr = resolvedLog ? new Date(resolvedLog.Timestamp).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : (step >= 4 ? (isRejected ? 'Rejected' : 'Resolved') : (item.SLA_Hours ? `${item.SLA_Hours}h SLA` : 'Final'));
 
       html += `
         <div class="complaint-card">
@@ -247,9 +267,129 @@ async function loadStudentComplaints() {
             </div>
           ` : ''}
 
+          <!-- LIVE PHASE / STAGE PROGRESS TRACKER -->
+          <div class="live-stage-tracker">
+            <div class="stage-tracker-header">
+              <span class="tracker-title">
+                <span class="live-pulse-dot"></span>
+                LIVE ISSUE TRACKING &amp; PHASES:
+              </span>
+              <span class="current-phase-name ${statusClass}">
+                Current: ${item.Status}
+              </span>
+            </div>
+
+            <div class="stage-steps-bar">
+              <!-- Phase 1: Lodged -->
+              <div class="stage-step completed">
+                <div class="step-circle"><i class="bi bi-check-lg"></i></div>
+                <div class="step-meta">
+                  <span class="step-name">1. Lodged</span>
+                  <span class="step-sub">${lodgedTimeStr}</span>
+                </div>
+              </div>
+
+              <div class="step-connector ${step >= 2 ? 'active' : ''}"></div>
+
+              <!-- Phase 2: Under Review -->
+              <div class="stage-step ${step > 2 ? 'completed' : (step === 2 ? 'in-progress' : 'pending')}">
+                <div class="step-circle">${step > 2 ? '<i class="bi bi-check-lg"></i>' : (step === 2 ? '⏳' : '2')}</div>
+                <div class="step-meta">
+                  <span class="step-name">2. Review</span>
+                  <span class="step-sub">${step === 2 ? 'Under Review' : (step > 2 ? 'Acknowledged' : 'Queued')}</span>
+                </div>
+              </div>
+
+              <div class="step-connector ${step >= 3 ? 'active' : ''}"></div>
+
+              <!-- Phase 3: Action In Progress -->
+              <div class="stage-step ${step > 3 ? 'completed' : (step === 3 ? 'in-progress' : 'pending')}">
+                <div class="step-circle">${step > 3 ? '<i class="bi bi-check-lg"></i>' : (step === 3 ? '🛠️' : '3')}</div>
+                <div class="step-meta">
+                  <span class="step-name">3. Action</span>
+                  <span class="step-sub">${inProgressTimeStr}</span>
+                </div>
+              </div>
+
+              <div class="step-connector ${step >= 4 ? (isRejected ? 'rejected' : 'active') : ''}"></div>
+
+              <!-- Phase 4: Resolution -->
+              <div class="stage-step ${step >= 4 ? (isRejected ? 'rejected' : 'completed') : 'pending'}">
+                <div class="step-circle">${step >= 4 ? (isRejected ? '<i class="bi bi-x-lg"></i>' : '<i class="bi bi-check-lg"></i>') : '4'}</div>
+                <div class="step-meta">
+                  <span class="step-name">${isRejected ? '4. Rejected' : '4. Resolved'}</span>
+                  <span class="step-sub">${resolvedTimeStr}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- OFFICIAL ADMIN REMARK BOX -->
+          ${item.LatestAdminRemark ? `
+            <div class="student-admin-remark-box">
+              <div class="admin-remark-top">
+                <div class="admin-remark-badge">
+                  <span class="remark-icon-dot">💬</span>
+                  <strong>Official Admin Remark:</strong>
+                </div>
+                <span class="admin-author-info">
+                  👔 ${escapeHtml(item.LatestAdminName || 'Campus Admin')}
+                  ${item.LatestAdminTime ? `• <span class="remark-timestamp">${formatDateTime(item.LatestAdminTime)}</span>` : ''}
+                </span>
+              </div>
+              <div class="admin-remark-quote">
+                "${escapeHtml(item.LatestAdminRemark)}"
+              </div>
+            </div>
+          ` : `
+            <div class="student-admin-remark-empty">
+              <span class="empty-icon">⏳</span>
+              <span>Administrative remark will appear here as soon as staff begins resolving your issue.</span>
+            </div>
+          `}
+
+          <!-- EXPANDABLE FULL LIFECYCLE AUDIT TRAIL -->
+          ${timeline && timeline.length > 0 ? `
+            <div class="timeline-accordion-wrap">
+              <button type="button" class="timeline-toggle-btn" onclick="toggleTimelineDetail('timeline-${item.ComplaintID}', this)">
+                <span>📜 View Complete Live Lifecycle History (${timeline.length} logs)</span>
+                <span class="toggle-arrow">▾</span>
+              </button>
+              <div id="timeline-${item.ComplaintID}" class="timeline-detail-drawer hidden">
+                <div class="timeline-items-list">
+                  ${timeline.map(log => {
+                    const isAdm = log.UpdatedByRole === 'Admin';
+                    const dotClass = isAdm ? 'admin-dot' : 'student-dot';
+                    return `
+                      <div class="timeline-item-row">
+                        <div class="timeline-marker ${dotClass}"></div>
+                        <div class="timeline-content-card">
+                          <div class="timeline-card-header">
+                            <span class="timeline-user-badge ${isAdm ? 'is-admin' : 'is-student'}">
+                              ${isAdm ? '👔 Admin: ' : '🎓 Student: '} ${escapeHtml(log.UpdatedByName || (isAdm ? 'Campus Admin' : 'Student'))}
+                            </span>
+                            <span class="timeline-date">${formatDateTime(log.Timestamp)}</span>
+                          </div>
+                          ${log.Remarks ? `
+                            <div class="timeline-remark-body">
+                              ${isAdm ? '<strong>Admin Remark:</strong> ' : ''}"${escapeHtml(log.Remarks)}"
+                            </div>
+                          ` : ''}
+                          <div class="timeline-status-shift">
+                            ${log.PreviousStatus ? `Status Shift: <span class="badge-prev">${log.PreviousStatus}</span> &rarr; <span class="badge-next">${log.NewStatus}</span>` : `Initial Registration: <span class="badge-next">${log.NewStatus}</span>`}
+                          </div>
+                        </div>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+            </div>
+          ` : ''}
+
           <div class="complaint-card-footer">
             <span>📍 ${escapeHtml(item.Location)}</span>
-            <span>🕒 ${dateStr}</span>
+            <span>🕒 Lodged: ${dateStr}</span>
           </div>
         </div>
       `;
@@ -264,6 +404,49 @@ async function loadStudentComplaints() {
         <p style="font-size: 12px; color: #64748b; margin-top: 4px;">${escapeHtml(err.message)}</p>
       </div>
     `;
+  }
+}
+
+/**
+ * Format ISO datetime string for clean Indian English display
+ */
+function formatDateTime(isoStr) {
+  if (!isoStr) return '';
+  try {
+    const d = new Date(isoStr);
+    if (isNaN(d.getTime())) return isoStr;
+    return d.toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  } catch (e) {
+    return isoStr;
+  }
+}
+
+/**
+ * Toggle Timeline Detail Drawer
+ */
+function toggleTimelineDetail(drawerId, btn) {
+  const drawer = document.getElementById(drawerId);
+  if (!drawer) return;
+  const isHidden = drawer.classList.contains('hidden');
+  if (isHidden) {
+    drawer.classList.remove('hidden');
+    if (btn) {
+      const arrow = btn.querySelector('.toggle-arrow');
+      if (arrow) arrow.innerText = '▴';
+    }
+  } else {
+    drawer.classList.add('hidden');
+    if (btn) {
+      const arrow = btn.querySelector('.toggle-arrow');
+      if (arrow) arrow.innerText = '▾';
+    }
   }
 }
 
