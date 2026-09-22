@@ -672,6 +672,43 @@ def admin_update_user(user_id):
         'user': updated_user
     })
 
+@admin_bp.route('/users/<int:user_id>', methods=['DELETE'])
+@admin_bp.route('/users/<int:user_id>/delete', methods=['POST', 'DELETE'])
+@admin_required
+def admin_delete_user(user_id):
+    """
+    Allow Administrator to delete an existing student or staff user account.
+    Prevents self-deletion and root admin deletion.
+    Cascades to complaints, timeline, feedback, notifications.
+    """
+    user = query_db("SELECT UserID, FullName, CollegeEmail, Role FROM dbo.Users WHERE UserID = ?", (user_id,), one=True)
+    if not user:
+        return jsonify({'success': False, 'message': 'User record not found.'}), 404
+
+    current_admin_id = request.current_user.get('user_id')
+    if user_id == current_admin_id:
+        return jsonify({'success': False, 'message': 'Action prohibited: You cannot delete your own active administrator account.'}), 400
+
+    if user_id == 1 or user['CollegeEmail'] == 'admin@kiet.edu':
+        return jsonify({'success': False, 'message': 'Action prohibited: Root system administrator account cannot be deleted.'}), 400
+
+    try:
+        execute_transaction([
+            ("DELETE FROM dbo.Feedback WHERE UserID = ? OR ComplaintID IN (SELECT ComplaintID FROM dbo.Complaints WHERE UserID = ?)", (user_id, user_id)),
+            ("DELETE FROM dbo.ComplaintTimeline WHERE UpdatedByUserID = ? OR ComplaintID IN (SELECT ComplaintID FROM dbo.Complaints WHERE UserID = ?)", (user_id, user_id)),
+            ("DELETE FROM dbo.Notifications WHERE UserID = ? OR ComplaintID IN (SELECT ComplaintID FROM dbo.Complaints WHERE UserID = ?)", (user_id, user_id)),
+            ("DELETE FROM dbo.Complaints WHERE UserID = ?", (user_id,)),
+            ("DELETE FROM dbo.Users WHERE UserID = ?", (user_id,))
+        ])
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Failed to delete user: {str(e)}'}), 500
+
+    return jsonify({
+        'success': True,
+        'message': f"User '{user['FullName']}' ({user['CollegeEmail']}) has been successfully deleted.",
+        'deleted_user_id': user_id
+    })
+
 @admin_bp.route('/files', methods=['GET'])
 @admin_required
 def admin_get_uploaded_files():

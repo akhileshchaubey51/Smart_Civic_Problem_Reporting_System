@@ -613,10 +613,23 @@ async function loadAdminUsers() {
         </td>
         <td class="py-3.5 px-4 text-xs text-slate-500 font-mono">${escapeHtml(u.Phone || '—')}</td>
         <td class="py-3.5 px-4 text-center">
-          <button onclick="openEditUserModal(${u.UserID})" class="px-2.5 py-1.5 text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg inline-flex items-center gap-1 transition-all shadow-sm hover:shadow" title="Edit &amp; correct student details">
-            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
-            <span>Correction</span>
-          </button>
+          <div class="flex items-center justify-center gap-1.5">
+            <button onclick="openEditUserModal(${u.UserID})" class="px-2.5 py-1.5 text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg inline-flex items-center gap-1 transition-all shadow-sm hover:shadow" title="Edit &amp; correct student details">
+              <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+              <span>Correction</span>
+            </button>
+            ${(u.UserID === 1 || u.CollegeEmail === 'admin@kiet.edu') ? `
+              <span class="px-2 py-1.5 text-[11px] font-semibold text-slate-400 bg-slate-100 border border-slate-200 rounded-lg inline-flex items-center gap-1" title="Root Administrator Account (Protected)">
+                <i data-lucide="shield-check" class="w-3.5 h-3.5 text-blue-600"></i>
+                <span>Protected</span>
+              </span>
+            ` : `
+              <button onclick="openDeleteUserModal(${u.UserID}, '${escapeHtml(u.FullName).replace(/'/g, "\\'")}', '${escapeHtml(u.CollegeEmail).replace(/'/g, "\\'")}', '${u.Role}', '${profileImgSrc}')" class="px-2.5 py-1.5 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg inline-flex items-center gap-1 transition-all shadow-sm hover:shadow" title="Delete this user account">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                <span>Delete</span>
+              </button>
+            `}
+          </div>
         </td>
         <td class="py-3.5 px-4 text-right text-xs text-slate-400">${formatDate(u.CreatedAt)}</td>
       </tr>
@@ -911,6 +924,20 @@ async function openEditUserModal(userId) {
   const photoStatus = document.getElementById('edit-user-photo-status');
   if (photoStatus) photoStatus.innerText = 'Current profile photo loaded.';
 
+  // Handle Delete button in modal
+  const deleteBtn = document.getElementById('edit-user-delete-btn');
+  if (deleteBtn) {
+    if (u.UserID === 1 || u.CollegeEmail === 'admin@kiet.edu') {
+      deleteBtn.style.display = 'none';
+    } else {
+      deleteBtn.style.display = 'inline-flex';
+      deleteBtn.onclick = () => {
+        closeEditUserModal();
+        openDeleteUserModal(u.UserID, u.FullName, u.CollegeEmail, u.Role, currentAvatar);
+      };
+    }
+  }
+
   if (window.lucide) lucide.createIcons();
 }
 
@@ -1054,6 +1081,109 @@ async function handleEditUserSubmit(e) {
     submitBtn.disabled = false;
     submitBtn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Save Corrections &rarr;`;
     if (window.lucide) lucide.createIcons();
+  }
+}
+
+/* ==========================================================================
+   Delete User Modal & Logic
+   ========================================================================== */
+let pendingDeleteUserId = null;
+
+function openDeleteUserModal(userId, fullName, collegeEmail, role, avatarUrl) {
+  const modal = document.getElementById('admin-delete-user-modal');
+  if (!modal) return;
+
+  pendingDeleteUserId = userId;
+
+  const nameEl = document.getElementById('delete-user-name');
+  const emailEl = document.getElementById('delete-user-email');
+  const roleEl = document.getElementById('delete-user-role');
+  const idEl = document.getElementById('delete-user-id');
+  const imgEl = document.getElementById('delete-user-photo-img');
+  const alertEl = document.getElementById('delete-user-error-alert');
+  const confirmBtn = document.getElementById('confirm-delete-user-btn');
+
+  if (nameEl) nameEl.innerText = fullName || 'User';
+  if (emailEl) emailEl.innerText = collegeEmail || '';
+  if (roleEl) roleEl.innerText = role || 'Student';
+  if (idEl) idEl.innerText = `#UID-${userId}`;
+  if (imgEl) imgEl.src = avatarUrl || (role === 'Admin' ? 'profile images/image2.jpg' : 'profile images/image1.jpg');
+
+  if (alertEl) {
+    alertEl.classList.add('hidden');
+    alertEl.innerText = '';
+  }
+
+  if (confirmBtn) {
+    confirmBtn.disabled = false;
+    confirmBtn.innerHTML = `<i data-lucide="trash-2" class="w-4 h-4"></i><span>Delete User</span>`;
+  }
+
+  modal.classList.remove('hidden');
+  if (window.lucide) lucide.createIcons();
+}
+
+function closeDeleteUserModal() {
+  const modal = document.getElementById('admin-delete-user-modal');
+  if (modal) modal.classList.add('hidden');
+  pendingDeleteUserId = null;
+}
+
+function handleDeleteFromEditModal() {
+  const userId = document.getElementById('edit-user-id')?.value;
+  const fullName = document.getElementById('edit-user-fullname')?.value;
+  const collegeEmail = document.getElementById('edit-user-email')?.value;
+  const role = document.getElementById('edit-user-role-badge')?.innerText || 'Student';
+  const avatarUrl = document.getElementById('edit-user-photo-preview')?.src;
+
+  closeEditUserModal();
+  if (userId) {
+    openDeleteUserModal(parseInt(userId), fullName, collegeEmail, role, avatarUrl);
+  }
+}
+
+async function executeDeleteUser() {
+  if (!pendingDeleteUserId) return;
+
+  const confirmBtn = document.getElementById('confirm-delete-user-btn');
+  const alertEl = document.getElementById('delete-user-error-alert');
+
+  if (confirmBtn) {
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = `<span class="animate-spin inline-block mr-2">⟳</span> Deleting...`;
+  }
+
+  if (alertEl) alertEl.classList.add('hidden');
+
+  try {
+    const res = await apiFetch(`/api/admin/users/${pendingDeleteUserId}`, {
+      method: 'DELETE'
+    });
+
+    if (res && res.ok && res.data.success) {
+      showToast(res.data.message || 'User account successfully deleted.', 'success');
+      closeDeleteUserModal();
+      loadAdminUsers();
+    } else {
+      const errMsg = res?.data?.message || 'Failed to delete user account.';
+      if (alertEl) {
+        alertEl.innerText = errMsg;
+        alertEl.classList.remove('hidden');
+      }
+      showToast(errMsg, 'error');
+    }
+  } catch (err) {
+    if (alertEl) {
+      alertEl.innerText = `Network error: ${err.message}`;
+      alertEl.classList.remove('hidden');
+    }
+    showToast(`Error: ${err.message}`, 'error');
+  } finally {
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.innerHTML = `<i data-lucide="trash-2" class="w-4 h-4"></i><span>Delete User</span>`;
+      if (window.lucide) lucide.createIcons();
+    }
   }
 }
 
