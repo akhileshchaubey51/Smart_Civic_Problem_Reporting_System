@@ -255,3 +255,78 @@ def change_password():
 
     return jsonify({'success': True, 'message': 'Password updated successfully.'})
 
+@auth_bp.route('/update-profile', methods=['POST'])
+@token_required
+def update_profile():
+    """
+    Allows a logged-in user (Admin, Staff, or Student) to update their personal profile:
+    - full_name
+    - phone
+    - profile_image (uploaded file or preset URL)
+    - new_password (optional, min 6 chars)
+    """
+    user_id = request.current_user['user_id']
+    user = query_db("SELECT * FROM dbo.Users WHERE UserID = ?", (user_id,), one=True)
+    if not user:
+        return jsonify({'success': False, 'message': 'User account not found.'}), 404
+
+    data = request.form.to_dict() if request.form else (request.get_json(silent=True) or {})
+    
+    full_name = (data.get('full_name') or user.get('FullName') or '').strip()
+    if not full_name:
+        return jsonify({'success': False, 'message': 'Full name cannot be empty.'}), 400
+
+    phone = data.get('phone') if 'phone' in data else user.get('Phone')
+    profile_image = user.get('ProfileImage')
+    new_password = (data.get('new_password') or data.get('password') or '').strip()
+
+    photo_file = request.files.get('profile_image') or request.files.get('profile_photo') or request.files.get('image')
+    if photo_file and photo_file.filename:
+        ext = photo_file.filename.rsplit('.', 1)[-1].lower() if '.' in photo_file.filename else ''
+        if ext in Config.ALLOWED_EXTENSIONS:
+            os.makedirs(Config.UPLOAD_FOLDER, exist_ok=True)
+            unique_filename = f"avatar_{uuid.uuid4().hex[:10]}_{secure_filename(photo_file.filename)}"
+            save_path = os.path.join(Config.UPLOAD_FOLDER, unique_filename)
+            photo_file.save(save_path)
+            profile_image = f"/uploads/{unique_filename}"
+        else:
+            return jsonify({'success': False, 'message': f'Invalid photo format. Allowed: {", ".join(Config.ALLOWED_EXTENSIONS)}'}), 400
+    elif data.get('profile_image') or data.get('profile_photo'):
+        profile_image = (data.get('profile_image') or data.get('profile_photo')).strip()
+
+    if new_password:
+        if len(new_password) < 6:
+            return jsonify({'success': False, 'message': 'New password must be at least 6 characters long.'}), 400
+        new_pwd_hash = hash_password(new_password)
+        execute_db("""
+            UPDATE dbo.Users 
+            SET FullName = ?, Phone = ?, ProfileImage = ?, PasswordHash = ?
+            WHERE UserID = ?
+        """, (full_name, phone, profile_image, new_pwd_hash, user_id))
+    else:
+        execute_db("""
+            UPDATE dbo.Users 
+            SET FullName = ?, Phone = ?, ProfileImage = ?
+            WHERE UserID = ?
+        """, (full_name, phone, profile_image, user_id))
+
+    updated_user = query_db("SELECT UserID, FullName, CollegeEmail, Role, Department, Course, Phone, ProfileImage FROM dbo.Users WHERE UserID = ?", (user_id,), one=True)
+    
+    user_dict = {
+        'id': updated_user['UserID'],
+        'full_name': updated_user['FullName'],
+        'college_email': updated_user['CollegeEmail'],
+        'role': updated_user['Role'],
+        'department': updated_user['Department'],
+        'course': updated_user['Course'],
+        'phone': updated_user['Phone'],
+        'profile_image': updated_user['ProfileImage']
+    }
+
+    return jsonify({
+        'success': True,
+        'message': 'Profile updated successfully.',
+        'user': user_dict
+    }), 200
+
+

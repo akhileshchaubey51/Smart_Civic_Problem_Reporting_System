@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KIET CampusCare | Staff &amp; In-Charge Resolution Portal</title>
+  
+  <!-- Modern Clean Formal Typography: Plus Jakarta Sans & Inter (Matching Admin Panel) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/page-transitions.css">
+  <link rel="stylesheet" href="/staff.css">
+</head>
+<body>
+
+  <!-- Top Announcement Bar -->
+  <aside class="staff-top-banner">
+    <div class="staff-banner-inner">
+      <span class="staff-banner-badge">Official KIET Staff Portal</span>
+      <span class="staff-banner-text">Department Technical Maintenance &amp; Civic Grievance Resolution Desk</span>
+    </div>
+  </aside>
+
+  <!-- Main Navigation Header -->
+  <header class="staff-navbar">
+    <div class="staff-navbar-inner">
+      <div class="staff-brand" onclick="window.location.reload()">
+        <div class="staff-logo-wrapper">
+          <img src="/images/logo.jpg" alt="KIET Official Logo" class="staff-logo-img">
+        </div>
+        <div class="staff-brand-titles">
+          <div class="staff-brand-title">KIET CampusCare</div>
+          <div class="staff-brand-sub"><span class="brand-sub-badge">Staff Desk</span> Technical Maintenance</div>
+        </div>
+      </div>
+
+      <div class="staff-nav-actions">
+        <!-- Notification Bell with Dropdown Drawer -->
+        <div class="staff-notif-wrapper">
+          <button type="button" id="staffNotifBtn" class="staff-notif-btn" onclick="toggleStaffNotifDrawer()" title="View Notifications">
+            <span class="notif-icon">🔔</span>
+            <span id="staffNotifBadge" class="staff-notif-badge">0</span>
+          </button>
+
+          <!-- Notification Drawer Dropdown -->
+          <div id="staffNotifDrawer" class="staff-notif-dropdown">
+            <div class="notif-dropdown-header">
+              <span class="notif-header-title">🔔 Task &amp; Assignment Alerts</span>
+              <button type="button" class="notif-mark-read-btn" onclick="markAllStaffNotifsRead()">Mark All Read</button>
+            </div>
+            <div id="staffNotifList" class="notif-list-container">
+              <div class="notif-empty">No new assignment notifications.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Staff Profile Badge -->
+        <div class="staff-profile-chip">
+          <img id="staffAvatarImg" src="/profile images/image13.jpg" alt="Staff Avatar" class="staff-avatar">
+          <div class="staff-profile-meta">
+            <div id="staffFullName" class="staff-name">Loading Staff...</div>
+            <div id="staffDeptRole" class="staff-dept">Department In-Charge</div>
+          </div>
+        </div>
+
+        <!-- Logout Button -->
+        <button type="button" class="staff-logout-btn" onclick="logoutStaff()">
+          Sign Out &rarr;
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="staff-main-container">
+
+    <!-- Hero Welcome Banner -->
+    <section class="staff-hero-card">
+      <div class="staff-hero-content">
+        <div class="staff-hero-greeting">
+          <span class="greeting-pill">⚡ Technical Staff Operations</span>
+          <h1 id="staffHeroHeading">Welcome to Staff Grievance Desk</h1>
+          <p class="staff-hero-sub">
+            Review grievances assigned directly to your ID, inspect issues across other departments, and log real-time resolution updates with verifiable repair notes.
+          </p>
+        </div>
+        <div class="staff-hero-badge-box">
+          <span class="hero-dept-label">My Department</span>
+          <div id="staffHeroDeptName" class="hero-dept-value">Master of Computer Applications</div>
+          <div class="hero-live-indicator">
+            <span class="pulse-dot"></span> Live Assignment Sync Active
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- KPI Metric Cards Grid -->
+    <section class="staff-kpi-grid">
+      <div class="staff-kpi-card kpi-assigned" onclick="switchStaffTab('my-tasks')">
+        <div class="kpi-icon-box">🎯</div>
+        <div class="kpi-info">
+          <span class="kpi-label">Assigned To Me</span>
+          <div id="kpiMyTotal" class="kpi-value">0</div>
+        </div>
+      </div>
+
+      <div class="staff-kpi-card kpi-pending" onclick="switchStaffTab('my-tasks', 'Pending')">
+        <div class="kpi-icon-box">⏳</div>
+        <div class="kpi-info">
+          <span class="kpi-label">Pending Action</span>
+          <div id="kpiMyPending" class="kpi-value">0</div>
+        </div>
+      </div>
+
+      <div class="staff-kpi-card kpi-progress" onclick="switchStaffTab('my-tasks', 'In Progress')">
+        <div class="kpi-icon-box">⚡</div>
+        <div class="kpi-info">
+          <span class="kpi-label">In Progress Work</span>
+          <div id="kpiMyInProgress" class="kpi-value">0</div>
+        </div>
+      </div>
+
+      <div class="staff-kpi-card kpi-resolved" onclick="switchStaffTab('my-tasks', 'Resolved')">
+        <div class="kpi-icon-box">✓</div>
+        <div class="kpi-info">
+          <span class="kpi-label">Resolved by Me</span>
+          <div id="kpiMyResolved" class="kpi-value">0</div>
+        </div>
+      </div>
+
+      <div class="staff-kpi-card kpi-college" onclick="switchStaffTab('all-issues')">
+        <div class="kpi-icon-box">🏛️</div>
+        <div class="kpi-info">
+          <span class="kpi-label">College Issues Total</span>
+          <div id="kpiCollegeTotal" class="kpi-value">0</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Navigation Tab Bar -->
+    <section class="staff-tab-bar">
+      <button type="button" id="tabBtnMyTasks" class="staff-nav-tab active" onclick="switchStaffTab('my-tasks')">
+        <span>🎯 My Assigned Tasks</span>
+        <span id="tabCountMyTasks" class="staff-tab-pill">0</span>
+      </button>
+
+      <button type="button" id="tabBtnAllIssues" class="staff-nav-tab" onclick="switchStaffTab('all-issues')">
+        <span>📋 All Department Issues &amp; Staff Assignments</span>
+        <span id="tabCountAllIssues" class="staff-tab-pill">0</span>
+      </button>
+
+      <button type="button" id="tabBtnNotifs" class="staff-nav-tab" onclick="switchStaffTab('notifs')">
+        <span>🔔 My Task Notifications</span>
+        <span id="tabCountNotifs" class="staff-tab-pill pill-alert">0</span>
+      </button>
+    </section>
+
+    <!-- TAB 1: MY ASSIGNED TASKS (ACTIONABLE) -->
+    <section id="sectionMyTasks" class="staff-section-view">
+      <div class="section-filter-bar">
+        <div class="filter-title-group">
+          <h2 class="section-heading">🎯 Grievances Assigned to Your ID</h2>
+          <p class="section-sub">These issues have been tagged to you by Campus Administration for resolution inspection.</p>
+        </div>
+        <div class="filter-controls">
+          <select id="filterMyTaskStatus" class="staff-select" onchange="loadStaffMyTasks()">
+            <option value="all">All Task Statuses</option>
+            <option value="Pending">Pending Action</option>
+            <option value="In Progress">In Progress Work</option>
+            <option value="Resolved">Resolved Tasks</option>
+          </select>
+          <button type="button" class="staff-refresh-btn" onclick="loadStaffMyTasks()" title="Refresh List">
+            ⟳ Refresh
+          </button>
+        </div>
+      </div>
+
+      <div id="staffMyTasksContainer" class="tasks-grid">
+        <!-- Rendered dynamically via staff.js -->
+        <div class="staff-loading">
+          <div class="staff-spinner"></div>
+          <p>Loading assigned grievance tasks...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: ALL DEPARTMENT ISSUES & STAFF ASSIGNMENTS -->
+    <section id="sectionAllIssues" class="staff-section-view" style="display: none;">
+      <div class="section-filter-bar">
+        <div class="filter-title-group">
+          <h2 class="section-heading">📋 All Campus Grievances &amp; Staff Assigned</h2>
+          <p class="section-sub">Inspect issues across MCA, M.Tech, Electrical, Water, Cleanliness, IT Labs, and see who is assigned to each ticket.</p>
+        </div>
+        <div class="filter-controls">
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="filterAllSearch" class="staff-search-input" placeholder="Search ticket, department tag, staff..." oninput="debounceLoadAllIssues()">
+          </div>
+          <select id="filterAllDept" class="staff-select" onchange="loadStaffAllIssues()">
+            <option value="all">All Departments / Tags</option>
+            <option value="MCA">MCA Department</option>
+            <option value="M.Tech">M.Tech Department</option>
+            <option value="Water">Water Issues</option>
+            <option value="Electrical">Electrical Cell</option>
+            <option value="Sanitation">Sanitation &amp; Washrooms</option>
+            <option value="Infrastructure">Infrastructure</option>
+            <option value="IT / Labs">IT Labs &amp; Wi-Fi</option>
+            <option value="Hostel">Hostel &amp; Mess</option>
+          </select>
+          <select id="filterAllStatus" class="staff-select" onchange="loadStaffAllIssues()">
+            <option value="all">All Statuses</option>
+            <option value="Pending">Pending</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Resolved">Resolved</option>
+          </select>
+          <button type="button" class="staff-refresh-btn" onclick="loadStaffAllIssues()" title="Refresh List">
+            ⟳ Refresh
+          </button>
+        </div>
+      </div>
+
+      <div class="table-card-wrapper">
+        <div class="table-scroll-wrap">
+          <table class="staff-data-table">
+            <thead>
+              <tr>
+                <th>Ticket</th>
+                <th style="text-align: center;">Proof</th>
+                <th>Issue Title &amp; Location</th>
+                <th>Department Tag</th>
+                <th>Assigned In-Charge</th>
+                <th>Student</th>
+                <th>Status</th>
+                <th style="text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="staffAllIssuesTableBody">
+              <!-- Dynamically populated via staff.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: NOTIFICATIONS FEED -->
+    <section id="sectionNotifs" class="staff-section-view" style="display: none;">
+      <div class="section-filter-bar">
+        <div class="filter-title-group">
+          <h2 class="section-heading">🔔 My Task Assignment Notifications</h2>
+          <p class="section-sub">Direct alerts generated whenever Administration tags or assigns a grievance ticket to your ID.</p>
+        </div>
+        <div class="filter-controls">
+          <button type="button" class="staff-action-btn" onclick="markAllStaffNotifsRead()">
+            ✓ Mark All As Read
+          </button>
+        </div>
+      </div>
+
+      <div id="staffFullNotifContainer" class="notif-feed-container">
+        <!-- Rendered via staff.js -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ====================================================================
+       MODAL 1: MANAGE GRIEVANCE, COMMIT ACTIONS & TIMELINE AUDIT
+       ==================================================================== -->
+  <div id="staffDetailModal" class="staff-modal-backdrop" style="display: none;" onclick="closeStaffDetailModal(event)">
+    <div class="staff-modal-box" onclick="event.stopPropagation()">
+      <div class="staff-modal-header">
+        <div class="modal-header-info">
+          <span id="modalTicketBadge" class="modal-id-badge">#CMP-0</span>
+          <h3 id="modalTicketTitle" class="modal-title">Manage Task &amp; Resolution</h3>
+        </div>
+        <button type="button" class="staff-modal-close" onclick="closeStaffDetailModal()" title="Close (ESC)">&times;</button>
+      </div>
+
+      <div id="staffDetailModalContent" class="staff-modal-body">
+        <!-- Injected via staff.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL 2: CINEMA MEDIA LIGHTBOX (FULLSCREEN IMAGE / VIDEO)
+       ==================================================================== -->
+  <div id="staffMediaLightbox" class="media-lightbox-backdrop" style="display: none;">
+    <div class="media-lightbox-container">
+      <div class="media-lightbox-header">
+        <div class="media-lightbox-title-wrap">
+          <span id="lightboxMediaBadge" class="media-lightbox-badge">📸 Photo Evidence</span>
+          <span id="lightboxMediaTitle" class="media-lightbox-title">Attached Evidence</span>
+        </div>
+        <button type="button" class="media-lightbox-cut-btn" onclick="closeStaffLightbox()" title="Close (ESC)">
+          <span class="cut-icon">&times;</span>
+          <span class="cut-text">Close</span>
+        </button>
+      </div>
+
+      <div class="media-lightbox-body">
+        <img id="lightboxImg" src="" alt="Evidence Fullscreen" class="media-lightbox-element" style="display: none;">
+        <video id="lightboxVideo" src="" controls playsinline class="media-lightbox-element" style="display: none;"></video>
+      </div>
+
+      <div class="media-lightbox-footer">
+        <span class="media-lightbox-hint">Press <kbd>ESC</kbd> or click Close to exit view</span>
+        <button type="button" class="media-lightbox-bottom-close" onclick="closeStaffLightbox()">✕ Close Viewer</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/staff.js"></script>
+</body>
+</html>

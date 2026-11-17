@@ -7,6 +7,19 @@
 let selectedPriority = 'Medium';
 let currentActiveFeedbackId = null;
 
+function resolveMediaUrl(url) {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+    return url;
+  }
+  const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+  const base = (window.location.protocol === 'file:') ? 'http://127.0.0.1:5000' :
+               (window.location.port === '5000') ? '' :
+               `${window.location.protocol}//${window.location.hostname}:5000`;
+  return `${base}${cleanUrl}`;
+}
+window.resolveMediaUrl = resolveMediaUrl;
+
 async function loadStudentDashboard() {
   await loadCategories();
   await loadStudentComplaints();
@@ -231,6 +244,16 @@ async function loadStudentComplaints() {
               ${getStatusBadge(c.Status)}
               ${getPriorityBadge(c.Priority)}
               <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600">${c.CategoryName}</span>
+              ${c.DepartmentTag ? `
+                <span class="text-xs font-extrabold px-2.5 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200 shadow-xs">
+                  🏷️ ${escapeHtml(c.DepartmentTag)}
+                </span>
+              ` : ''}
+              ${c.AssignedToName ? `
+                <span class="text-xs font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200">
+                  👤 ${escapeHtml(c.AssignedToName)}
+                </span>
+              ` : ''}
             </div>
             <h4 class="text-base font-bold text-slate-800">${escapeHtml(c.Title)}</h4>
           </div>
@@ -248,20 +271,31 @@ async function loadStudentComplaints() {
 
         <p class="text-sm text-slate-600 mb-3 line-clamp-2">${escapeHtml(c.Description)}</p>
 
-        ${c.ImageAttachmentURL ? `
-          <div class="mb-3.5 flex items-center gap-3 p-2 bg-slate-50 border border-slate-200 rounded-lg">
-            <div class="w-16 h-12 rounded overflow-hidden bg-slate-200 shrink-0 cursor-pointer border border-slate-300 relative group" onclick="openImageLightbox('${c.ImageAttachmentURL}', '${escapeHtml(c.Title)}')">
-              <img src="${c.ImageAttachmentURL}" alt="Evidence" class="w-full h-full object-cover group-hover:scale-110 transition-transform" onerror="this.closest('.flex').style.display='none'">
-              <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-[10px] font-bold">🔍</div>
+        ${c.ImageAttachmentURL ? (() => {
+          const isVid = /\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i.test(c.ImageAttachmentURL) || (typeof c.ImageAttachmentURL === 'string' && c.ImageAttachmentURL.includes('/video/'));
+          const studentMediaUrl = resolveMediaUrl(c.ImageAttachmentURL);
+          const safeTitle = escapeHtml(c.Title).replace(/'/g, "\\'");
+          const clickFn = `if(typeof openImageLightbox==='function'){openImageLightbox('${studentMediaUrl}', '${safeTitle}');}else if(typeof openStudentImageModal==='function'){openStudentImageModal('${studentMediaUrl}', '${safeTitle}');}else{window.open('${studentMediaUrl}','_blank');}`;
+          return `
+          <div class="mb-3.5 flex items-center gap-3 p-2.5 bg-slate-50 border border-slate-200 rounded-xl hover:border-blue-300 transition-colors">
+            <div class="w-20 h-14 rounded-lg overflow-hidden bg-slate-900 shrink-0 cursor-pointer border border-slate-300 relative group shadow-sm" onclick="${clickFn}">
+              ${isVid ? `
+                <video src="${studentMediaUrl}" preload="metadata" muted class="w-full h-full object-cover group-hover:scale-110 transition-transform"></video>
+                <div class="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-xs font-bold">▶</div>
+              ` : `
+                <img src="${studentMediaUrl}" alt="Evidence" class="w-full h-full object-cover group-hover:scale-110 transition-transform" onerror="this.closest('.flex').style.display='none'">
+                <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-bold">🔍</div>
+              `}
             </div>
             <div>
-              <span class="text-xs font-semibold text-slate-700 block">Attached Evidence Photo</span>
-              <button type="button" onclick="openImageLightbox('${c.ImageAttachmentURL}', '${escapeHtml(c.Title)}')" class="text-xs text-blue-600 hover:underline flex items-center gap-1 font-medium mt-0.5">
-                <i data-lucide="zoom-in" class="w-3 h-3"></i> View Full Resolution
+              <span class="text-xs font-bold text-slate-700 block">${isVid ? '🎬 Attached Video Evidence' : '📸 Attached Evidence Photo'}</span>
+              <button type="button" onclick="${clickFn}" class="text-xs text-blue-600 hover:underline flex items-center gap-1 font-bold mt-1">
+                <i data-lucide="zoom-in" class="w-3.5 h-3.5"></i> View Image &rarr;
               </button>
             </div>
           </div>
-        ` : ''}
+          `;
+        })() : ''}
 
         <div class="flex flex-wrap items-center justify-between text-xs text-slate-500 gap-2">
           <div class="flex items-center gap-4">
@@ -393,12 +427,55 @@ async function openTrackModal(complaintId) {
       </div>
     </div>
 
-    ${complaint.ImageAttachmentURL ? `
+    ${complaint.ImageAttachmentURL ? (() => {
+      const isVid = /\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i.test(complaint.ImageAttachmentURL) || (typeof complaint.ImageAttachmentURL === 'string' && complaint.ImageAttachmentURL.includes('/video/'));
+      const studentMediaUrl = resolveMediaUrl(complaint.ImageAttachmentURL);
+      const safeTitle = escapeHtml(complaint.Title).replace(/'/g, "\\'");
+      const clickFn = `if(typeof openImageLightbox==='function'){openImageLightbox('${studentMediaUrl}', '${safeTitle}');}else if(typeof openStudentImageModal==='function'){openStudentImageModal('${studentMediaUrl}', '${safeTitle}');}else{window.open('${studentMediaUrl}','_blank');}`;
+      return `
       <div class="mb-6">
-        <h5 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Attached Visual Evidence</h5>
-        <a href="${complaint.ImageAttachmentURL}" target="_blank" class="block max-w-sm rounded-xl overflow-hidden border border-slate-200 hover:opacity-95 transition-opacity">
-          <img src="${complaint.ImageAttachmentURL}" alt="Evidence Photo" class="w-full h-48 object-cover">
-        </a>
+        <div class="flex items-center justify-between mb-2">
+          <h5 class="text-xs font-bold uppercase tracking-wider text-slate-500">${isVid ? '🎬 Attached Video Evidence' : '📸 Attached Visual Evidence'}</h5>
+          <span onclick="${clickFn}" class="text-xs text-blue-600 font-extrabold cursor-pointer hover:underline">
+            🔍 View Image / Fullscreen &rarr;
+          </span>
+        </div>
+        <div onclick="${clickFn}" class="cursor-pointer block rounded-2xl overflow-hidden border border-slate-200 w-full max-w-md group relative shadow-md hover:shadow-xl transition-all duration-300">
+          ${isVid ? `
+            <video src="${studentMediaUrl}" preload="metadata" muted class="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-300"></video>
+            <div class="absolute inset-0 bg-slate-950/40 group-hover:bg-slate-950/60 transition-colors flex flex-col items-center justify-center text-white gap-2 backdrop-blur-[2px]">
+              <div class="w-12 h-12 rounded-full bg-blue-600/90 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                ▶
+              </div>
+              <span class="text-xs font-bold tracking-wide">Click to Play Video Fullscreen</span>
+            </div>
+          ` : `
+            <img src="${studentMediaUrl}" alt="Evidence Photo" class="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-300">
+            <div class="absolute inset-0 bg-slate-950/30 group-hover:bg-slate-950/60 transition-colors flex items-center justify-center text-white text-xs font-bold gap-2 backdrop-blur-[2px]">
+              <i data-lucide="maximize-2" class="w-4 h-4"></i> Click to Zoom Fullscreen
+            </div>
+          `}
+        </div>
+      </div>
+      `;
+    })() : ''}
+
+    <!-- Department Tag & Assigned In-Charge -->
+    ${complaint.DepartmentTag || complaint.AssignedToName ? `
+      <div class="bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-xl border border-indigo-200 mb-6 flex items-center justify-between flex-wrap gap-3 shadow-xs">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-base shadow-sm">
+            👤
+          </div>
+          <div>
+            <div class="text-[11px] font-bold uppercase tracking-wider text-indigo-700">Assigned Department &amp; Staff In-Charge</div>
+            <div class="font-extrabold text-slate-900 text-sm mt-0.5">${escapeHtml(complaint.AssignedToName || 'Department Maintenance Team')} <span class="font-semibold text-slate-500 font-mono text-xs">(${escapeHtml(complaint.AssignedToDepartment || 'Campus Staff')})</span></div>
+            ${complaint.AssignedNotes ? `<div class="text-xs text-slate-600 italic mt-0.5">Admin Directive: "${escapeHtml(complaint.AssignedNotes)}"</div>` : ''}
+          </div>
+        </div>
+        <div class="px-3 py-1 rounded-full text-xs font-black bg-purple-100 text-purple-800 border border-purple-200 shadow-xs">
+          🏷️ ${escapeHtml(complaint.DepartmentTag || 'General Facilities')}
+        </div>
       </div>
     ` : ''}
 
@@ -406,23 +483,29 @@ async function openTrackModal(complaintId) {
     <div>
       <h5 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Audit Trail & Timeline Logs</h5>
       <div class="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
-        ${timeline.map(item => `
-          <div class="relative">
-            <div class="absolute -left-6 top-1.5 w-2.5 h-2.5 rounded-full bg-blue-600 border-2 border-white"></div>
-            <div class="bg-white p-3 rounded-lg border border-slate-200 text-xs">
+        ${timeline.map(item => {
+          let dotColor = 'bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.5)]';
+          if (item.NewStatus === 'Resolved') dotColor = 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.6)] ring-4 ring-emerald-100';
+          else if (item.NewStatus === 'In Progress') dotColor = 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.6)] ring-4 ring-amber-100';
+          else if (item.NewStatus === 'Rejected') dotColor = 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]';
+          return `
+          <div class="relative transition-all hover:translate-x-0.5">
+            <div class="absolute -left-6 top-1.5 w-3 h-3 rounded-full ${dotColor} border-2 border-white"></div>
+            <div class="bg-white p-3.5 rounded-xl border border-slate-200 text-xs shadow-sm hover:shadow transition-shadow">
               <div class="flex items-center justify-between text-slate-400 mb-1">
-                <span class="font-semibold text-slate-700">${escapeHtml(item.UpdatedByName)} (${item.UpdatedByRole})</span>
-                <span>${formatDate(item.Timestamp)}</span>
+                <span class="font-bold text-slate-800">${escapeHtml(item.UpdatedByName)} (${item.UpdatedByRole})</span>
+                <span class="font-semibold">${formatDate(item.Timestamp)}</span>
               </div>
-              <p class="text-slate-800 font-medium">${escapeHtml(item.Remarks)}</p>
+              <p class="text-slate-800 font-medium leading-relaxed">${escapeHtml(item.Remarks)}</p>
               ${item.PreviousStatus ? `
-                <div class="mt-1 text-slate-500">Status changed: <span class="font-mono">${item.PreviousStatus}</span> &rarr; <span class="font-mono font-bold text-slate-700">${item.NewStatus}</span></div>
+                <div class="mt-1 text-slate-500">Status changed: <span class="font-mono bg-slate-100 px-1.5 py-0.5 rounded">${item.PreviousStatus}</span> &rarr; <span class="font-mono font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">${item.NewStatus}</span></div>
               ` : `
-                <div class="mt-1 text-slate-500">Initial ticket status: <span class="font-mono font-bold text-slate-700">${item.NewStatus}</span></div>
+                <div class="mt-1 text-slate-500">Initial ticket status: <span class="font-mono font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">${item.NewStatus}</span></div>
               `}
             </div>
           </div>
-        `).join('')}
+          `;
+        }).join('')}
       </div>
     </div>
   `;

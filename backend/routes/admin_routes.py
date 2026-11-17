@@ -37,9 +37,9 @@ def get_all_complaints():
     params = []
 
     if search:
-        where_clauses.append("(c.Title LIKE ? OR c.Description LIKE ? OR c.Location LIKE ? OR u.FullName LIKE ? OR u.CollegeEmail LIKE ?)")
+        where_clauses.append("(c.Title LIKE ? OR c.Description LIKE ? OR c.Location LIKE ? OR u.FullName LIKE ? OR u.CollegeEmail LIKE ? OR c.DepartmentTag LIKE ? OR assigned_u.FullName LIKE ?)")
         wildcard = f"%{search}%"
-        params.extend([wildcard, wildcard, wildcard, wildcard, wildcard])
+        params.extend([wildcard, wildcard, wildcard, wildcard, wildcard, wildcard, wildcard])
 
     if status and status.lower() != 'all':
         where_clauses.append("c.Status = ?")
@@ -61,6 +61,7 @@ def get_all_complaints():
         FROM dbo.Complaints c
         INNER JOIN dbo.Users u ON c.UserID = u.UserID
         INNER JOIN dbo.Categories cat ON c.CategoryID = cat.CategoryID
+        LEFT JOIN dbo.Users assigned_u ON c.AssignedToUserID = assigned_u.UserID
         WHERE {where_sql}
     """
     total_result = query_db(count_sql, params, one=True)
@@ -70,7 +71,10 @@ def get_all_complaints():
     data_sql = f"""
         SELECT 
             c.ComplaintID, c.Title, c.Description, c.Location, c.Priority, c.Status,
+            c.Upvotes, c.Latitude, c.Longitude,
             c.ImageAttachmentURL, c.CreatedAt, c.UpdatedAt,
+            c.AssignedToUserID, c.DepartmentTag, c.AssignedAt, c.AssignedNotes,
+            assigned_u.FullName AS AssignedToName, assigned_u.CollegeEmail AS AssignedToEmail, assigned_u.Department AS AssignedToDepartment,
             cat.CategoryID, cat.CategoryName, cat.SLA_Hours,
             u.UserID, u.FullName AS StudentName, u.CollegeEmail AS StudentEmail, u.Department AS StudentDepartment, u.Phone AS StudentPhone,
             f.Rating AS FeedbackRating, f.Comments AS FeedbackComments,
@@ -82,6 +86,7 @@ def get_all_complaints():
         FROM dbo.Complaints c
         INNER JOIN dbo.Users u ON c.UserID = u.UserID
         INNER JOIN dbo.Categories cat ON c.CategoryID = cat.CategoryID
+        LEFT JOIN dbo.Users assigned_u ON c.AssignedToUserID = assigned_u.UserID
         LEFT JOIN dbo.Feedback f ON c.ComplaintID = f.ComplaintID
         WHERE {where_sql}
         ORDER BY c.CreatedAt DESC
@@ -102,6 +107,94 @@ def get_all_complaints():
         },
         'complaints': complaints
     })
+
+@admin_bp.route('/complaints/<int:complaint_id>/assign', methods=['POST'])
+@admin_required
+def assign_complaint(complaint_id):
+    """
+    Assign and Tag a complaint to a specific department or staff in-charge user.
+    Creates an audit timeline entry and notifies the tagged user.
+    """
+    admin_id = request.current_user['user_id']
+    admin_name = request.current_user.get('fullname', 'Admin')
+    data = request.get_json() or {}
+
+    assigned_user_id = data.get('assigned_to_user_id')
+    try:
+        assigned_user_id = int(assigned_user_id) if assigned_user_id else None
+    except (ValueError, TypeError):
+        assigned_user_id = None
+
+    department_tag = (data.get('department_tag') or '').strip()
+    notes = (data.get('notes') or '').strip()
+
+    if not department_tag and not assigned_user_id:
+        return jsonify({'success': False, 'message': 'Please provide a department tag or select an in-charge user to assign.'}), 400
+
+    complaint = query_db("SELECT ComplaintID, Title, Status, Priority, CategoryID FROM dbo.Complaints WHERE ComplaintID = ?", (complaint_id,), one=True)
+    if not complaint:
+        return jsonify({'success': False, 'message': 'Complaint ticket not found.'}), 404
+
+    assigned_user = None
+    if assigned_user_id:
+        assigned_user = query_db("SELECT UserID, FullName, CollegeEmail, Department, Role FROM dbo.Users WHERE UserID = ?", (assigned_user_id,), one=True)
+        if not assigned_user:
+            return jsonify({'success': False, 'message': 'Selected in-charge user was not found.'}), 404
+        if assigned_user.get('Role') == 'Student':
+            return jsonify({'success': False, 'message': 'Complaints can only be assigned to staff or faculty members, not students.'}), 400
+
+    assigned_name = assigned_user['FullName'] if assigned_user else "Department Cell"
+    tag_display = department_tag if department_tag else (assigned_user['Department'] if assigned_user else 'General Maintenance')
+
+    timeline_remarks = f"Ticket Tagged & Assigned to: {assigned_name} (Tag: {tag_display}). Admin Directive: {notes if notes else 'Assigned for immediate inspection and action.'}"
+
+    try:
+        execute_transaction([
+            (
+                """
+                UPDATE dbo.Complaints 
+                SET AssignedToUserID = ?, DepartmentTag = ?, AssignedAt = SYSUTCDATETIME(), AssignedNotes = ?, UpdatedAt = SYSUTCDATETIME()
+                WHERE ComplaintID = ?
+                """,
+                (assigned_user_id, tag_display, notes, complaint_id)
+            ),
+            (
+                """
+                INSERT INTO dbo.ComplaintTimeline (ComplaintID, UpdatedByUserID, PreviousStatus, NewStatus, Remarks)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (complaint_id, admin_id, complaint['Status'], complaint['Status'], timeline_remarks)
+            )
+        ])
+
+        # Push Notification alert to the assigned user
+        if assigned_user:
+            try:
+                execute_db("""
+                    INSERT INTO dbo.Notifications (ComplaintID, Title, Message, Priority, CategoryName, StudentName, IsRead, UserID)
+                    VALUES (?, ?, ?, ?, ?, ?, 0, ?)
+                """, (
+                    complaint_id,
+                    f"🎯 Assigned Grievance #{complaint_id}",
+                    f"Admin has tagged your ID for issue: '{complaint['Title']}' (Tag: {tag_display}). Note: {notes if notes else 'Action required.'}",
+                    complaint['Priority'],
+                    tag_display,
+                    assigned_user['FullName'],
+                    assigned_user_id
+                ))
+            except Exception:
+                pass
+
+        return jsonify({
+            'success': True,
+            'message': f'Grievance #CMP-{complaint_id} tagged and assigned to {assigned_name} ({tag_display}) successfully.',
+            'complaint_id': complaint_id,
+            'assigned_to': assigned_name,
+            'department_tag': tag_display,
+            'notes': notes
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Failed to assign complaint: {str(e)}'}), 500
 
 @admin_bp.route('/update-status/<int:complaint_id>', methods=['PUT'])
 @admin_required
@@ -370,6 +463,8 @@ def admin_create_user():
         # Assign avatar from profile images folder based on role
         if role == 'Admin':
             profile_image = 'profile images/image2.jpg'
+        elif role == 'Staff':
+            profile_image = 'profile images/image13.jpg'
         else:
             profile_image = 'profile images/image1.jpg'
 
@@ -382,8 +477,8 @@ def admin_create_user():
     if len(full_name) < 2 or len(full_name) > 100:
         return jsonify({'success': False, 'message': 'Full name must be between 2 and 100 characters.'}), 400
 
-    if role not in ('Student', 'Admin'):
-        return jsonify({'success': False, 'message': 'Role must be either Student or Admin.'}), 400
+    if role not in ('Student', 'Staff', 'Admin'):
+        return jsonify({'success': False, 'message': 'Role must be Student, Staff, or Admin.'}), 400
 
     if len(password) < 6 or len(password) > 100:
         return jsonify({'success': False, 'message': 'Password must be between 6 and 100 characters long.'}), 400
@@ -417,7 +512,7 @@ def admin_create_user():
             course = 'M.Tech'
         elif ' ba ' in f" {dept_lower} " or 'bachelor of arts' in dept_lower or 'humanities' in dept_lower:
             course = 'BA'
-        elif role == 'Admin':
+        elif role in ('Admin', 'Staff'):
             course = 'Staff/Faculty'
         else:
             course = 'B.Tech'
@@ -487,7 +582,7 @@ def admin_get_users():
         wildcard = f"%{search}%"
         params.extend([wildcard, wildcard, wildcard, wildcard, wildcard])
 
-    if role and role in ('Student', 'Admin'):
+    if role and role in ('Student', 'Staff', 'Admin'):
         where_clauses.append("Role = ?")
         params.append(role)
 
@@ -547,11 +642,15 @@ def admin_update_user(user_id):
 
     full_name = (data.get('full_name') or user.get('FullName') or '').strip()
     college_email = (data.get('college_email') or user.get('CollegeEmail') or '').strip().lower()
+    role = (data.get('role') or user.get('Role') or 'Student').strip().capitalize()
     department = (data.get('department') or user.get('Department') or '').strip()
     course = (data.get('course') or user.get('Course') or '').strip()
     phone = (data.get('phone') or '').strip()
     profile_image = (data.get('profile_image') or user.get('ProfileImage') or '').strip()
     new_password = (data.get('password') or '').strip()
+
+    if role not in ('Student', 'Staff', 'Admin'):
+        return jsonify({'success': False, 'message': 'Role must be Student, Staff, or Admin.'}), 400
 
     # Handle image file upload if provided
     if image_file and image_file.filename:
@@ -617,7 +716,7 @@ def admin_update_user(user_id):
             course = 'B.Pharm'
         elif 'm.tech' in dept_lower:
             course = 'M.Tech'
-        elif user.get('Role') == 'Admin':
+        elif role in ('Admin', 'Staff'):
             course = 'Staff/Faculty'
         else:
             course = user.get('Course') or 'B.Tech'
@@ -629,15 +728,15 @@ def admin_update_user(user_id):
         pwd_hash = hash_password(new_password)
         execute_db("""
             UPDATE dbo.Users
-            SET FullName = ?, CollegeEmail = ?, PasswordHash = ?, Department = ?, Course = ?, Phone = ?, ProfileImage = ?
+            SET FullName = ?, CollegeEmail = ?, PasswordHash = ?, Role = ?, Department = ?, Course = ?, Phone = ?, ProfileImage = ?
             WHERE UserID = ?
-        """, (full_name, college_email, pwd_hash, department, course, phone, profile_image, user_id))
+        """, (full_name, college_email, pwd_hash, role, department, course, phone, profile_image, user_id))
     else:
         execute_db("""
             UPDATE dbo.Users
-            SET FullName = ?, CollegeEmail = ?, Department = ?, Course = ?, Phone = ?, ProfileImage = ?
+            SET FullName = ?, CollegeEmail = ?, Role = ?, Department = ?, Course = ?, Phone = ?, ProfileImage = ?
             WHERE UserID = ?
-        """, (full_name, college_email, department, course, phone, profile_image, user_id))
+        """, (full_name, college_email, role, department, course, phone, profile_image, user_id))
 
     updated_user = query_db("""
         SELECT UserID, FullName, CollegeEmail, Role, Department, Course, Phone, ProfileImage, CreatedAt

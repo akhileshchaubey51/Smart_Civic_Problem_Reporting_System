@@ -11,6 +11,20 @@ let categoryChartInstance = null;
 let priorityChartInstance = null;
 let deptChartInstance = null;
 let activeAdminComplaintId = null;
+let adminUsersCache = [];
+
+function resolveMediaUrl(url) {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+    return url;
+  }
+  const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+  const base = (window.location.protocol === 'file:') ? 'http://127.0.0.1:5000' :
+               (window.location.port === '5000') ? '' :
+               `${window.location.protocol}//${window.location.hostname}:5000`;
+  return `${base}${cleanUrl}`;
+}
+window.resolveMediaUrl = resolveMediaUrl;
 
 async function loadAdminDashboard() {
   await fetchAndRenderStats();
@@ -225,51 +239,68 @@ async function loadAdminComplaints(page = 1) {
   tbody.innerHTML = complaints.map(c => `
     <tr class="border-b border-slate-100 hover:bg-blue-50/40 transition-colors">
       <td class="py-3.5 px-4">
-        <span class="font-mono text-xs font-bold text-slate-500">#TKT-${c.ComplaintID}</span>
+        <span class="font-mono text-xs font-bold text-slate-500 block">#TKT-${c.ComplaintID}</span>
+        ${c.Upvotes > 0 ? `
+          <span class="inline-flex items-center gap-1 text-[11px] font-black px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 mt-1 shadow-xs">
+            👍 ${c.Upvotes}
+          </span>
+        ` : ''}
       </td>
       <td class="py-3.5 px-3 text-center">
         ${c.ImageAttachmentURL ? `
-          <div class="evidence-thumb-container mx-auto" onclick="openImageLightbox('${c.ImageAttachmentURL}', '${escapeHtml(c.Title)}')" title="Click to view photo evidence">
-            <img src="${c.ImageAttachmentURL}" alt="Proof" onerror="this.parentElement.innerHTML='<span class=\\'text-slate-300 text-xs font-mono\\'>—</span>'">
+          <div class="evidence-thumb-container mx-auto" onclick="openImageLightbox('${resolveMediaUrl(c.ImageAttachmentURL)}', '${escapeHtml(c.Title).replace(/'/g, "\\'")}')" title="Click to view photo evidence">
+            <img src="${resolveMediaUrl(c.ImageAttachmentURL)}" alt="Proof" onerror="this.parentElement.innerHTML='<span class=\\'text-slate-300 text-xs font-mono\\'>—</span>'">
             <div class="thumb-overlay">🔍</div>
           </div>
         ` : `
           <span class="text-slate-300 text-xs font-mono">—</span>
         `}
       </td>
-      <td class="py-3.5 px-4">
-        <div class="font-semibold text-slate-800 text-sm">${escapeHtml(c.Title)}</div>
-        <div class="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
-          <i data-lucide="map-pin" class="w-3 h-3 text-slate-400"></i> ${escapeHtml(c.Location)}
+      <td class="py-4 px-4">
+        <div class="font-bold text-slate-900 text-base leading-snug">${escapeHtml(c.Title)}</div>
+        <div class="text-sm text-slate-600 flex items-center gap-1.5 mt-1 font-medium">
+          <i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i> <span>${escapeHtml(c.Location)}</span>
         </div>
-      </td>
-      <td class="py-3.5 px-4">
-        <div class="text-xs font-medium text-slate-700">${escapeHtml(c.CategoryName)}</div>
-        ${c.IsSLAOverdue ? `
-          <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700 animate-pulse mt-0.5">
-            <i data-lucide="alert-circle" class="w-2.5 h-2.5 mr-0.5"></i> SLA BREACH (${c.AgeHours}h / ${c.SLA_Hours}h)
-          </span>
-        ` : `
-          <div class="text-[11px] text-slate-400">SLA: ${c.SLA_Hours}h</div>
-        `}
-      </td>
-      <td class="py-3.5 px-4">
-        ${getPriorityBadge(c.Priority)}
-      </td>
-      <td class="py-3.5 px-4">
-        <div class="text-xs font-semibold text-slate-800">${escapeHtml(c.StudentName)}</div>
-        <div class="text-[11px] text-slate-500">${escapeHtml(c.StudentDepartment)}</div>
-        <div class="text-[10px] text-slate-400">${escapeHtml(c.StudentEmail)}</div>
-      </td>
-      <td class="py-3.5 px-4">
-        ${getStatusBadge(c.Status)}
-        ${c.FeedbackRating ? `
-          <div class="text-xs text-amber-500 font-bold mt-1">★ ${c.FeedbackRating}/5</div>
+        ${c.DepartmentTag ? `
+          <div class="mt-2 flex items-center gap-1.5 flex-wrap">
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11.5px] font-extrabold bg-purple-50 text-purple-700 border border-purple-200 shadow-xs">
+              🏷️ ${escapeHtml(c.DepartmentTag)}
+            </span>
+            ${c.AssignedToName ? `
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                👤 ${escapeHtml(c.AssignedToName)}
+              </span>
+            ` : ''}
+          </div>
         ` : ''}
       </td>
-      <td class="py-3.5 px-4 text-right">
-        <button onclick="openAdminActionModal(${c.ComplaintID})" class="px-3 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-50 border border-blue-200 rounded-lg transition-colors inline-flex items-center gap-1 shadow-sm">
-          <i data-lucide="sliders" class="w-3.5 h-3.5"></i> Manage
+      <td class="py-4 px-4">
+        <div class="text-sm font-semibold text-slate-800">${escapeHtml(c.CategoryName)}</div>
+        ${c.IsSLAOverdue ? `
+          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-rose-100 text-rose-700 animate-pulse mt-1">
+            <i data-lucide="alert-circle" class="w-3 h-3 mr-1"></i> SLA BREACH (${c.AgeHours}h / ${c.SLA_Hours}h)
+          </span>
+        ` : `
+          <div class="text-xs text-slate-500 mt-0.5">SLA: ${c.SLA_Hours}h</div>
+        `}
+      </td>
+      <td class="py-4 px-4">
+        ${getPriorityBadge(c.Priority)}
+      </td>
+      <td class="py-4 px-4">
+        <div class="text-sm font-bold text-slate-900">${escapeHtml(c.StudentName)}</div>
+        <div class="text-xs text-slate-600 font-medium mt-0.5">${escapeHtml(c.StudentDepartment)}</div>
+        <div class="text-xs text-blue-600 font-mono mt-0.5">${escapeHtml(c.StudentEmail)}</div>
+      </td>
+      <td class="py-4 px-4">
+        ${getStatusBadge(c.Status)}
+        ${c.FeedbackRating ? `
+          <div class="text-sm text-amber-500 font-bold mt-1">★ ${c.FeedbackRating}/5</div>
+        ` : ''}
+      </td>
+      <td class="py-4 px-4 text-right">
+        <button onclick="openAdminActionModal(${c.ComplaintID})" class="px-4 py-2 text-sm font-bold text-blue-700 bg-blue-50 hover:bg-blue-600 hover:text-white border border-blue-200 rounded-xl transition-all inline-flex items-center gap-1.5 shadow-sm">
+          <i data-lucide="sliders" class="w-4 h-4"></i> Manage
         </button>
       </td>
     </tr>
@@ -295,37 +326,59 @@ async function openAdminActionModal(complaintId) {
 
   const { complaint, timeline } = res.data;
 
+  // Load user directory for assignment dropdown if not cached
+  if (!adminUsersCache || adminUsersCache.length === 0) {
+    try {
+      const uRes = await apiFetch('/api/admin/users?limit=300');
+      if (uRes && uRes.ok && uRes.data && uRes.data.users) {
+        adminUsersCache = uRes.data.users;
+      }
+    } catch (e) {
+      console.warn('Could not load users for assignment', e);
+    }
+  }
+
+  // Filter ONLY Staff / Faculty / Admin users (Strictly exclude Students)
+  const staffMembers = (adminUsersCache || []).filter(u => u.Role !== 'Student');
+  const usersOptionsHtml = staffMembers.length > 0 
+    ? staffMembers.map(u => {
+        const isSelected = complaint.AssignedToUserID === u.UserID;
+        return `<option value="${u.UserID}" ${isSelected ? 'selected' : ''}>${escapeHtml(u.FullName)} (${escapeHtml(u.Department || 'Staff')}) — ${escapeHtml(u.Email)}</option>`;
+      }).join('')
+    : `<option value="" disabled>No Staff/Faculty members found. Please add staff in User Directory.</option>`;
+
   content.innerHTML = `
     <!-- Top Details -->
     <div class="flex items-start justify-between border-b border-slate-200 pb-4 mb-4">
       <div>
-        <div class="flex items-center gap-2 mb-1">
-          <span class="text-xs font-mono font-bold text-slate-400">#TKT-${complaint.ComplaintID}</span>
+        <div class="flex items-center gap-2 mb-1.5">
+          <span class="text-sm font-mono font-bold text-slate-500">#TKT-${complaint.ComplaintID}</span>
           ${getStatusBadge(complaint.Status)}
           ${getPriorityBadge(complaint.Priority)}
-          <span class="text-xs font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-700">${complaint.CategoryName}</span>
+          <span class="text-xs sm:text-sm font-semibold px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-700">${complaint.CategoryName}</span>
+          <span class="text-xs sm:text-sm font-bold px-2.5 py-0.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-200">👍 ${complaint.Upvotes || 0} Upvotes</span>
         </div>
-        <h3 class="text-lg font-bold text-slate-900">${escapeHtml(complaint.Title)}</h3>
-        <p class="text-xs text-slate-500 mt-1"><i data-lucide="map-pin" class="w-3.5 h-3.5 inline text-slate-400"></i> Location: ${escapeHtml(complaint.Location)}</p>
+        <h3 class="text-xl font-bold text-slate-900">${escapeHtml(complaint.Title)}</h3>
+        <p class="text-sm text-slate-600 mt-1"><i data-lucide="map-pin" class="w-4 h-4 inline text-slate-400"></i> Location: ${escapeHtml(complaint.Location)}</p>
       </div>
-      <button onclick="closeAdminActionModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100">
+      <button onclick="closeAdminActionModal()" class="text-slate-400 hover:text-slate-600 p-2 rounded-xl hover:bg-slate-100 transition-colors">
         <i data-lucide="x" class="w-5 h-5"></i>
       </button>
     </div>
 
     <!-- Student & Ticket Overview -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-      <div class="bg-slate-50 p-3.5 rounded-lg border border-slate-200 text-xs space-y-1.5">
-        <span class="font-bold text-slate-500 uppercase tracking-wider block mb-1">Student Contact</span>
-        <div><span class="text-slate-500">Name:</span> <strong class="text-slate-800">${escapeHtml(complaint.StudentName)}</strong></div>
-        <div><span class="text-slate-500">Email:</span> <strong class="text-slate-800">${escapeHtml(complaint.StudentEmail)}</strong></div>
+      <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-sm space-y-2">
+        <span class="font-bold text-slate-500 uppercase tracking-wider block text-xs mb-1">Student Contact</span>
+        <div><span class="text-slate-500">Name:</span> <strong class="text-slate-900 text-base">${escapeHtml(complaint.StudentName)}</strong></div>
+        <div><span class="text-slate-500">Email:</span> <strong class="text-blue-600 font-mono">${escapeHtml(complaint.StudentEmail)}</strong></div>
         <div><span class="text-slate-500">Dept:</span> <strong class="text-slate-800">${escapeHtml(complaint.StudentDepartment)}</strong></div>
-        <div><span class="text-slate-500">Phone:</span> <strong class="text-slate-800">${escapeHtml(complaint.StudentPhone || 'Not provided')}</strong></div>
+        <div><span class="text-slate-500">Phone:</span> <strong class="text-slate-800 font-mono">${escapeHtml(complaint.StudentPhone || 'Not provided')}</strong></div>
       </div>
 
-      <div class="bg-slate-50 p-3.5 rounded-lg border border-slate-200 text-xs space-y-1.5">
-        <span class="font-bold text-slate-500 uppercase tracking-wider block mb-1">Service SLA & Timeline</span>
-        <div><span class="text-slate-500">Resolution SLA:</span> <strong class="text-slate-800">${complaint.SLA_Hours} Hours</strong></div>
+      <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-sm space-y-2">
+        <span class="font-bold text-slate-500 uppercase tracking-wider block text-xs mb-1">Service SLA & Timeline</span>
+        <div><span class="text-slate-500">Resolution SLA:</span> <strong class="text-slate-900">${complaint.SLA_Hours} Hours</strong></div>
         <div><span class="text-slate-500">Raised At:</span> <strong class="text-slate-800">${formatDate(complaint.CreatedAt)}</strong></div>
         <div><span class="text-slate-500">Last Updated:</span> <strong class="text-slate-800">${formatDate(complaint.UpdatedAt)}</strong></div>
         ${complaint.FeedbackRating ? `
@@ -335,36 +388,139 @@ async function openAdminActionModal(complaintId) {
     </div>
 
     <!-- Description -->
-    <div class="bg-slate-50 p-3.5 rounded-lg border border-slate-200 text-xs mb-4">
-      <span class="font-bold text-slate-500 uppercase tracking-wider block mb-1">Description</span>
-      <p class="text-slate-700 leading-relaxed text-sm">${escapeHtml(complaint.Description)}</p>
+    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4">
+      <span class="font-bold text-slate-500 uppercase tracking-wider block text-xs mb-1">Detailed Description</span>
+      <p class="text-slate-800 leading-relaxed text-base font-medium">${escapeHtml(complaint.Description)}</p>
     </div>
 
-    <!-- Image Attachment -->
-    ${complaint.ImageAttachmentURL ? `
-      <div class="mb-4">
-        <div class="flex items-center justify-between mb-1.5">
-          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Attached Evidence Photo</span>
-          <span class="text-[11px] text-blue-600 font-semibold cursor-pointer" onclick="openImageLightbox('${complaint.ImageAttachmentURL}', '${escapeHtml(complaint.Title)}')">🔍 View Full Size</span>
+    <!-- Image / Video Attachment -->
+    ${complaint.ImageAttachmentURL ? (() => {
+      const isVid = /\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i.test(complaint.ImageAttachmentURL) || (typeof complaint.ImageAttachmentURL === 'string' && complaint.ImageAttachmentURL.includes('/video/'));
+      const adminMediaUrl = resolveMediaUrl(complaint.ImageAttachmentURL);
+      const safeTitle = escapeHtml(complaint.Title).replace(/'/g, "\\'");
+      return `
+      <div class="mb-5">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">${isVid ? '🎬 Attached Video Evidence' : '📸 Attached Evidence Photo'}</span>
+          <span class="text-xs text-blue-600 font-extrabold cursor-pointer hover:underline flex items-center gap-1" onclick="openImageLightbox('${adminMediaUrl}', '${safeTitle}')">
+            🔍 View Full Size
+          </span>
         </div>
-        <div onclick="openImageLightbox('${complaint.ImageAttachmentURL}', '${escapeHtml(complaint.Title)}')" class="cursor-pointer inline-block rounded-xl overflow-hidden border border-slate-200 max-w-sm group relative shadow-sm hover:shadow">
-          <img src="${complaint.ImageAttachmentURL}" alt="Evidence" class="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-300">
-          <div class="absolute inset-0 bg-slate-900/30 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-bold transition-opacity">
-            🔍 Click to Enlarge
-          </div>
+        <div onclick="openImageLightbox('${adminMediaUrl}', '${safeTitle}')" class="cursor-pointer block rounded-2xl overflow-hidden border border-slate-200 w-full max-w-md group relative shadow-md hover:shadow-xl transition-all duration-300">
+          ${isVid ? `
+            <video src="${adminMediaUrl}" preload="metadata" muted class="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-300"></video>
+            <div class="absolute inset-0 bg-slate-950/40 group-hover:bg-slate-950/60 transition-colors flex flex-col items-center justify-center text-white gap-2 backdrop-blur-[2px]">
+              <div class="w-12 h-12 rounded-full bg-blue-600/90 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                ▶
+              </div>
+              <span class="text-xs font-bold tracking-wide">Click to Play Video Fullscreen</span>
+            </div>
+          ` : `
+            <img src="${adminMediaUrl}" alt="Evidence" class="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-300">
+            <div class="absolute inset-0 bg-slate-950/30 group-hover:bg-slate-950/60 transition-colors flex items-center justify-center text-white text-xs font-bold gap-2 backdrop-blur-[2px]">
+              <i data-lucide="maximize-2" class="w-4 h-4"></i> Click to Zoom Evidence Fullscreen
+            </div>
+          `}
         </div>
       </div>
-    ` : ''}
+      `;
+    })() : ''}
+
+    <!-- Department Tagging & In-Charge Assignment Form -->
+    <div class="bg-gradient-to-br from-indigo-50/95 via-purple-50/70 to-slate-50 p-5 rounded-2xl border border-indigo-200/90 mb-6 shadow-sm">
+      <div class="flex items-center justify-between flex-wrap gap-2 mb-3.5">
+        <h4 class="text-base font-extrabold text-indigo-950 font-display flex items-center gap-2">
+          <i data-lucide="tag" class="w-5 h-5 text-indigo-600"></i> Department Tagging &amp; In-Charge Assignment
+        </h4>
+        ${complaint.AssignedToName ? `
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-indigo-100 text-indigo-800 border border-indigo-300 shadow-xs">
+            ✓ Currently Tagged &amp; Assigned
+          </span>
+        ` : `
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
+            ⏳ Unassigned
+          </span>
+        `}
+      </div>
+
+      ${complaint.AssignedToName ? `
+        <div class="bg-white/95 p-4 rounded-xl border border-indigo-200 mb-4 space-y-2 text-sm shadow-xs">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Assigned In-Charge:</span>
+            <span class="px-2.5 py-1 rounded-md text-xs font-black bg-purple-100 text-purple-800 border border-purple-200">
+              🏷️ ${escapeHtml(complaint.DepartmentTag || 'General Facilities')}
+            </span>
+          </div>
+          <div class="font-extrabold text-slate-900 text-base flex items-center gap-2">
+            <span>👤 ${escapeHtml(complaint.AssignedToName)}</span>
+            <span class="font-mono text-xs text-indigo-600 font-normal">(${escapeHtml(complaint.AssignedToEmail || '')})</span>
+          </div>
+          <div class="text-xs text-slate-600">
+            Department: <strong class="text-slate-800">${escapeHtml(complaint.AssignedToDepartment || 'Campus Staff / Technical In-Charge')}</strong>
+          </div>
+          ${complaint.AssignedNotes ? `
+            <div class="text-xs bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-slate-700 italic">
+              <strong>Admin Directive:</strong> "${escapeHtml(complaint.AssignedNotes)}"
+            </div>
+          ` : ''}
+          ${complaint.AssignedAt ? `
+            <div class="text-[11px] text-slate-400">
+              🕒 Tagged At: ${formatDate(complaint.AssignedAt)}
+            </div>
+          ` : ''}
+        </div>
+      ` : ''}
+
+      <form onsubmit="handleAssignComplaint(event, ${complaint.ComplaintID})" class="space-y-3.5">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          <div>
+            <label class="block text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700 mb-1.5">Department / Problem Tag *</label>
+            <input type="text" id="assign-department-tag" list="dept-tag-presets" required value="${escapeHtml(complaint.DepartmentTag || '')}" placeholder="e.g. MCA - Water Cooler, MTech - AC, Furniture..." class="w-full text-sm font-semibold px-4 py-2.5 bg-white border border-slate-300 rounded-xl focus:ring-4 focus:ring-indigo-500/15 focus:border-indigo-600 shadow-sm">
+            <datalist id="dept-tag-presets">
+              <option value="MCA Department - Water Cooler & Facilities">
+              <option value="MCA Department - Computer Lab & Systems">
+              <option value="M.Tech Department - Classroom & AC">
+              <option value="B.Tech Department - Classroom Infrastructure">
+              <option value="Electrical Maintenance Cell - Power & Lights">
+              <option value="Sanitation & Cleanliness Team - Washrooms">
+              <option value="Hostel & Mess Caretaker - Dining & Hygiene">
+              <option value="Campus Wi-Fi & IT Network Cell">
+              <option value="Security & Gate Safety Unit">
+              <option value="General Campus Civil & Carpentry">
+            </datalist>
+          </div>
+
+          <div>
+            <label class="block text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700 mb-1.5">Assign To Staff / In-Charge User * <span class="text-xs font-semibold text-indigo-600 lowercase">(staff only)</span></label>
+            <select id="assign-user-id" required class="w-full text-sm font-semibold px-4 py-2.5 bg-white border border-slate-300 rounded-xl focus:ring-4 focus:ring-indigo-500/15 focus:border-indigo-600 shadow-sm">
+              <option value="">-- Select Staff / Faculty Member --</option>
+              ${usersOptionsHtml}
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700 mb-1.5">Directive / Instructions for In-Charge</label>
+          <input type="text" id="assign-notes" value="${escapeHtml(complaint.AssignedNotes || '')}" placeholder="e.g. Check 2nd floor water cooler, replace broken filter tap urgently..." class="w-full text-sm px-4 py-2.5 bg-white border border-slate-300 rounded-xl focus:ring-4 focus:ring-indigo-500/15 focus:border-indigo-600 shadow-sm">
+        </div>
+
+        <div class="flex justify-end gap-2.5 pt-1">
+          <button type="submit" id="admin-assign-submit-btn" class="px-5 py-2.5 text-sm font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 shadow-md hover:shadow-indigo-500/25 flex items-center gap-1.5 transition-all">
+            <i data-lucide="user-check" class="w-4 h-4"></i> ${complaint.AssignedToName ? 'Update Tag & Assignment' : 'Assign & Tag In-Charge'}
+          </button>
+        </div>
+      </form>
+    </div>
 
     <!-- Status Update Form -->
-    <div class="bg-blue-50/80 p-5 rounded-2xl border border-blue-200 mb-6 shadow-sm">
+    <div class="bg-blue-50/70 p-5 rounded-2xl border border-blue-200 mb-6 shadow-sm">
       <h4 class="text-base font-extrabold text-blue-950 font-display mb-3.5 flex items-center gap-2">
         <i data-lucide="edit-3" class="w-5 h-5 text-blue-600"></i> Update Resolution Status & Log Remarks
       </h4>
       <form onsubmit="handleAdminStatusUpdate(event)" class="space-y-3.5">
         <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Target Status *</label>
-          <select id="update-target-status" class="w-full text-sm font-semibold px-4 py-2.5 bg-white border border-slate-300 rounded-xl focus:ring-4 focus:ring-blue-500/15 focus:border-blue-600 transition-all">
+          <label class="block text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700 mb-1.5">Target Status *</label>
+          <select id="update-target-status" class="w-full text-base font-semibold px-4 py-2.5 bg-white border border-slate-300 rounded-xl focus:ring-4 focus:ring-blue-500/15 focus:border-blue-600 transition-all shadow-sm">
             <option value="Pending" ${complaint.Status === 'Pending' ? 'selected' : ''}>Pending (Awaiting Action)</option>
             <option value="In Progress" ${complaint.Status === 'In Progress' ? 'selected' : ''}>In Progress (Work Dispatched)</option>
             <option value="Resolved" ${complaint.Status === 'Resolved' ? 'selected' : ''}>Resolved (Issue Addressed)</option>
@@ -372,11 +528,11 @@ async function openAdminActionModal(complaintId) {
           </select>
         </div>
         <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Administrative Remarks / Action Notes *</label>
-          <textarea id="update-status-remarks" rows="3" required placeholder="State actions taken, technician assigned, or resolution notes..." class="w-full text-sm px-4 py-2.5 bg-white border border-slate-300 rounded-xl focus:ring-4 focus:ring-blue-500/15 focus:border-blue-600 transition-all"></textarea>
+          <label class="block text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700 mb-1.5">Administrative Remarks / Action Notes *</label>
+          <textarea id="update-status-remarks" rows="3" required placeholder="State actions taken, technician assigned, or resolution notes..." class="w-full text-base px-4 py-2.5 bg-white border border-slate-300 rounded-xl focus:ring-4 focus:ring-blue-500/15 focus:border-blue-600 transition-all shadow-sm"></textarea>
         </div>
         <div class="flex justify-end gap-2.5 pt-2">
-          <button type="button" onclick="closeAdminActionModal()" class="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">Cancel</button>
+          <button type="button" onclick="closeAdminActionModal()" class="px-4 py-2.5 text-sm font-semibold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">Cancel</button>
           <button type="submit" id="admin-update-submit-btn" class="px-5 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 shadow-md hover:shadow-blue-500/25 flex items-center gap-1.5 transition-all">
             <i data-lucide="save" class="w-4 h-4"></i> Commit Status Update
           </button>
@@ -386,25 +542,31 @@ async function openAdminActionModal(complaintId) {
 
     <!-- Timeline History -->
     <div>
-      <h5 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Audit Trail / History Logs</h5>
+      <h5 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-500 mb-3">Audit Trail / History Logs</h5>
       <div class="relative pl-6 space-y-3 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 max-h-60 overflow-y-auto pr-2">
-        ${timeline.map(item => `
-          <div class="relative text-xs">
-            <div class="absolute -left-6 top-1.5 w-2 h-2 rounded-full bg-blue-600 border border-white"></div>
-            <div class="bg-white p-2.5 rounded-lg border border-slate-200">
-              <div class="flex items-center justify-between text-slate-400 mb-0.5">
-                <span class="font-semibold text-slate-700">${escapeHtml(item.UpdatedByName)} (${item.UpdatedByRole})</span>
-                <span>${formatDate(item.Timestamp)}</span>
+        ${timeline.map(item => {
+          let dotColor = 'bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.5)]';
+          if (item.NewStatus === 'Resolved') dotColor = 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.6)] ring-4 ring-emerald-100';
+          else if (item.NewStatus === 'In Progress') dotColor = 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.6)] ring-4 ring-amber-100';
+          else if (item.NewStatus === 'Rejected') dotColor = 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]';
+          return `
+          <div class="relative text-sm transition-all hover:translate-x-0.5">
+            <div class="absolute -left-6 top-1.5 w-3 h-3 rounded-full ${dotColor} border-2 border-white"></div>
+            <div class="bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-sm hover:shadow transition-shadow">
+              <div class="flex items-center justify-between text-slate-400 mb-1">
+                <span class="font-bold text-slate-800">${escapeHtml(item.UpdatedByName)} (${item.UpdatedByRole})</span>
+                <span class="text-xs font-semibold">${formatDate(item.Timestamp)}</span>
               </div>
-              <p class="text-slate-800 font-medium">${escapeHtml(item.Remarks)}</p>
+              <p class="text-slate-800 font-medium text-sm leading-relaxed">${escapeHtml(item.Remarks)}</p>
               ${item.PreviousStatus ? `
-                <div class="mt-0.5 text-slate-500 text-[11px]">Changed: <span class="font-mono">${item.PreviousStatus}</span> &rarr; <strong class="text-slate-700">${item.NewStatus}</strong></div>
+                <div class="mt-1 text-slate-500 text-xs">Status Transition: <span class="font-mono bg-slate-100 px-1.5 py-0.5 rounded">${item.PreviousStatus}</span> &rarr; <strong class="text-slate-800 bg-blue-50 px-1.5 py-0.5 rounded text-blue-700">${item.NewStatus}</strong></div>
               ` : `
-                <div class="mt-0.5 text-slate-500 text-[11px]">Initial: <strong>${item.NewStatus}</strong></div>
+                <div class="mt-1 text-slate-500 text-xs">Initial Ticket State: <strong class="text-slate-800 bg-blue-50 px-1.5 py-0.5 rounded text-blue-700">${item.NewStatus}</strong></div>
               `}
             </div>
           </div>
-        `).join('')}
+          `;
+        }).join('')}
       </div>
     </div>
   `;
@@ -455,6 +617,49 @@ async function handleAdminStatusUpdate(e) {
   }
 }
 
+// Commit Department Tagging & In-Charge Assignment
+async function handleAssignComplaint(e, complaintId) {
+  e.preventDefault();
+  const userId = document.getElementById('assign-user-id')?.value;
+  const deptTag = document.getElementById('assign-department-tag')?.value.trim();
+  const notes = document.getElementById('assign-notes')?.value.trim();
+  const btn = document.getElementById('admin-assign-submit-btn');
+
+  if (!userId || !deptTag) {
+    showToast('Please specify both the department problem tag and assigned in-charge user.', 'warning');
+    return;
+  }
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<span class="inline-block animate-spin mr-1">⟳</span> Saving Assignment...`;
+  }
+
+  const res = await apiFetch(`/api/admin/complaints/${complaintId}/assign`, {
+    method: 'POST',
+    body: JSON.stringify({
+      assigned_to_user_id: parseInt(userId, 10),
+      department_tag: deptTag,
+      notes: notes
+    })
+  });
+
+  if (btn) {
+    btn.disabled = false;
+    btn.innerHTML = `<i data-lucide="user-check" class="w-4 h-4 inline"></i> Save Assignment`;
+  }
+
+  if (res && res.ok && res.data.success) {
+    showToast(res.data.message || 'Ticket tagged and assigned successfully!', 'success');
+    // Refresh modal to show updated assignment & audit log
+    await openAdminActionModal(complaintId);
+    // Refresh table and stats
+    await loadAdminComplaints(currentAdminPage);
+  } else {
+    showToast(res?.data?.message || 'Failed to assign complaint.', 'error');
+  }
+}
+
 // Export Grievance Table Data to CSV
 async function exportComplaintsCSV() {
   const search = document.getElementById('admin-search-input')?.value || '';
@@ -502,9 +707,11 @@ function switchAdminPortalTab(tab) {
   const tabGrievances = document.getElementById('admin-tab-grievances');
   const tabUsers = document.getElementById('admin-tab-users');
   const tabFiles = document.getElementById('admin-tab-files');
+  const tabMap = document.getElementById('admin-tab-map');
   const secGrievances = document.getElementById('admin-section-grievances');
   const secUsers = document.getElementById('admin-section-users');
   const secFiles = document.getElementById('admin-section-files');
+  const secMap = document.getElementById('admin-section-map');
 
   if (!tabGrievances || !tabUsers || !secGrievances || !secUsers) return;
 
@@ -517,10 +724,12 @@ function switchAdminPortalTab(tab) {
   tabGrievances.classList.remove('active');
   tabUsers.classList.remove('active');
   if (tabFiles) tabFiles.classList.remove('active');
+  if (tabMap) tabMap.classList.remove('active');
 
   secGrievances.classList.add('hidden');
   secUsers.classList.add('hidden');
   if (secFiles) secFiles.classList.add('hidden');
+  if (secMap) secMap.classList.add('hidden');
 
   if (tab === 'users') {
     tabUsers.classList.add('active');
@@ -538,6 +747,17 @@ function switchAdminPortalTab(tab) {
       secFiles.classList.add('tab-content-enter');
     }
     loadAdminFiles();
+  } else if (tab === 'map') {
+    if (tabMap) tabMap.classList.add('active');
+    if (secMap) {
+      secMap.classList.remove('hidden');
+      secMap.classList.remove('tab-content-enter');
+      void secMap.offsetWidth; // Trigger reflow
+      secMap.classList.add('tab-content-enter');
+    }
+    setTimeout(() => {
+      initAdminCampusMap();
+    }, 200);
   } else {
     tabGrievances.classList.add('active');
     secGrievances.classList.remove('hidden');
@@ -581,44 +801,51 @@ async function loadAdminUsers() {
   }
 
   tbody.innerHTML = users.map(u => {
-    const isStudent = u.Role === 'Student';
-    const roleBadgeClass = isStudent 
-      ? 'bg-blue-100 text-blue-700 border-blue-200' 
-      : 'bg-purple-100 text-purple-700 border-purple-200';
-    const defaultAvatar = isStudent
-      ? 'profile images/image1.jpg'
-      : 'profile images/image2.jpg';
+    let roleBadgeClass = 'bg-blue-100 text-blue-700 border-blue-200';
+    let roleIcon = '🎓';
+    let defaultAvatar = 'profile images/image1.jpg';
+
+    if (u.Role === 'Staff') {
+      roleBadgeClass = 'bg-indigo-100 text-indigo-700 border-indigo-200';
+      roleIcon = '👨‍💼';
+      defaultAvatar = 'profile images/image13.jpg';
+    } else if (u.Role === 'Admin') {
+      roleBadgeClass = 'bg-slate-900 text-white border-slate-700';
+      roleIcon = '🛡️';
+      defaultAvatar = 'profile images/image2.jpg';
+    }
     const profileImgSrc = u.ProfileImage || defaultAvatar;
 
     return `
-      <tr class="border-b border-slate-100 hover:bg-slate-50/80 transition-colors">
-        <td class="py-3.5 px-4 font-mono font-bold text-slate-400">#UID-${u.UserID}</td>
-        <td class="py-3.5 px-4">
+      <tr class="border-b border-slate-100 hover:bg-slate-50/90 transition-colors">
+        <td class="py-4 px-4 font-mono font-bold text-slate-600 text-sm">#UID-${u.UserID}</td>
+        <td class="py-4 px-4">
           <div class="flex items-center gap-3">
-            <img src="${profileImgSrc}" alt="${escapeHtml(u.FullName)}" class="w-9 h-9 rounded-full object-cover border border-slate-200 shadow-sm shrink-0" onerror="this.onerror=null; this.src='${defaultAvatar}';" />
+            <img src="${profileImgSrc}" alt="${escapeHtml(u.FullName)}" class="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-sm shrink-0" onerror="this.onerror=null; this.src='${defaultAvatar}';" />
             <div>
-              <strong class="text-slate-800 text-sm block font-bold">${escapeHtml(u.FullName)}</strong>
+              <strong class="text-slate-900 text-base block font-bold leading-tight">${escapeHtml(u.FullName)}</strong>
             </div>
           </div>
         </td>
-        <td class="py-3.5 px-4 font-mono text-xs text-blue-600 font-semibold">${escapeHtml(u.CollegeEmail)}</td>
-        <td class="py-3.5 px-4">
-          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border ${roleBadgeClass}">
-            ${u.Role}
+        <td class="py-4 px-4 font-mono text-sm text-blue-600 font-semibold">${escapeHtml(u.CollegeEmail)}</td>
+        <td class="py-4 px-4 whitespace-nowrap min-w-[135px]">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs sm:text-sm font-bold border whitespace-nowrap shadow-sm ${roleBadgeClass}">
+            <span class="text-sm shrink-0 leading-none">${roleIcon}</span>
+            <span class="whitespace-nowrap">${u.Role}</span>
           </span>
         </td>
-        <td class="py-3.5 px-4 text-xs font-medium text-slate-700">
-          ${u.Course ? `<span class="inline-block text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 mr-1.5">${escapeHtml(u.Course)}</span>` : ''}
+        <td class="py-4 px-4 text-sm font-medium text-slate-700">
+          ${u.Course ? `<span class="inline-block text-xs font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 mr-1.5">${escapeHtml(u.Course)}</span>` : ''}
           ${escapeHtml(u.Department || '—')}
         </td>
-        <td class="py-3.5 px-4 text-xs text-slate-500 font-mono">${escapeHtml(u.Phone || '—')}</td>
-        <td class="py-3.5 px-4 text-center">
-          <button onclick="openEditUserModal(${u.UserID})" class="px-2.5 py-1.5 text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg inline-flex items-center gap-1 transition-all shadow-sm hover:shadow" title="Edit &amp; correct student details">
-            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+        <td class="py-4 px-4 text-sm text-slate-600 font-mono font-semibold">${escapeHtml(u.Phone || '—')}</td>
+        <td class="py-4 px-4 text-center">
+          <button onclick="openEditUserModal(${u.UserID})" class="px-3.5 py-1.5 text-sm font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl inline-flex items-center gap-1.5 transition-all shadow-sm hover:shadow" title="Edit &amp; correct student details">
+            <i data-lucide="edit-3" class="w-4 h-4"></i>
             <span>Correction</span>
           </button>
         </td>
-        <td class="py-3.5 px-4 text-right text-xs text-slate-400">${formatDate(u.CreatedAt)}</td>
+        <td class="py-4 px-4 text-right text-sm text-slate-500">${formatDate(u.CreatedAt)}</td>
       </tr>
     `;
   }).join('');
@@ -677,6 +904,68 @@ function updateNewUserPhotoPreview(src, statusText) {
   if (status) status.innerText = statusText;
 }
 
+function handleNewUserRoleChange(role) {
+  const studentFields = document.getElementById('add-user-student-fields');
+  const staffFields = document.getElementById('add-user-staff-fields');
+  const adminFields = document.getElementById('add-user-admin-fields');
+  const nameLabel = document.getElementById('new-user-name-label');
+  const nameInput = document.getElementById('new-user-name');
+  const emailLabel = document.getElementById('new-user-email-label');
+  const emailInput = document.getElementById('new-user-email');
+  const submitBtn = document.getElementById('add-user-submit-btn');
+
+  // Hide all dynamic field containers first
+  if (studentFields) studentFields.classList.add('hidden');
+  if (staffFields) staffFields.classList.add('hidden');
+  if (adminFields) adminFields.classList.add('hidden');
+
+  if (role === 'Student') {
+    if (studentFields) studentFields.classList.remove('hidden');
+    if (nameLabel) nameLabel.innerText = 'Full Student Name *';
+    if (nameInput) nameInput.placeholder = 'e.g. Rahul Sharma';
+    if (emailLabel) emailLabel.innerText = 'Official College Email / Student ID *';
+    if (emailInput) emailInput.placeholder = 'rollnumber@kiet.edu or name@kiet.edu';
+    if (submitBtn) submitBtn.innerHTML = `Create Student Account &rarr;`;
+    if (!selectedNewUserPhotoFile) {
+      updateNewUserPhotoPreview('profile images/image1.jpg', 'Default student portrait selected.');
+    }
+  } else if (role === 'Staff') {
+    if (staffFields) staffFields.classList.remove('hidden');
+    if (nameLabel) nameLabel.innerText = 'Staff Full Name *';
+    if (nameInput) nameInput.placeholder = 'e.g. Suresh Verma';
+    if (emailLabel) emailLabel.innerText = 'Official Staff Email / Staff ID *';
+    if (emailInput) emailInput.placeholder = 'e.g. mca.staff@kiet.edu or name@kiet.edu';
+    if (submitBtn) submitBtn.innerHTML = `Create Staff Account &rarr;`;
+    if (!selectedNewUserPhotoFile) {
+      updateNewUserPhotoPreview('profile images/image13.jpg', 'Default staff member avatar selected.');
+    }
+  } else if (role === 'Admin') {
+    if (adminFields) adminFields.classList.remove('hidden');
+    if (nameLabel) nameLabel.innerText = 'Administrator Full Name *';
+    if (nameInput) nameInput.placeholder = 'e.g. Dean Student Affairs / Prof. A.K. Sharma';
+    if (emailLabel) emailLabel.innerText = 'Administrator Official Email *';
+    if (emailInput) emailInput.placeholder = 'e.g. admin@kiet.edu';
+    if (submitBtn) submitBtn.innerHTML = `Create Administrator Account &rarr;`;
+    if (!selectedNewUserPhotoFile) {
+      updateNewUserPhotoPreview('profile images/image2.jpg', 'Default administrator badge portrait selected.');
+    }
+  }
+}
+
+function handleAdminScopeChange(scope) {
+  const deptSelect = document.getElementById('new-user-admin-dept');
+  if (!deptSelect) return;
+  if (scope.includes('Whole Campus')) {
+    deptSelect.value = 'Central Administration (All Departments)';
+  } else if (scope.includes('Hostel')) {
+    deptSelect.value = 'Hostel Administration';
+  } else if (scope.includes('Student Welfare')) {
+    deptSelect.value = 'Dean Student Affairs HQ';
+  } else if (scope.includes('Infrastructure')) {
+    deptSelect.value = 'Maintenance & Estate Cell';
+  }
+}
+
 function openAddUserModal() {
   const modal = document.getElementById('admin-add-user-modal');
   const alertBox = document.getElementById('add-user-alert');
@@ -691,8 +980,22 @@ function openAddUserModal() {
   document.getElementById('new-user-password').value = '';
   const courseSel = document.getElementById('new-user-course');
   if (courseSel) courseSel.selectedIndex = 0;
-  document.getElementById('new-user-department').selectedIndex = 0;
+  const deptSel = document.getElementById('new-user-department');
+  if (deptSel) deptSel.selectedIndex = 0;
+  const staffBranchSel = document.getElementById('new-user-staff-branch');
+  if (staffBranchSel) staffBranchSel.selectedIndex = 0;
+  const staffDeptSel = document.getElementById('new-user-staff-department');
+  if (staffDeptSel) staffDeptSel.selectedIndex = 0;
+  const adminScopeSel = document.getElementById('new-user-admin-scope');
+  if (adminScopeSel) adminScopeSel.selectedIndex = 0;
+  const adminDeptSel = document.getElementById('new-user-admin-dept');
+  if (adminDeptSel) adminDeptSel.selectedIndex = 0;
   document.getElementById('new-user-phone').value = '';
+
+  // Reset role radio to Student by default
+  const studentRadio = document.querySelector('input[name="new-user-role"][value="Student"]');
+  if (studentRadio) studentRadio.checked = true;
+  handleNewUserRoleChange('Student');
 
   // Clear photo selection
   selectedNewUserPhotoFile = null;
@@ -740,10 +1043,22 @@ async function handleAddUserSubmit(e) {
   const role = document.querySelector('input[name="new-user-role"]:checked')?.value || 'Student';
   const fullName = document.getElementById('new-user-name').value.trim();
   let email = document.getElementById('new-user-email').value.trim();
-  const course = document.getElementById('new-user-course')?.value || 'B.Tech';
-  const department = document.getElementById('new-user-department').value;
   const phone = document.getElementById('new-user-phone').value.trim();
   const password = document.getElementById('new-user-password').value;
+
+  let course = 'Staff/Faculty';
+  let department = 'Campus Administration';
+
+  if (role === 'Student') {
+    course = document.getElementById('new-user-course')?.value || 'B.Tech';
+    department = document.getElementById('new-user-department')?.value || 'Computer Science & Engineering';
+  } else if (role === 'Staff') {
+    course = document.getElementById('new-user-staff-branch')?.value || 'General Campus Maintenance';
+    department = document.getElementById('new-user-staff-department')?.value || 'Maintenance & Estate Cell';
+  } else if (role === 'Admin') {
+    course = document.getElementById('new-user-admin-scope')?.value || 'Whole Campus (Central Admin)';
+    department = document.getElementById('new-user-admin-dept')?.value || 'Central Administration (All Departments)';
+  }
 
   if (!fullName || !email || !department || !password) {
     showAlertInModal('Please fill in all mandatory fields.', 'error');
@@ -792,7 +1107,10 @@ async function handleAddUserSubmit(e) {
     if (selectedNewUserPhotoFile) {
       formData.append('profile_image', selectedNewUserPhotoFile);
     } else {
-      formData.append('profile_image', AVATAR_PRESETS[currentPresetAvatarIndex]);
+      let defaultImg = AVATAR_PRESETS[currentPresetAvatarIndex] || 'profile images/image1.jpg';
+      if (role === 'Staff') defaultImg = 'profile images/image13.jpg';
+      if (role === 'Admin') defaultImg = 'profile images/image2.jpg';
+      formData.append('profile_image', defaultImg);
     }
 
     const res = await apiFetch('/api/admin/users/create', {
@@ -880,9 +1198,16 @@ async function openEditUserModal(userId) {
     roleBadge.innerText = u.Role;
     if (u.Role === 'Student') {
       roleBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200';
+    } else if (u.Role === 'Staff') {
+      roleBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700 border border-indigo-200';
     } else {
       roleBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-700 border border-purple-200';
     }
+  }
+
+  const roleSelect = document.getElementById('edit-user-role');
+  if (roleSelect) {
+    roleSelect.value = u.Role || 'Student';
   }
 
   document.getElementById('edit-user-fullname').value = u.FullName || '';
@@ -980,6 +1305,7 @@ async function handleEditUserSubmit(e) {
 
   const fullName = document.getElementById('edit-user-fullname')?.value.trim();
   const email = document.getElementById('edit-user-email')?.value.trim();
+  const role = document.getElementById('edit-user-role')?.value || 'Student';
   const department = document.getElementById('edit-user-department')?.value.trim();
   const course = document.getElementById('edit-user-course')?.value.trim();
   const phone = document.getElementById('edit-user-phone')?.value.trim();
@@ -1003,6 +1329,7 @@ async function handleEditUserSubmit(e) {
       const formData = new FormData();
       formData.append('full_name', fullName);
       formData.append('college_email', email);
+      formData.append('role', role);
       formData.append('department', department);
       formData.append('course', course);
       formData.append('phone', phone);
@@ -1020,6 +1347,7 @@ async function handleEditUserSubmit(e) {
         body: JSON.stringify({
           full_name: fullName,
           college_email: email,
+          role,
           department,
           course,
           phone,
@@ -1058,28 +1386,79 @@ async function handleEditUserSubmit(e) {
 }
 
 /* ==========================================================================
-   Full-Screen Image Lightbox
+   Full-Screen Cinema Media Lightbox (Photo & Video) with Cut Option
    ========================================================================== */
-function openImageLightbox(imageUrl, title = 'Evidence Photo') {
+function openImageLightbox(imageUrl, title = 'Evidence Proof') {
   const modal = document.getElementById('image-lightbox-modal');
   const img = document.getElementById('lightbox-img');
+  const video = document.getElementById('lightbox-video');
   const titleEl = document.getElementById('lightbox-title');
+  const badgeEl = document.getElementById('adminLightboxBadge');
 
-  if (!modal || !img) return;
+  if (!modal) return;
 
-  img.src = imageUrl;
-  if (titleEl) titleEl.innerHTML = `<i data-lucide="image" class="w-4 h-4 text-blue-600 inline"></i> Evidence Photo: ${escapeHtml(title)}`;
+  const resolvedUrl = resolveMediaUrl(imageUrl);
+  const isVideo = /\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i.test(imageUrl) || (typeof imageUrl === 'string' && imageUrl.includes('/video/'));
+
+  if (isVideo) {
+    if (img) {
+      img.style.display = 'none';
+      img.src = '';
+    }
+    if (video) {
+      video.style.display = 'block';
+      video.src = resolvedUrl;
+      video.load();
+      video.play().catch(() => {});
+    }
+    if (badgeEl) badgeEl.innerHTML = '🎬 Video Evidence';
+  } else {
+    if (video) {
+      video.pause();
+      video.style.display = 'none';
+      video.src = '';
+    }
+    if (img) {
+      img.style.display = 'block';
+      img.src = resolvedUrl;
+    }
+    if (badgeEl) badgeEl.innerHTML = '📷 Visual Proof';
+  }
+
+  if (titleEl) {
+    titleEl.innerHTML = `${isVideo ? '<i data-lucide="video" class="w-4 h-4 text-indigo-600 inline"></i>' : '<i data-lucide="image" class="w-4 h-4 text-blue-600 inline"></i>'} Evidence: ${escapeHtml(title)}`;
+  }
+
+  modal.style.display = 'flex';
   modal.classList.add('show');
   if (window.lucide) lucide.createIcons();
 }
 
 function closeImageLightbox(e) {
-  if (e && e.target !== e.currentTarget && !e.target.closest('button')) return;
+  if (e && e.target && e.target !== e.currentTarget && !e.target.closest('button')) return;
   const modal = document.getElementById('image-lightbox-modal');
   const img = document.getElementById('lightbox-img');
-  if (modal) modal.classList.remove('show');
-  if (img) img.src = '';
+  const video = document.getElementById('lightbox-video');
+
+  if (video) {
+    video.pause();
+    video.src = '';
+  }
+  if (img) {
+    img.src = '';
+  }
+  if (modal) {
+    modal.classList.remove('show');
+    modal.style.display = 'none';
+  }
 }
+
+// Global Escape Key to cut / close lightbox immediately
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeImageLightbox();
+  }
+});
 
 /* ==========================================================================
    Admin Uploaded Files & Media Repository Folder
@@ -1504,5 +1883,497 @@ function initNotificationPoller() {
     }
   }
 }
+
+/* ==========================================================================
+   Admin Campus 2D Interactive Map Controller (Leaflet.js)
+   ========================================================================== */
+let adminMapInstance = null;
+let adminMapComplaints = [];
+let adminMarkersGroup = null;
+let adminBoundaryPolygon = null;
+let adminBuildingsLayerGroup = null;
+
+let adminMapLayers = {
+  hybrid: null,
+  streets: null,
+  aerial: null
+};
+let currentAdminLayerKey = 'hybrid';
+
+const KIET_CAMPUS_BOUNDARY = [
+  [28.7562, 77.4952],
+  [28.7568, 77.4988],
+  [28.7538, 77.5005],
+  [28.7505, 77.5008],
+  [28.7498, 77.4965],
+  [28.7540, 77.4948]
+];
+
+const KIET_BUILDINGS = {
+  block_ab: {
+    name: "Block A & B (Core)",
+    icon: "🏛️",
+    coords: [28.7535, 77.4975],
+    desc: "Academic Block A & B (CSE, IT, ECE, Central Admin Desk)"
+  },
+  library: {
+    name: "Central Library & Aud",
+    icon: "📚",
+    coords: [28.7530, 77.4972],
+    desc: "Central Knowledge Center, Digital Reading Halls & Main Auditorium"
+  },
+  pharmacy: {
+    name: "KSOP Pharmacy & MBA",
+    icon: "🖊️",
+    coords: [28.7523, 77.4984],
+    desc: "KIET School of Pharmacy & Department of Management Studies"
+  },
+  hostels: {
+    name: "Tagore & Hostels",
+    icon: "🏫",
+    coords: [28.7543, 77.4968],
+    desc: "Tagore Hostel, Aryabhatta Complex & Student Residential Quarters"
+  },
+  cafeteria: {
+    name: "Cafeteria / Food Court",
+    icon: "🍽️",
+    coords: [28.7537, 77.4982],
+    desc: "Central Food Court, Nescafe Corner & Student Recreation"
+  }
+};
+
+async function initAdminCampusMap() {
+  const mapContainer = document.getElementById('adminCampusLeafletMap');
+  if (!mapContainer || !window.L) return;
+
+  const KIET_COORDS = [28.75330, 77.49730];
+
+  if (!adminMapInstance) {
+    adminMapInstance = L.map('adminCampusLeafletMap', {
+      center: KIET_COORDS,
+      zoom: 17,
+      minZoom: 14,
+      maxZoom: 20
+    });
+
+    // High-resolution Google Satellite Hybrid (with roads, places & labels)
+    adminMapLayers.hybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+      subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+      maxZoom: 20,
+      attribution: '&copy; Google Maps Satellite | KIET Group of Institutions'
+    });
+
+    // Modern Streets
+    adminMapLayers.streets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+      subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+      maxZoom: 20,
+      attribution: '&copy; Google Maps Streets | KIET Group of Institutions'
+    });
+
+    // Pure Aerial Photo
+    adminMapLayers.aerial = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+      subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+      maxZoom: 20,
+      attribution: '&copy; Google Maps Aerial | KIET Group of Institutions'
+    });
+
+    // Add Default Layer: Satellite Hybrid (Matching Mobile Photo)
+    adminMapLayers.hybrid.addTo(adminMapInstance);
+
+    // Cyan dashed campus perimeter polygon
+    adminBoundaryPolygon = L.polygon(KIET_CAMPUS_BOUNDARY, {
+      color: '#38bdf8',
+      weight: 3,
+      dashArray: '6, 6',
+      fillColor: '#0284c7',
+      fillOpacity: 0.05
+    }).addTo(adminMapInstance);
+
+    // Landmark Building Badges (Dark blue badges matching photo)
+    adminBuildingsLayerGroup = L.layerGroup().addTo(adminMapInstance);
+    Object.keys(KIET_BUILDINGS).forEach(key => {
+      const b = KIET_BUILDINGS[key];
+      const icon = L.divIcon({
+        className: 'kiet-building-badge-pin',
+        html: `
+          <div style="background: rgba(15, 23, 42, 0.94); color: #ffffff; padding: 4px 10px; border-radius: 8px; border: 1.5px solid #38bdf8; font-size: 11px; font-weight: 800; white-space: nowrap; box-shadow: 0 4px 14px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <span>${b.icon}</span>
+            <span>${escapeHtml(b.name)}</span>
+          </div>
+        `,
+        iconSize: [140, 28],
+        iconAnchor: [70, 14]
+      });
+      const marker = L.marker(b.coords, { icon: icon }).addTo(adminBuildingsLayerGroup);
+      marker.bindPopup(`
+        <div style="font-family: inherit; padding: 6px 4px; min-width: 190px;">
+          <div style="font-weight: 800; font-size: 14px; color: #0f172a; margin-bottom: 4px;">${b.icon} ${escapeHtml(b.name)}</div>
+          <div style="font-size: 12px; color: #475569; line-height: 1.4;">${escapeHtml(b.desc)}</div>
+        </div>
+      `);
+    });
+
+    adminMarkersGroup = L.layerGroup().addTo(adminMapInstance);
+  }
+
+  setTimeout(() => {
+    if (adminMapInstance) {
+      adminMapInstance.invalidateSize();
+    }
+  }, 150);
+
+  try {
+    const res = await apiFetch('/api/complaints/map-feed');
+    if (res && res.ok && res.data.success && res.data.complaints) {
+      adminMapComplaints = res.data.complaints;
+      renderAdminMapPins(adminMapComplaints);
+    }
+  } catch (err) {
+    console.error('Error loading admin map feed:', err);
+  }
+}
+
+function switchAdminMapLayer(layerKey) {
+  if (!adminMapInstance || !adminMapLayers[layerKey]) return;
+  currentAdminLayerKey = layerKey;
+
+  ['hybrid', 'streets', 'aerial'].forEach(k => {
+    if (adminMapLayers[k] && adminMapInstance.hasLayer(adminMapLayers[k])) {
+      adminMapInstance.removeLayer(adminMapLayers[k]);
+    }
+  });
+
+  adminMapLayers[layerKey].addTo(adminMapInstance);
+
+  const btnHybrid = document.getElementById('adminMapLayerHybrid');
+  const btnStreets = document.getElementById('adminMapLayerStreets');
+  const btnAerial = document.getElementById('adminMapLayerAerial');
+
+  [btnHybrid, btnStreets, btnAerial].forEach(b => {
+    if (b) {
+      b.className = 'px-3.5 py-1.5 rounded-xl text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition-all inline-flex items-center gap-1.5';
+    }
+  });
+
+  const activeBtn = layerKey === 'hybrid' ? btnHybrid : (layerKey === 'streets' ? btnStreets : btnAerial);
+  if (activeBtn) {
+    activeBtn.className = 'px-3.5 py-1.5 rounded-xl text-xs font-bold border border-blue-600 bg-blue-600 text-white shadow-sm transition-all inline-flex items-center gap-1.5';
+  }
+}
+
+function focusAdminKIETCampus() {
+  if (!adminMapInstance) return;
+  adminMapInstance.flyTo([28.75330, 77.49730], 17.5, { duration: 1.0 });
+}
+
+function flyAdminToBuilding(key) {
+  const b = KIET_BUILDINGS[key];
+  if (!b || !adminMapInstance) return;
+  adminMapInstance.flyTo(b.coords, 18.5, { duration: 1.2 });
+}
+
+function renderAdminMapPins(complaints) {
+  if (!adminMarkersGroup || !adminMapInstance) return;
+  adminMarkersGroup.clearLayers();
+
+  const totalEl = document.getElementById('adminMapTotalCount');
+  if (totalEl) {
+    totalEl.innerText = `Showing ${complaints.length} geo-pinned grievance${complaints.length === 1 ? '' : 's'}`;
+  }
+
+  complaints.forEach(c => {
+    const lat = c.Latitude || 28.75330;
+    const lng = c.Longitude || 77.49730;
+
+    let pinColor = '#ef4444';
+    let pinEmoji = '🔴';
+    if (c.Priority === 'Emergency') {
+      pinColor = '#9333ea';
+      pinEmoji = '🚨';
+    } else if (c.Status === 'In Progress') {
+      pinColor = '#f59e0b';
+      pinEmoji = '🟡';
+    } else if (c.Status === 'Resolved') {
+      pinColor = '#10b981';
+      pinEmoji = '🟢';
+    }
+
+    const iconHtml = `
+      <div style="background:${pinColor}; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-size:14px; border:2.5px solid white; box-shadow:0 3px 10px rgba(0,0,0,0.3); cursor:pointer;">
+        ${pinEmoji}
+      </div>
+    `;
+
+    const customIcon = L.divIcon({
+      className: 'custom-admin-pin',
+      html: iconHtml,
+      iconSize: [32, 32],
+      iconAnchor: [16, 16],
+      popupAnchor: [0, -18]
+    });
+
+    const imgHtml = c.ImageAttachmentURL 
+      ? `<img src="${c.ImageAttachmentURL}" alt="Evidence" style="width:100%; height:90px; object-fit:cover; border-radius:8px; margin-bottom:8px; border:1px solid #e2e8f0;" />` 
+      : '';
+
+    const popupHtml = `
+      <div style="min-width:240px; font-family:'Plus Jakarta Sans', sans-serif;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <span style="font-size:11px; font-weight:800; background:#eff6ff; color:#1d4ed8; padding:2px 8px; border-radius:9999px;">#TKT-${c.ComplaintID}</span>
+          <span style="font-size:11px; font-weight:800;">${c.Status}</span>
+        </div>
+        <div style="font-weight:800; font-size:13.5px; color:#0f172a; margin-bottom:4px;">${escapeHtml(c.Title)}</div>
+        <div style="font-size:11.5px; color:#64748b; margin-bottom:6px;">📍 ${escapeHtml(c.Location)}</div>
+        <div style="font-size:11px; color:#475569; margin-bottom:8px;">👤 <strong>${escapeHtml(c.StudentName || 'Student')}</strong> (${escapeHtml(c.StudentDepartment || '')})</div>
+        ${imgHtml}
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f1f5f9; padding-top:8px; margin-top:6px;">
+          <span style="font-size:11.5px; font-weight:800; color:#1d4ed8;">👍 ${c.Upvotes || 0} Upvotes</span>
+          <button type="button" onclick="openAdminActionModal(${c.ComplaintID})" style="background:#2563eb; color:white; border:none; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">
+            Review / Update &rarr;
+          </button>
+        </div>
+      </div>
+    `;
+
+    const marker = L.marker([lat, lng], { icon: customIcon });
+    marker.bindPopup(popupHtml);
+    adminMarkersGroup.addLayer(marker);
+  });
+}
+
+function filterAdminMap(status, btnElement) {
+  document.querySelectorAll('.admin-map-filter-btn').forEach(btn => {
+    btn.classList.remove('active', 'bg-blue-600', 'text-white');
+    btn.classList.add('bg-white', 'text-slate-700');
+  });
+
+  if (btnElement) {
+    btnElement.classList.add('active', 'bg-blue-600', 'text-white');
+    btnElement.classList.remove('bg-white', 'text-slate-700');
+  }
+
+  if (status === 'all') {
+    renderAdminMapPins(adminMapComplaints);
+  } else {
+    const filtered = adminMapComplaints.filter(c => c.Status === status);
+    renderAdminMapPins(filtered);
+  }
+}
+
+// Global window bindings for Admin Portal
+window.handleAssignComplaint = handleAssignComplaint;
+window.openAdminActionModal = openAdminActionModal;
+window.closeAdminActionModal = closeAdminActionModal;
+window.handleAdminStatusUpdate = handleAdminStatusUpdate;
+window.switchAdminPortalTab = switchAdminPortalTab;
+window.handleNewUserRoleChange = handleNewUserRoleChange;
+window.handleAdminScopeChange = handleAdminScopeChange;
+window.openAddUserModal = openAddUserModal;
+window.closeAddUserModal = closeAddUserModal;
+window.generateRandomPassword = generateRandomPassword;
+window.toggleNewUserPassword = toggleNewUserPassword;
+window.handleAddUserSubmit = handleAddUserSubmit;
+
+// Satellite Map Bindings
+window.switchAdminMapLayer = switchAdminMapLayer;
+window.focusAdminKIETCampus = focusAdminKIETCampus;
+window.flyAdminToBuilding = flyAdminToBuilding;
+window.filterAdminMap = filterAdminMap;
+
+/* ==========================================================================
+   Admin Profile Management Modal & Logic
+   ========================================================================== */
+let selectedAdminModalPhotoFile = null;
+let currentAdminPresetAvatarIndex = 1;
+
+function openAdminProfileModal() {
+  const user = JSON.parse(localStorage.getItem('campuscare_user') || '{}');
+  const modal = document.getElementById('admin-profile-modal');
+  if (!modal) return;
+
+  const nameInput = document.getElementById('admin-profile-name');
+  const emailInput = document.getElementById('admin-profile-email');
+  const phoneInput = document.getElementById('admin-profile-phone');
+  const passInput = document.getElementById('admin-profile-new-password');
+  const deptDisp = document.getElementById('admin-profile-dept-disp');
+  const roleDisp = document.getElementById('admin-profile-role-disp');
+
+  if (nameInput) nameInput.value = user.full_name || user.FullName || '';
+  if (emailInput) emailInput.value = user.college_email || user.CollegeEmail || '';
+  if (phoneInput) phoneInput.value = user.phone || user.Phone || '';
+  if (passInput) passInput.value = '';
+  if (deptDisp) deptDisp.innerText = user.department || user.Department || 'Central Administration';
+  if (roleDisp) roleDisp.innerText = user.role || user.Role || 'Administrator';
+
+  const defaultAvatar = 'profile images/image2.jpg';
+  const currentAvatar = user.profile_image || user.ProfileImage || defaultAvatar;
+  const presetHidden = document.getElementById('admin-profile-preset-url');
+  const avatarImg = document.getElementById('admin-profile-modal-avatar');
+  const hintText = document.getElementById('admin-profile-photo-hint');
+
+  if (presetHidden) presetHidden.value = currentAvatar;
+  if (avatarImg) avatarImg.src = currentAvatar;
+  if (hintText) hintText.innerText = 'Current profile photo loaded.';
+  selectedAdminModalPhotoFile = null;
+
+  const alertBox = document.getElementById('admin-profile-alert');
+  if (alertBox) {
+    alertBox.className = 'hidden';
+    alertBox.innerText = '';
+  }
+
+  modal.classList.remove('hidden');
+  if (window.lucide) lucide.createIcons();
+}
+
+function closeAdminProfileModal() {
+  const modal = document.getElementById('admin-profile-modal');
+  if (modal) modal.classList.add('hidden');
+  selectedAdminModalPhotoFile = null;
+}
+
+function cycleAdminModalPresetAvatar() {
+  selectedAdminModalPhotoFile = null;
+  const fileInput = document.getElementById('admin-profile-modal-file');
+  if (fileInput) fileInput.value = '';
+
+  currentAdminPresetAvatarIndex = (currentAdminPresetAvatarIndex + 1) % AVATAR_PRESETS.length;
+  const preset = AVATAR_PRESETS[currentAdminPresetAvatarIndex];
+  const presetHidden = document.getElementById('admin-profile-preset-url');
+  const avatarImg = document.getElementById('admin-profile-modal-avatar');
+  const hintText = document.getElementById('admin-profile-photo-hint');
+
+  if (presetHidden) presetHidden.value = preset;
+  if (avatarImg) avatarImg.src = preset;
+  if (hintText) hintText.innerText = `Preset Avatar #${currentAdminPresetAvatarIndex + 1} of ${AVATAR_PRESETS.length}`;
+}
+
+function handleAdminModalPhotoSelect(e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+
+  if (file.size > 10 * 1024 * 1024) {
+    alert('Profile photo size exceeds 10MB limit.');
+    return;
+  }
+
+  selectedAdminModalPhotoFile = file;
+  const presetHidden = document.getElementById('admin-profile-preset-url');
+  if (presetHidden) presetHidden.value = '';
+
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    const avatarImg = document.getElementById('admin-profile-modal-avatar');
+    if (avatarImg) avatarImg.src = evt.target.result;
+    const hintText = document.getElementById('admin-profile-photo-hint');
+    if (hintText) hintText.innerText = `Custom file selected: ${file.name}`;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function handleAdminProfileSubmit(e) {
+  e.preventDefault();
+  const alertBox = document.getElementById('admin-profile-alert');
+  const submitBtn = document.getElementById('admin-profile-submit-btn');
+
+  const fullName = document.getElementById('admin-profile-name')?.value.trim();
+  const phone = document.getElementById('admin-profile-phone')?.value.trim() || '';
+  const newPassword = document.getElementById('admin-profile-new-password')?.value.trim() || '';
+  const presetUrl = document.getElementById('admin-profile-preset-url')?.value.trim() || '';
+
+  if (!fullName) {
+    if (alertBox) {
+      alertBox.className = 'p-3 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold block';
+      alertBox.innerText = 'Full Name is required.';
+    }
+    return;
+  }
+
+  if (newPassword && newPassword.length < 6) {
+    if (alertBox) {
+      alertBox.className = 'p-3 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold block';
+      alertBox.innerText = 'New password must be at least 6 characters long.';
+    }
+    return;
+  }
+
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<span class="inline-block animate-spin mr-1">⟳</span> Saving...`;
+  }
+
+  try {
+    let res;
+    if (selectedAdminModalPhotoFile) {
+      const formData = new FormData();
+      formData.append('full_name', fullName);
+      formData.append('phone', phone);
+      if (newPassword) formData.append('new_password', newPassword);
+      formData.append('profile_image', selectedAdminModalPhotoFile);
+
+      const token = localStorage.getItem('campuscare_token');
+      const response = await fetch('/api/auth/update-profile', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+      res = {
+        ok: response.ok,
+        status: response.status,
+        data: await response.json()
+      };
+    } else {
+      res = await apiFetch('/api/auth/update-profile', {
+        method: 'POST',
+        body: JSON.stringify({
+          full_name: fullName,
+          phone: phone,
+          profile_image: presetUrl,
+          new_password: newPassword
+        })
+      });
+    }
+
+    if (res && res.ok && res.data.success) {
+      const updatedUser = res.data.user;
+      localStorage.setItem('campuscare_user', JSON.stringify(updatedUser));
+
+      // Update header elements immediately
+      const headerName = document.getElementById('header-user-name');
+      if (headerName) headerName.innerText = updatedUser.full_name;
+      const headerAvatar = document.getElementById('header-user-avatar');
+      if (headerAvatar) headerAvatar.src = updatedUser.profile_image || 'profile images/image2.jpg';
+
+      closeAdminProfileModal();
+      showToast('Admin Profile updated successfully! ✓');
+    } else {
+      if (alertBox) {
+        alertBox.className = 'p-3 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold block';
+        alertBox.innerText = (res && res.data && res.data.message) || 'Failed to update profile. Please try again.';
+      }
+    }
+  } catch (err) {
+    if (alertBox) {
+      alertBox.className = 'p-3 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold block';
+      alertBox.innerText = `Network error: ${err.message}`;
+    }
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i> Save Profile Changes`;
+    }
+    if (window.lucide) lucide.createIcons();
+  }
+}
+
+window.openAdminProfileModal = openAdminProfileModal;
+window.closeAdminProfileModal = closeAdminProfileModal;
+window.cycleAdminModalPresetAvatar = cycleAdminModalPresetAvatar;
+window.handleAdminModalPhotoSelect = handleAdminModalPhotoSelect;
+window.handleAdminProfileSubmit = handleAdminProfileSubmit;
+
+
 
 

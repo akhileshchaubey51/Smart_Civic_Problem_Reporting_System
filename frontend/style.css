@@ -4,16 +4,16 @@
    ========================================================================== */
 
 :root {
-  /* Dynamic brand & semantic tokens */
-  --primary-navy: #090e1a;
-  --primary-blue: #4f46e5;       /* Electric Indigo */
-  --primary-hover: #4338ca;
+  /* Dynamic brand & semantic tokens (Matching Dashboard Palette) */
+  --primary-navy: #091122;
+  --primary-blue: #2563eb;       /* KIET Royal Blue */
+  --primary-hover: #1d4ed8;
   --accent-cyan: #06b6d4;        /* Radiant Cyan */
   --accent-amber: #f59e0b;       /* Warm Warning / Highlights */
   --accent-emerald: #10b981;     /* Verified Success */
   --surface-bg: #f8fafc;
   --surface-card: #ffffff;
-  
+
   /* Typography scale */
   --text-main: #0f172a;
   --text-body: #334155;
@@ -23,12 +23,12 @@
   /* Polished elevation layers */
   --shadow-sm: 0 2px 8px -2px rgba(15, 23, 42, 0.06);
   --shadow-card: 0 10px 30px -5px rgba(15, 23, 42, 0.07), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
-  --shadow-hover: 0 20px 35px -8px rgba(79, 70, 229, 0.18), 0 10px 18px -4px rgba(15, 23, 42, 0.06);
+  --shadow-hover: 0 20px 35px -8px rgba(37, 99, 235, 0.2), 0 10px 18px -4px rgba(15, 23, 42, 0.06);
 
   --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Global Reset & Base Typography */
+/* Global Reset & Base Typography (Matching Dashboard Inter Font Style) */
 html {
   scroll-behavior: smooth;
 }
@@ -38,23 +38,28 @@ body {
   font-size: 15.5px;
   background-color: #f8fafc;
   background-image: 
-    radial-gradient(at 10% 12%, rgba(99, 102, 241, 0.08) 0px, transparent 40%),
-    radial-gradient(at 90% 18%, rgba(6, 182, 212, 0.09) 0px, transparent 40%),
-    radial-gradient(at 15% 55%, rgba(244, 63, 94, 0.06) 0px, transparent 40%),
-    radial-gradient(at 85% 75%, rgba(16, 185, 129, 0.07) 0px, transparent 45%);
+    radial-gradient(at 10% 12%, rgba(37, 99, 235, 0.07) 0px, transparent 40%),
+    radial-gradient(at 90% 18%, rgba(6, 182, 212, 0.08) 0px, transparent 40%),
+    radial-gradient(at 15% 55%, rgba(244, 63, 94, 0.05) 0px, transparent 40%),
+    radial-gradient(at 85% 75%, rgba(16, 185, 129, 0.06) 0px, transparent 45%);
   background-attachment: fixed;
-  color: var(--text-body);
+  color: #334155;
   line-height: 1.6;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: inherit;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--primary-navy);
-  line-height: 1.3;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: #0f172a;
+  line-height: 1.25;
 }
 
 /* --------------------------------------------------------------------------
@@ -87,7 +92,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .nav-link {
-  font-size: 1.05rem; /* Larger, clearer text */
+  font-size: 1.15rem;
   font-weight: 600;
   color: #334155 !important;
   padding: 0.6rem 1.1rem !important;
@@ -148,7 +153,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-login-nav {
-  background: linear-gradient(135deg, var(--primary-blue) 0%, #3730a3 100%);
+  background: linear-gradient(135deg, var(--primary-blue) 0%, #13e67c 100%);
   color: #ffffff !important;
   font-size: 1rem;
   font-weight: 700;
@@ -171,17 +176,17 @@ h1, h2, h3, h4, h5, h6 {
    2. Notice / Announcement Bar
    -------------------------------------------------------------------------- */
 .announcement {
-  background: linear-gradient(90deg, #090e1a 0%, #1e1b4b 50%, #090e1a 100%);
+  background: linear-gradient(90deg, #090e1a 0%, #362cc7 50%, #080e24 100%);
   color: #e2e8f0;
   padding: 0.55rem 0;
   overflow: hidden;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  font-size: 0.95rem; /* Noticeably clearer ticker text */
+  font-size: 0.95rem;
   font-weight: 500;
 }
 
 .announcement-badge {
-  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  background: linear-gradient(135deg, #e21d1d, #4422ca);
   color: #ffffff;
   font-weight: 800;
   font-size: 0.78rem;
@@ -191,33 +196,16 @@ h1, h2, h3, h4, h5, h6 {
   margin-right: 1.25rem;
   flex-shrink: 0;
 }
-.marquee-content {
-  flex-shrink: 0;
-  display: flex;
-  justify-content: space-around;
-  min-width: 100%;
-  gap: 4rem;
-  animation: scrollMarquee 48s linear infinite; /* Smooth, easily readable pace */
-}
 
-.marquee-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 0.96rem;
-  font-weight: 600;
-  letter-spacing: 0.2px;
-  white-space: nowrap;
-}
-
-.marquee-item i {
-  font-size: 1rem;
-}
 .marquee-container {
   display: flex;
   overflow: hidden;
   user-select: none;
   width: 100%;
+}
+
+.marquee-container:hover .marquee-content {
+  animation-play-state: paused;
 }
 
 .marquee-content {
@@ -229,19 +217,22 @@ h1, h2, h3, h4, h5, h6 {
   animation: scrollMarquee 28s linear infinite;
 }
 
-.marquee-container:hover .marquee-content {
-  animation-play-state: paused;
-}
-
 @keyframes scrollMarquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-100%); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
 }
 
 .marquee-item {
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
+  font-size: 16px;
+  font-family: inherit;
+  font-weight: 600;
   white-space: nowrap;
 }
 
@@ -256,12 +247,49 @@ h1, h2, h3, h4, h5, h6 {
 .hero-section {
   position: relative;
   padding: 6.5rem 0 6rem 0;
-  background: linear-gradient(180deg, rgba(225, 227, 232, 0.25) 0%, rgba(42, 42, 43, 0.4) 100%), url('images/college2.webp');
-  background-size: cover;
-  background-position: center;
+  background-color: #0b1a30;
+  overflow: hidden;
   text-align: center;
   color: #ffffff;
 }
+
+/* Background Video for Front Index Hero */
+.hero-video-bg-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.hero-video-bg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
+  transform: translate(-50%, -50%);
+  object-fit: cover;
+  filter: brightness(0.85);
+}
+
+.hero-video-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(11, 26, 48, 0.42) 0%, rgba(5, 12, 28, 0.76) 100%);
+  backdrop-filter: blur(1px);
+}
+
+.hero-section .container {
+  position: relative;
+  z-index: 3;
+}
+
 .hero-pill {
   display: inline-flex;
   align-items: center;
@@ -274,9 +302,10 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 0.88rem;
   font-weight: 700;
   color: #fde047;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
   letter-spacing: 0.6px;
 }
+
 .hero-institution-title {
   display: block;
   width: fit-content;
@@ -308,13 +337,13 @@ h1, h2, h3, h4, h5, h6 {
 
   /* Smooth constant animation cycle */
   animation: shineWave 8s linear infinite;
-  animation-play-state: paused; /* Hover par play hoga */
+  animation-play-state: paused;
 
   /* Base depth shadow & GPU acceleration */
   filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.65));
   transform: translateZ(0);
   will-change: transform, filter;
-  
+
   /* Ultra smooth return transition */
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
               filter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -323,16 +352,14 @@ h1, h2, h3, h4, h5, h6 {
 /* Hover State: 3D Micro-Lift + Fast Shimmer + Vibrant Glow */
 .hero-institution-title:hover {
   transform: translateY(-5px) scale(1.035) translateZ(0);
-  animation-play-state: running; /* Hover aate hi shimmer shuru */
+  animation-play-state: running;
   animation-duration: 2.8s;
 
-  /* Enhanced neon-glow on hover */
   filter: drop-shadow(0 16px 30px rgba(0, 0, 0, 0.75))
           drop-shadow(0 0 25px rgba(56, 189, 248, 0.65))
           drop-shadow(0 0 50px rgba(99, 102, 241, 0.4));
 }
 
-/* Continuous smooth loop */
 @keyframes shineWave {
   0% {
     background-position: 0% 50%;
@@ -340,21 +367,6 @@ h1, h2, h3, h4, h5, h6 {
   100% {
     background-position: 250% 50%;
   }
-}
-
-/* Subtitle alignment */
-.hero-subtitle {
-  font-size: clamp(1.4rem, 3.2vw, 2.35rem);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: #38bdf8;
-  margin-bottom: 1.5rem;
-  text-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
-}
-/* Pill badge se KIET aur Subtitle ke beech spacing balance */
-.hero-pill {
-  display: inline-flex;
-  margin-bottom: 1.25rem;
 }
 
 .hero-subtitle {
@@ -371,7 +383,7 @@ h1, h2, h3, h4, h5, h6 {
 .hero-description {
   max-width: 720px;
   margin: 0 auto 2.5rem auto;
-  font-size: 1.15rem; /* Larger hero description */
+  font-size: 1.15rem;
   color: #cbd5e1;
   line-height: 1.7;
 }
@@ -469,7 +481,6 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-muted);
   line-height: 1.7;
 }
-
 
 /* --------------------------------------------------------------------------
    5. Issue Cards (Vibrant Hover & Higher Text Density)
@@ -606,6 +617,7 @@ h1, h2, h3, h4, h5, h6 {
   --card-border-color: rgba(245, 158, 11, 0.25);
   --badge-bg: linear-gradient(135deg, rgba(217, 119, 6, 0.94), rgba(180, 83, 9, 0.96));
 }
+
 .card-water {
   --card-color-grad: linear-gradient(90deg, #0284c7, #06b6d4);
   --card-glow: rgba(2, 132, 199, 0.35);
@@ -614,6 +626,7 @@ h1, h2, h3, h4, h5, h6 {
   --card-border-color: rgba(2, 132, 199, 0.25);
   --badge-bg: linear-gradient(135deg, rgba(2, 132, 199, 0.94), rgba(3, 105, 161, 0.96));
 }
+
 .card-electric {
   --card-color-grad: linear-gradient(90deg, #eab308, #ca8a04);
   --card-glow: rgba(234, 179, 8, 0.35);
@@ -622,6 +635,7 @@ h1, h2, h3, h4, h5, h6 {
   --card-border-color: rgba(234, 179, 8, 0.25);
   --badge-bg: linear-gradient(135deg, rgba(202, 138, 4, 0.94), rgba(161, 98, 7, 0.96));
 }
+
 .card-cleanliness {
   --card-color-grad: linear-gradient(90deg, #10b981, #059669);
   --card-glow: rgba(16, 185, 129, 0.35);
@@ -630,6 +644,7 @@ h1, h2, h3, h4, h5, h6 {
   --card-border-color: rgba(16, 185, 129, 0.25);
   --badge-bg: linear-gradient(135deg, rgba(16, 185, 129, 0.94), rgba(5, 150, 105, 0.96));
 }
+
 .card-parking {
   --card-color-grad: linear-gradient(90deg, #6366f1, #4f46e5);
   --card-glow: rgba(99, 102, 241, 0.35);
@@ -638,6 +653,7 @@ h1, h2, h3, h4, h5, h6 {
   --card-border-color: rgba(99, 102, 241, 0.25);
   --badge-bg: linear-gradient(135deg, rgba(99, 102, 241, 0.94), rgba(67, 56, 202, 0.96));
 }
+
 .card-infra {
   --card-color-grad: linear-gradient(90deg, #8b5cf6, #7c3aed);
   --card-glow: rgba(139, 92, 246, 0.35);
@@ -646,6 +662,7 @@ h1, h2, h3, h4, h5, h6 {
   --card-border-color: rgba(139, 92, 246, 0.25);
   --badge-bg: linear-gradient(135deg, rgba(139, 92, 246, 0.94), rgba(109, 40, 217, 0.96));
 }
+
 .card-wifi {
   --card-color-grad: linear-gradient(90deg, #3b82f6, #1d4ed8);
   --card-glow: rgba(59, 130, 246, 0.35);
@@ -654,6 +671,7 @@ h1, h2, h3, h4, h5, h6 {
   --card-border-color: rgba(59, 130, 246, 0.25);
   --badge-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.94), rgba(29, 78, 216, 0.96));
 }
+
 .card-hostel {
   --card-color-grad: linear-gradient(90deg, #ec4899, #db2777);
   --card-glow: rgba(236, 72, 153, 0.35);
@@ -662,6 +680,7 @@ h1, h2, h3, h4, h5, h6 {
   --card-border-color: rgba(236, 72, 153, 0.25);
   --badge-bg: linear-gradient(135deg, rgba(236, 72, 153, 0.94), rgba(190, 24, 93, 0.96));
 }
+
 .card-mess {
   --card-color-grad: linear-gradient(90deg, #f97316, #ea580c);
   --card-glow: rgba(249, 115, 22, 0.35);
@@ -670,6 +689,7 @@ h1, h2, h3, h4, h5, h6 {
   --card-border-color: rgba(249, 115, 22, 0.25);
   --badge-bg: linear-gradient(135deg, rgba(249, 115, 22, 0.94), rgba(194, 65, 12, 0.96));
 }
+
 .card-library {
   --card-color-grad: linear-gradient(90deg, #a855f7, #9333ea);
   --card-glow: rgba(168, 85, 247, 0.35);
@@ -678,6 +698,7 @@ h1, h2, h3, h4, h5, h6 {
   --card-border-color: rgba(168, 85, 247, 0.25);
   --badge-bg: linear-gradient(135deg, rgba(168, 85, 247, 0.94), rgba(126, 34, 206, 0.96));
 }
+
 .card-security {
   --card-color-grad: linear-gradient(90deg, #ef4444, #dc2626);
   --card-glow: rgba(239, 68, 68, 0.35);
@@ -686,6 +707,7 @@ h1, h2, h3, h4, h5, h6 {
   --card-border-color: rgba(239, 68, 68, 0.25);
   --badge-bg: linear-gradient(135deg, rgba(239, 68, 68, 0.94), rgba(185, 28, 28, 0.96));
 }
+
 .card-other {
   --card-color-grad: linear-gradient(90deg, #14b8a6, #0d9488);
   --card-glow: rgba(20, 184, 166, 0.35);
@@ -826,10 +848,12 @@ h1, h2, h3, h4, h5, h6 {
   --step-glow: rgba(79, 70, 229, 0.28);
   --step-border-hover: rgba(79, 70, 229, 0.45);
 }
+
 .step-card-1 .step-number-tag {
   background: linear-gradient(135deg, #3b82f6, #4f46e5);
   color: #ffffff;
 }
+
 .step-card-1 .step-pill {
   background: rgba(79, 70, 229, 0.1);
   color: #4338ca;
@@ -842,10 +866,12 @@ h1, h2, h3, h4, h5, h6 {
   --step-glow: rgba(6, 182, 212, 0.28);
   --step-border-hover: rgba(6, 182, 212, 0.45);
 }
+
 .step-card-2 .step-number-tag {
   background: linear-gradient(135deg, #06b6d4, #0284c7);
   color: #ffffff;
 }
+
 .step-card-2 .step-pill {
   background: rgba(6, 182, 212, 0.1);
   color: #0284c7;
@@ -858,10 +884,12 @@ h1, h2, h3, h4, h5, h6 {
   --step-glow: rgba(124, 58, 237, 0.28);
   --step-border-hover: rgba(124, 58, 237, 0.45);
 }
+
 .step-card-3 .step-number-tag {
   background: linear-gradient(135deg, #a855f7, #7c3aed);
   color: #ffffff;
 }
+
 .step-card-3 .step-pill {
   background: rgba(124, 58, 237, 0.1);
   color: #7c3aed;
@@ -874,10 +902,12 @@ h1, h2, h3, h4, h5, h6 {
   --step-glow: rgba(16, 185, 129, 0.28);
   --step-border-hover: rgba(16, 185, 129, 0.45);
 }
+
 .step-card-4 .step-number-tag {
   background: linear-gradient(135deg, #10b981, #059669);
   color: #ffffff;
 }
+
 .step-card-4 .step-pill {
   background: rgba(16, 185, 129, 0.1);
   color: #059669;
@@ -960,6 +990,7 @@ h1, h2, h3, h4, h5, h6 {
   background: linear-gradient(135deg, #3b82f6, #1d4ed8);
   color: #ffffff;
 }
+
 .stat-card-1 {
   --stat-grad: linear-gradient(90deg, #3b82f6, #1d4ed8);
   --stat-glow: rgba(59, 130, 246, 0.25);
@@ -970,6 +1001,7 @@ h1, h2, h3, h4, h5, h6 {
   background: linear-gradient(135deg, #8b5cf6, #6d28d9);
   color: #ffffff;
 }
+
 .stat-card-2 {
   --stat-grad: linear-gradient(90deg, #8b5cf6, #6d28d9);
   --stat-glow: rgba(139, 92, 246, 0.25);
@@ -980,6 +1012,7 @@ h1, h2, h3, h4, h5, h6 {
   background: linear-gradient(135deg, #f43f5e, #be123c);
   color: #ffffff;
 }
+
 .stat-card-3 {
   --stat-grad: linear-gradient(90deg, #f43f5e, #be123c);
   --stat-glow: rgba(244, 63, 94, 0.25);
@@ -990,6 +1023,7 @@ h1, h2, h3, h4, h5, h6 {
   background: linear-gradient(135deg, #10b981, #047857);
   color: #ffffff;
 }
+
 .stat-card-4 {
   --stat-grad: linear-gradient(90deg, #10b981, #047857);
   --stat-glow: rgba(16, 185, 129, 0.25);
@@ -1199,5 +1233,5 @@ h1, h2, h3, h4, h5, h6 {
 
 .btn-modal-login:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.45);
+  box-shadow: 0 6px 20px rgba(72, 240, 21, 0.45);
 }

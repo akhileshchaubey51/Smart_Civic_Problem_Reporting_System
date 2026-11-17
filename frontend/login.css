@@ -35,7 +35,16 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, .brand-title, .login-header h2, .form-title, .btn-submit, .login-submit, .role-btn, .back-to-home {
+h1,
+h2,
+h3,
+.brand-title,
+.login-header h2,
+.form-title,
+.btn-submit,
+.login-submit,
+.role-btn,
+.back-to-home {
   font-family: inherit;
   font-weight: 600;
 }
@@ -158,7 +167,10 @@ h1, h2, h3, .brand-title, .login-header h2, .form-title, .btn-submit, .login-sub
 .login-overlay h1 span {
   background: linear-gradient(135deg, #60a5fa 0%, #93c5fd 50%, #38bdf8 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
+  color: #60a5fa;
+  display: inline-block;
 }
 
 .login-overlay > p {
@@ -325,31 +337,54 @@ h1, h2, h3, .brand-title, .login-header h2, .form-title, .btn-submit, .login-sub
 /* Role Selector Pills */
 .role-pills {
   display: flex;
-  gap: 0.6rem;
+  gap: 0.5rem;
   background: #f1f5f9;
   padding: 6px;
   border-radius: 14px;
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
   border: 1.5px solid var(--border-color);
 }
 
 .role-btn {
   flex: 1;
-  padding: 0.75rem 1rem;
-  font-size: 0.95rem;
-  font-weight: 700;
+  padding: 0.75rem 0.5rem;
+  font-size: 0.92rem;
+  font-weight: 750;
   border: none;
   background: transparent;
   color: #64748b;
   border-radius: 10px;
   cursor: pointer;
-  transition: var(--transition);
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.role-btn:hover {
+  color: #1e293b;
+  background: rgba(255, 255, 255, 0.65);
 }
 
 .role-btn.active {
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   color: #ffffff;
   box-shadow: 0 4px 14px rgba(37, 99, 235, 0.32);
+}
+
+.role-btn.active.role-staff-active,
+.role-btn.active.role-staffadmin-active {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.4);
+}
+
+.role-btn.active.role-admin-active {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.4);
 }
 
 /* Form Styles */
@@ -458,26 +493,27 @@ h1, h2, h3, .brand-title, .login-header h2, .form-title, .btn-submit, .login-sub
   text-decoration: underline;
 }
 
-/* High-Energy Submit Button */
+/* High-Energy Submit Button (Enhanced & Prominent) */
 .login-submit {
   width: 100%;
-  padding: 1.05rem 1.5rem;
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  min-height: 58px;
+  padding: 1.2rem 2rem;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #1e40af 100%);
   color: #ffffff;
-  border: none;
-  border-radius: 12px;
-  font-size: 1.15rem;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  border-radius: 14px;
+  font-size: 1.25rem;
   font-weight: 800;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.35);
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 12px 28px -4px rgba(37, 99, 235, 0.45), 0 4px 10px rgba(15, 23, 42, 0.1);
   position: relative;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.6rem;
-  letter-spacing: 0.2px;
+  gap: 0.75rem;
+  letter-spacing: 0.5px;
 }
 
 /* Shimmer shine animation on button */
@@ -736,4 +772,313 @@ h1, h2, h3, .brand-title, .login-header h2, .form-title, .btn-submit, .login-sub
     grid-template-columns: 1fr;
     gap: 0.75rem;
   }
+}
+
+/* ==========================================================================
+   3D WOODEN DOUBLE DOORS LOGIN SUCCESS EXPERIENCE
+   Center Glowing CampusCare • High Concurrency Gateway • Smooth Redirection
+   ========================================================================== */
+
+.wooden-door-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 999999;
+  background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.wooden-door-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.wooden-door-viewport {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  perspective: 1500px;
+  perspective-origin: 50% 50%;
+  display: flex;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Base Wooden Door Leaf */
+.wooden-door-leaf {
+  width: 50%;
+  height: 100%;
+  position: relative;
+  /* Rich deep mahogany & dark teak wood grain */
+  background: 
+    repeating-linear-gradient(
+      90deg,
+      rgba(40, 20, 10, 0.25) 0px,
+      rgba(60, 28, 12, 0.4) 6px,
+      rgba(40, 20, 10, 0.25) 12px,
+      rgba(85, 42, 18, 0.3) 18px
+    ),
+    linear-gradient(135deg, #3d1c06 0%, #5c2c10 25%, #421e07 50%, #6d3312 75%, #2a1203 100%);
+  box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.8), 0 0 50px rgba(0, 0, 0, 0.9);
+  border: 4px solid #230d02;
+  transition: transform 1.6s cubic-bezier(0.25, 1, 0.3, 1), box-shadow 1.6s ease;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* Left Door Leaf */
+.wooden-door-leaf.door-left {
+  transform-origin: left center;
+  border-right: 3px solid #1a0800;
+}
+
+/* Right Door Leaf */
+.wooden-door-leaf.door-right {
+  transform-origin: right center;
+  border-left: 3px solid #1a0800;
+}
+
+/* Animated Open States */
+.wooden-door-overlay.doors-opened .wooden-door-leaf.door-left {
+  transform: rotateY(-105deg);
+  box-shadow: -20px 0 60px rgba(0, 0, 0, 0.9);
+}
+
+.wooden-door-overlay.doors-opened .wooden-door-leaf.door-right {
+  transform: rotateY(105deg);
+  box-shadow: 20px 0 60px rgba(0, 0, 0, 0.9);
+}
+
+/* Classical Beveled Wooden Panels */
+.door-frame-border {
+  position: absolute;
+  inset: 5%;
+  border: 14px solid #2c1204;
+  border-radius: 8px;
+  box-shadow: inset 3px 3px 12px rgba(0, 0, 0, 0.8), 2px 2px 6px rgba(255, 200, 150, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 5%;
+  padding: 4%;
+}
+
+.door-inset-panel {
+  flex: 1;
+  background: linear-gradient(135deg, #2a1103 0%, #4a210a 50%, #200c02 100%);
+  border: 8px solid #1c0a01;
+  border-radius: 6px;
+  box-shadow: 
+    inset 4px 4px 15px rgba(0, 0, 0, 0.9),
+    inset -3px -3px 10px rgba(180, 100, 40, 0.2),
+    0 4px 12px rgba(0, 0, 0, 0.6);
+  position: relative;
+  overflow: hidden;
+}
+
+.panel-inner-bevel {
+  position: absolute;
+  inset: 12%;
+  border: 3px solid rgba(210, 130, 60, 0.15);
+  border-radius: 4px;
+  background: radial-gradient(ellipse at center, rgba(140, 65, 25, 0.25) 0%, rgba(20, 8, 2, 0.4) 100%);
+}
+
+/* Elegant Polished Brass Handles */
+.door-handle {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 120px;
+  z-index: 15;
+}
+
+.brass-handle-left {
+  right: 28px;
+}
+
+.brass-handle-right {
+  left: 28px;
+}
+
+.handle-plate {
+  width: 24px;
+  height: 110px;
+  background: linear-gradient(180deg, #fef08a 0%, #ca8a04 40%, #854d0e 80%, #eab308 100%);
+  border-radius: 6px;
+  box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.7), inset 1px 1px 2px rgba(255, 255, 255, 0.8);
+  border: 1px solid #713f12;
+  margin: 0 auto;
+}
+
+.handle-lever {
+  position: absolute;
+  top: 38px;
+  width: 44px;
+  height: 14px;
+  background: linear-gradient(90deg, #fef08a, #eab308, #a16207);
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+}
+
+.brass-handle-left .handle-lever {
+  right: 8px;
+}
+
+.brass-handle-right .handle-lever {
+  left: 8px;
+}
+
+.keyhole-brass {
+  position: absolute;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 7px;
+  height: 14px;
+  background: #1e1b18;
+  border-radius: 3px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.9);
+}
+
+/* Center Glowing Content Revealed Inside Doorway */
+.door-reveal-content {
+  position: relative;
+  z-index: 5;
+  text-align: center;
+  padding: 2.5rem 3.5rem;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transform: scale(0.85);
+  opacity: 0;
+  transition: transform 1.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 1.2s ease;
+}
+
+.wooden-door-overlay.doors-opened .door-reveal-content {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.portal-halo-glow {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.35) 0%, rgba(56, 189, 248, 0.15) 45%, transparent 70%);
+  filter: blur(45px);
+  z-index: -1;
+  animation: haloPulse 3s ease-in-out infinite alternate;
+}
+
+.portal-emblem {
+  font-size: 3.5rem;
+  color: #38bdf8;
+  text-shadow: 0 0 25px #0284c7, 0 0 50px #2563eb;
+  margin-bottom: 0.5rem;
+  animation: floatEmblem 3s ease-in-out infinite alternate;
+}
+
+.portal-brand-glow {
+  font-size: clamp(3.2rem, 7vw, 5.2rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+  /* High-Impact Neon & Golden Glow Effect */
+  text-shadow: 
+    0 0 12px #38bdf8,
+    0 0 30px #2563eb,
+    0 0 60px #1d4ed8,
+    0 0 100px rgba(37, 99, 235, 0.9),
+    0 0 140px rgba(56, 189, 248, 0.6);
+  margin-bottom: 0.5rem;
+  line-height: 1.05;
+  font-family: inherit;
+  animation: glowIntense 2s ease-in-out infinite alternate;
+}
+
+.portal-institution {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #bae6fd;
+  letter-spacing: 0.5px;
+  margin-bottom: 1.75rem;
+  text-shadow: 0 2px 10px rgba(2, 132, 199, 0.5);
+}
+
+.portal-capacity-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1.5px solid rgba(56, 189, 248, 0.45);
+  box-shadow: 0 0 25px rgba(37, 99, 235, 0.35);
+  padding: 0.55rem 1.4rem;
+  border-radius: 9999px;
+  color: #e0f2fe;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  margin-bottom: 1.5rem;
+  backdrop-filter: blur(12px);
+}
+
+.live-pulse-dot {
+  width: 9px;
+  height: 9px;
+  background-color: #22c55e;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #22c55e;
+  animation: dotPulse 1.6s infinite;
+}
+
+.portal-status-text {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+}
+
+@keyframes glowIntense {
+  0% {
+    text-shadow: 
+      0 0 10px #38bdf8,
+      0 0 25px #2563eb,
+      0 0 50px #1d4ed8,
+      0 0 80px rgba(37, 99, 235, 0.8);
+    transform: scale(0.99);
+  }
+  100% {
+    text-shadow: 
+      0 0 16px #7dd3fc,
+      0 0 40px #38bdf8,
+      0 0 75px #2563eb,
+      0 0 120px #1d4ed8,
+      0 0 160px rgba(56, 189, 248, 0.9);
+    transform: scale(1.02);
+  }
+}
+
+@keyframes haloPulse {
+  0% { transform: scale(0.85); opacity: 0.5; }
+  100% { transform: scale(1.15); opacity: 0.9; }
+}
+
+@keyframes floatEmblem {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-8px); }
+}
+
+@keyframes dotPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
 }

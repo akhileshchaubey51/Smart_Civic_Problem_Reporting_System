@@ -114,15 +114,15 @@ function getStatusBadge(status) {
   const s = status || 'Pending';
   switch (s) {
     case 'Pending':
-      return `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold badge-pending"><span class="w-1.5 h-1.5 mr-1.5 bg-amber-500 rounded-full animate-pulse"></span>Pending</span>`;
+      return `<span class="inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-bold badge-pending"><span class="w-2 h-2 mr-1.5 bg-amber-500 rounded-full animate-pulse"></span>Pending</span>`;
     case 'In Progress':
-      return `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold badge-in-progress"><span class="w-1.5 h-1.5 mr-1.5 bg-sky-500 rounded-full"></span>In Progress</span>`;
+      return `<span class="inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-bold badge-in-progress"><span class="w-2 h-2 mr-1.5 bg-sky-500 rounded-full"></span>In Progress</span>`;
     case 'Resolved':
-      return `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold badge-resolved"><span class="w-1.5 h-1.5 mr-1.5 bg-emerald-500 rounded-full"></span>Resolved</span>`;
+      return `<span class="inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-bold badge-resolved"><span class="w-2 h-2 mr-1.5 bg-emerald-500 rounded-full"></span>Resolved</span>`;
     case 'Rejected':
-      return `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold badge-rejected"><span class="w-1.5 h-1.5 mr-1.5 bg-rose-500 rounded-full"></span>Rejected</span>`;
+      return `<span class="inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-bold badge-rejected"><span class="w-2 h-2 mr-1.5 bg-rose-500 rounded-full"></span>Rejected</span>`;
     default:
-      return `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">${s}</span>`;
+      return `<span class="inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-bold bg-slate-100 text-slate-700">${s}</span>`;
   }
 }
 
@@ -131,14 +131,14 @@ function getPriorityBadge(priority) {
   const p = priority || 'Low';
   switch (p) {
     case 'Emergency':
-      return `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold badge-emergency uppercase tracking-wider"><i data-lucide="flame" class="w-3 h-3 mr-1 inline"></i>Emergency</span>`;
+      return `<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs sm:text-sm font-extrabold badge-emergency uppercase tracking-wider"><i data-lucide="flame" class="w-3.5 h-3.5 mr-1 inline"></i>Emergency</span>`;
     case 'High':
-      return `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold badge-high">High</span>`;
+      return `<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs sm:text-sm font-bold badge-high">High</span>`;
     case 'Medium':
-      return `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold badge-medium">Medium</span>`;
+      return `<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs sm:text-sm font-bold badge-medium">Medium</span>`;
     case 'Low':
-      return `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold badge-low">Low</span>`;
+      return `<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs sm:text-sm font-bold badge-low">Low</span>`;
     default:
-      return `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-slate-200 text-slate-800">${p}</span>`;
+      return `<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs sm:text-sm font-bold bg-slate-200 text-slate-800">${p}</span>`;
   }
 }

@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CampusCare - College Civic Grievance & Issue Resolution System</title>
+  <title>CampusCare - College Civic Grievance &amp; Issue Resolution System</title>
   
-  <!-- Clean, Simple Font: Inter -->
+  <!-- Premium Modern Typography: Plus Jakarta Sans & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -19,6 +19,10 @@
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+  <!-- Leaflet.js Interactive 2D Map CDN -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
   <!-- Custom Admin Stylesheet & Dynamic Transitions -->
   <link rel="stylesheet" href="admin.css">
   <link rel="stylesheet" href="page-transitions.css">
@@ -28,9 +32,9 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', 'system-ui', 'sans-serif'],
-            display: ['Inter', 'sans-serif'],
-            heading: ['Inter', 'sans-serif']
+            sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'sans-serif'],
+            heading: ['Plus Jakarta Sans', 'sans-serif']
           },
           colors: {
             brand: {
@@ -112,15 +116,21 @@
             </div>
           </div>
 
-          <div class="flex items-center gap-3">
-            <img id="header-user-avatar" src="profile images/image2.jpg" alt="Admin Profile" class="w-10 h-10 rounded-full object-cover border-2 border-blue-500 shadow-sm shrink-0" onerror="this.onerror=null; this.src='profile images/image2.jpg';" />
+          <div onclick="openAdminProfileModal()" class="flex items-center gap-3 cursor-pointer p-1.5 rounded-2xl hover:bg-slate-100 transition-all border border-transparent hover:border-slate-200 group" title="Click to view & edit your Admin Profile, Photo, or Password">
+            <div class="relative">
+              <img id="header-user-avatar" src="profile images/image2.jpg" alt="Admin Profile" class="w-10 h-10 rounded-full object-cover border-2 border-blue-500 shadow-sm shrink-0 group-hover:scale-105 transition-transform" onerror="this.onerror=null; this.src='profile images/image2.jpg';" />
+              <span class="absolute -bottom-1 -right-1 bg-blue-600 text-white rounded-full p-0.5 shadow-sm group-hover:bg-blue-700">
+                <i data-lucide="edit-2" class="w-2.5 h-2.5"></i>
+              </span>
+            </div>
             <div class="text-right hidden sm:block">
               <div class="flex items-center justify-end gap-2">
-                <span id="header-user-name" class="text-base sm:text-lg font-black text-slate-900 font-display"></span>
+                <span id="header-user-name" class="text-base sm:text-lg font-black text-slate-900 font-display group-hover:text-blue-600 transition-colors"></span>
                 <span id="header-role-badge"></span>
               </div>
               <div class="text-sm text-slate-500 flex items-center justify-end gap-1.5 mt-0.5">
                 <span id="header-user-dept" class="font-semibold text-slate-600"></span> &bull; <span id="header-user-role" class="capitalize font-bold text-slate-700"></span>
+                <span class="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-full">Edit Profile</span>
               </div>
             </div>
           </div>
@@ -169,7 +179,7 @@
         <!-- Header -->
         <div class="border-b border-slate-200 bg-slate-50/50 px-6 py-4 text-center">
           <h2 class="text-base font-bold text-slate-800">Sign In to CampusCare</h2>
-          <p class="text-xs text-slate-500 mt-0.5">Student & Admin Official KIET Authentication</p>
+          <p class="text-xs text-slate-500 mt-0.5">Student &amp; Admin Official KIET Authentication</p>
         </div>
 
         <div class="p-6 sm:p-8">
@@ -195,7 +205,6 @@
             <button type="submit" id="login-submit-btn" class="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-lg shadow-sm hover:shadow transition-all flex items-center justify-center">
               Sign In <i data-lucide="arrow-right" class="w-4 h-4 ml-1 inline"></i>
             </button>
-
           </form>
 
           <div class="mt-5 pt-4 border-t border-slate-100 text-center">
@@ -334,7 +343,7 @@
             
             <div id="image-dropzone" class="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl p-6 text-center cursor-pointer transition-colors bg-slate-50/50">
               <i data-lucide="camera" class="w-8 h-8 text-slate-400 mx-auto mb-2"></i>
-              <div class="text-sm font-semibold text-slate-700">Click to upload photo or drag & drop</div>
+              <div class="text-sm font-semibold text-slate-700">Click to upload photo or drag &amp; drop</div>
               <div class="text-xs text-slate-400 mt-0.5">PNG, JPG, JPEG, WEBP up to 10MB</div>
             </div>
 
@@ -376,18 +385,18 @@
          ==================================================================== -->
     <section id="admin-portal" class="hidden space-y-6">
       
-      <!-- Modern Executive Glassmorphic Header -->
+      <!-- Modern Executive Light Header -->
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5 p-7 sm:p-8 rounded-3xl admin-hero-card">
         <div>
           <div class="flex flex-wrap items-center gap-3">
-            <h2 class="text-2xl font-black text-white flex items-center gap-2.5 font-display">
-              <i data-lucide="shield" class="w-7 h-7 text-blue-300"></i> Administrative Control Center
+            <h2 class="text-2xl sm:text-3xl font-black text-slate-900 flex items-center gap-2.5 font-display">
+              <i data-lucide="shield" class="w-8 h-8 text-blue-600"></i> Administrative Control Center
             </h2>
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-white/15 text-blue-100 border border-white/20 backdrop-blur-sm shadow-sm">
+            <span class="inline-flex items-center px-3.5 py-1 rounded-full text-xs sm:text-sm font-bold bg-blue-100 text-blue-800 border border-blue-200 shadow-sm">
               KIET CampusCare HQ
             </span>
           </div>
-          <p class="text-sm text-blue-100/90 mt-1.5 font-normal max-w-2xl">Real-time civic monitoring, department SLA analytics, user administration & audit reporting.</p>
+          <p class="text-sm sm:text-base text-slate-600 mt-2 font-medium max-w-2xl">Real-time civic monitoring, department SLA analytics, user administration &amp; audit reporting.</p>
           
           <!-- View Switcher Tabs -->
           <div class="admin-tab-container mt-5">
@@ -398,63 +407,66 @@
               <i data-lucide="users" class="w-4 h-4"></i> User Directory
             </button>
             <button id="admin-tab-files" onclick="switchAdminPortalTab('files')" class="admin-tab-btn">
-              <i data-lucide="folder" class="w-4 h-4"></i> 📁 Uploaded Files &amp; Media Folder
+              <i data-lucide="folder" class="w-4 h-4"></i> 📁 Media Folder
+            </button>
+            <button id="admin-tab-map" onclick="switchAdminPortalTab('map')" class="admin-tab-btn">
+              <i data-lucide="map" class="w-4 h-4"></i> 🗺️ Campus Map
             </button>
           </div>
         </div>
 
         <!-- Quick Action Buttons -->
-        <div class="flex flex-wrap items-center gap-2.5">
-          <button onclick="openAddUserModal()" class="px-4 py-2.5 text-xs font-bold rounded-xl btn-glow-primary flex items-center gap-2 shadow-sm transition-all">
+        <div class="flex flex-wrap items-center gap-3">
+          <button onclick="openAddUserModal()" class="px-5 py-3 text-sm font-bold rounded-xl btn-glow-primary flex items-center gap-2 shadow-sm transition-all">
             <i data-lucide="user-plus" class="w-4 h-4"></i> + Add New User
           </button>
-          <button onclick="exportComplaintsCSV()" class="px-4 py-2.5 text-xs font-bold rounded-xl btn-glow-success flex items-center gap-2 shadow-sm transition-all">
+          <button onclick="exportComplaintsCSV()" class="px-5 py-3 text-sm font-bold rounded-xl btn-glow-success flex items-center gap-2 shadow-sm transition-all">
             <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Export CSV
           </button>
-          <button onclick="loadAdminDashboard()" class="px-3.5 py-2.5 text-xs font-semibold rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 flex items-center gap-1.5 transition-colors shadow-sm">
-            <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i> Refresh
+          <button onclick="loadAdminDashboard()" class="px-4 py-3 text-sm font-semibold rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 flex items-center gap-1.5 transition-colors shadow-sm">
+            <i data-lucide="rotate-cw" class="w-4 h-4"></i> Refresh
           </button>
         </div>
       </div>
 
       <!-- KPI Cards Row with Hover Animation & Live Glow Dots -->
-      <div class="grid grid-cols-2 md:grid-cols-6 gap-3.5">
+      <div class="grid grid-cols-2 md:grid-cols-6 gap-4">
         <div class="admin-kpi-card">
-          <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Issues</div>
-          <div id="admin-kpi-total" class="text-2xl font-black text-slate-800 mt-1">0</div>
+          <div class="text-xs sm:text-sm font-bold text-slate-500 uppercase tracking-wider">Total Issues</div>
+          <div id="admin-kpi-total" class="text-3xl font-black text-slate-900 mt-1">0</div>
         </div>
 
         <div class="admin-kpi-card kpi-pending">
-          <div class="text-[11px] font-bold text-amber-500 uppercase tracking-wider flex items-center">
+          <div class="text-xs sm:text-sm font-bold text-amber-600 uppercase tracking-wider flex items-center">
             <span class="status-dot dot-pending"></span> Unassigned / Pending
           </div>
-          <div id="admin-kpi-pending" class="text-2xl font-black text-amber-600 mt-1">0</div>
+          <div id="admin-kpi-pending" class="text-3xl font-black text-amber-600 mt-1">0</div>
         </div>
 
         <div class="admin-kpi-card kpi-progress">
-          <div class="text-[11px] font-bold text-sky-500 uppercase tracking-wider flex items-center">
+          <div class="text-xs sm:text-sm font-bold text-sky-600 uppercase tracking-wider flex items-center">
             <span class="status-dot dot-progress"></span> In Progress
           </div>
-          <div id="admin-kpi-in-progress" class="text-2xl font-black text-sky-600 mt-1">0</div>
+          <div id="admin-kpi-in-progress" class="text-3xl font-black text-sky-600 mt-1">0</div>
         </div>
 
         <div class="admin-kpi-card kpi-resolved">
-          <div class="text-[11px] font-bold text-emerald-500 uppercase tracking-wider flex items-center">
+          <div class="text-xs sm:text-sm font-bold text-emerald-600 uppercase tracking-wider flex items-center">
             <span class="status-dot dot-resolved"></span> Resolved
           </div>
-          <div id="admin-kpi-resolved" class="text-2xl font-black text-emerald-600 mt-1">0</div>
+          <div id="admin-kpi-resolved" class="text-3xl font-black text-emerald-600 mt-1">0</div>
         </div>
 
         <div class="admin-kpi-card">
-          <div class="text-[11px] font-bold text-blue-500 uppercase tracking-wider">Resolution Rate</div>
-          <div id="admin-kpi-resolution-rate" class="text-2xl font-black text-blue-600 mt-1">0%</div>
+          <div class="text-xs sm:text-sm font-bold text-blue-600 uppercase tracking-wider">Resolution Rate</div>
+          <div id="admin-kpi-resolution-rate" class="text-3xl font-black text-blue-600 mt-1">0%</div>
         </div>
 
         <div class="admin-kpi-card kpi-overdue">
-          <div class="text-[11px] font-bold text-rose-500 uppercase tracking-wider flex items-center">
+          <div class="text-xs sm:text-sm font-bold text-rose-600 uppercase tracking-wider flex items-center">
             <span class="status-dot dot-rejected"></span> SLA Overdue
           </div>
-          <div id="admin-kpi-sla-overdue" class="text-2xl font-black text-rose-600 mt-1">0</div>
+          <div id="admin-kpi-sla-overdue" class="text-3xl font-black text-rose-600 mt-1">0</div>
         </div>
       </div>
 
@@ -495,25 +507,25 @@
         </div>
 
         <!-- Filterable Complaint Management Table Section -->
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
           
           <!-- Table Header & Filter Bar -->
-          <div class="p-4 border-b border-slate-200 bg-slate-50/50 space-y-3">
+          <div class="p-5 border-b border-slate-200 bg-slate-50/75 space-y-3.5">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                <i data-lucide="table" class="w-4 h-4 text-slate-500"></i> Grievance Management Engine
+              <h3 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                <i data-lucide="table" class="w-5 h-5 text-blue-600"></i> Grievance Management Engine
               </h3>
               
               <!-- Search bar -->
-              <div class="relative max-w-xs w-full">
-                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
-                <input type="text" id="admin-search-input" oninput="loadAdminComplaints(1)" placeholder="Search keyword, location, student..." class="w-full pl-9 pr-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+              <div class="relative max-w-sm w-full">
+                <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-3 text-slate-400"></i>
+                <input type="text" id="admin-search-input" oninput="loadAdminComplaints(1)" placeholder="Search keyword, location, student..." class="w-full pl-10 pr-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white shadow-sm font-medium">
               </div>
             </div>
 
             <!-- Dropdown Filters -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
-              <select id="admin-filter-status" onchange="loadAdminComplaints(1)" class="text-xs px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
+              <select id="admin-filter-status" onchange="loadAdminComplaints(1)" class="text-sm px-3.5 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 font-semibold text-slate-700 shadow-sm">
                 <option value="all">All Statuses</option>
                 <option value="Pending">Pending</option>
                 <option value="In Progress">In Progress</option>
@@ -521,11 +533,11 @@
                 <option value="Rejected">Rejected</option>
               </select>
 
-              <select id="admin-filter-category" onchange="loadAdminComplaints(1)" class="text-xs px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+              <select id="admin-filter-category" onchange="loadAdminComplaints(1)" class="text-sm px-3.5 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 font-semibold text-slate-700 shadow-sm">
                 <option value="all">All Categories</option>
               </select>
 
-              <select id="admin-filter-priority" onchange="loadAdminComplaints(1)" class="text-xs px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+              <select id="admin-filter-priority" onchange="loadAdminComplaints(1)" class="text-sm px-3.5 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 font-semibold text-slate-700 shadow-sm">
                 <option value="all">All Priorities</option>
                 <option value="Emergency">Emergency</option>
                 <option value="High">High</option>
@@ -537,17 +549,17 @@
 
           <!-- Table Data -->
           <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs text-slate-600">
-              <thead class="bg-slate-100/75 text-[11px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">
+            <table class="w-full text-left text-sm text-slate-700">
+              <thead class="bg-slate-100/90 text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-600 border-b border-slate-200">
                 <tr>
-                  <th class="py-3 px-4">Ticket</th>
-                  <th class="py-3 px-3 text-center">Photo</th>
-                  <th class="py-3 px-4">Issue & Location</th>
-                  <th class="py-3 px-4">Category & SLA</th>
-                  <th class="py-3 px-4">Priority</th>
-                  <th class="py-3 px-4">Student Info</th>
-                  <th class="py-3 px-4">Current Status</th>
-                  <th class="py-3 px-4 text-right">Actions</th>
+                  <th class="py-3.5 px-4 font-bold">Ticket</th>
+                  <th class="py-3.5 px-3 text-center font-bold">Photo</th>
+                  <th class="py-3.5 px-4 font-bold">Issue &amp; Location</th>
+                  <th class="py-3.5 px-4 font-bold">Category &amp; SLA</th>
+                  <th class="py-3.5 px-4 font-bold">Priority</th>
+                  <th class="py-3.5 px-4 font-bold">Student Info</th>
+                  <th class="py-3.5 px-4 font-bold">Current Status</th>
+                  <th class="py-3.5 px-4 text-right font-bold">Actions</th>
                 </tr>
               </thead>
               <tbody id="admin-table-body">
@@ -557,11 +569,11 @@
           </div>
 
           <!-- Pagination Controls -->
-          <div class="p-3.5 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-xs text-slate-500">
+          <div class="p-4 border-t border-slate-200 bg-slate-50/80 flex items-center justify-between text-sm text-slate-600 font-medium">
             <span id="admin-page-info">Page 1 of 1 (0 records)</span>
-            <div class="flex items-center gap-1.5">
-              <button id="admin-prev-page" onclick="loadAdminComplaints(currentAdminPage - 1)" class="px-3 py-1 rounded bg-white border border-slate-200 font-medium hover:bg-slate-100 disabled:opacity-40">Previous</button>
-              <button id="admin-next-page" onclick="loadAdminComplaints(currentAdminPage + 1)" class="px-3 py-1 rounded bg-white border border-slate-200 font-medium hover:bg-slate-100 disabled:opacity-40">Next</button>
+            <div class="flex items-center gap-2">
+              <button id="admin-prev-page" onclick="loadAdminComplaints(currentAdminPage - 1)" class="px-4 py-1.5 rounded-lg bg-white border border-slate-300 font-semibold hover:bg-slate-100 disabled:opacity-40 shadow-sm">Previous</button>
+              <button id="admin-next-page" onclick="loadAdminComplaints(currentAdminPage + 1)" class="px-4 py-1.5 rounded-lg bg-white border border-slate-300 font-semibold hover:bg-slate-100 disabled:opacity-40 shadow-sm">Next</button>
             </div>
           </div>
 
@@ -572,45 +584,46 @@
       <!-- SECTION 2: USER DIRECTORY & ROSTER (Toggled via Tab) -->
       <div id="admin-section-users" class="hidden space-y-4">
         
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
           <!-- User Roster Header & Search -->
-          <div class="p-4 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="p-5 border-b border-slate-200 bg-slate-50/75 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div class="flex items-center gap-3">
-              <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                <i data-lucide="users" class="w-4 h-4 text-blue-600"></i> Registered Campus Users Directory
+              <h3 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                <i data-lucide="users" class="w-5 h-5 text-blue-600"></i> Registered Campus Users Directory
               </h3>
-              <span id="admin-users-count-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">0 Users</span>
+              <span id="admin-users-count-badge" class="px-3 py-1 rounded-full text-xs sm:text-sm font-bold bg-blue-100 text-blue-800 border border-blue-200">0 Users</span>
             </div>
 
-            <div class="flex flex-wrap items-center gap-2">
-              <div class="relative max-w-xs w-full">
-                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
-                <input type="text" id="admin-users-search" oninput="loadAdminUsers()" placeholder="Search name, email, department..." class="w-full pl-9 pr-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            <div class="flex flex-wrap items-center gap-2.5">
+              <div class="relative max-w-sm w-full">
+                <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-3 text-slate-400"></i>
+                <input type="text" id="admin-users-search" oninput="loadAdminUsers()" placeholder="Search name, email, department..." class="w-full pl-10 pr-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white shadow-sm font-medium">
               </div>
-              <select id="admin-users-filter-role" onchange="loadAdminUsers()" class="text-xs px-3 py-1.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+              <select id="admin-users-filter-role" onchange="loadAdminUsers()" class="text-sm px-3.5 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 font-semibold text-slate-700 shadow-sm">
                 <option value="">All Roles</option>
-                <option value="Student">Students</option>
-                <option value="Admin">Admins / Staff</option>
+                <option value="Student">Students (🎓)</option>
+                <option value="Staff">Staff / Faculty (👨‍💼)</option>
+                <option value="Admin">Administrators (🛡️)</option>
               </select>
-              <button onclick="openAddUserModal()" class="px-3.5 py-1.5 text-xs font-bold rounded-lg btn-glow-primary flex items-center gap-1 shrink-0">
-                <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add User
+              <button onclick="openAddUserModal()" class="px-4 py-2 text-sm font-bold rounded-xl btn-glow-primary flex items-center gap-1.5 shrink-0 shadow-sm">
+                <i data-lucide="plus" class="w-4 h-4"></i> Add User
               </button>
             </div>
           </div>
 
           <!-- Users Table -->
           <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs text-slate-600">
-              <thead class="bg-slate-100/75 text-[11px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">
+            <table class="w-full text-left text-sm text-slate-700">
+              <thead class="bg-slate-100/90 text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-600 border-b border-slate-200">
                 <tr>
-                  <th class="py-3 px-4">User ID</th>
-                  <th class="py-3 px-4">User Profile</th>
-                  <th class="py-3 px-4">Official College Email</th>
-                  <th class="py-3 px-4">Role</th>
-                  <th class="py-3 px-4">Department</th>
-                  <th class="py-3 px-4">Contact Phone</th>
-                  <th class="py-3 px-4 text-center">Action</th>
-                  <th class="py-3 px-4 text-right">Registered On</th>
+                  <th class="py-3.5 px-4 font-bold">User ID</th>
+                  <th class="py-3.5 px-4 font-bold">User Profile</th>
+                  <th class="py-3.5 px-4 font-bold">Official College Email</th>
+                  <th class="py-3.5 px-4 font-bold min-w-[135px] whitespace-nowrap">Role</th>
+                  <th class="py-3.5 px-4 font-bold">Department</th>
+                  <th class="py-3.5 px-4 font-bold">Contact Phone</th>
+                  <th class="py-3.5 px-4 text-center font-bold">Action</th>
+                  <th class="py-3.5 px-4 text-right font-bold">Registered On</th>
                 </tr>
               </thead>
               <tbody id="admin-users-table-body">
@@ -625,36 +638,36 @@
       <!-- SECTION 3: UPLOADED FILES & MEDIA REPOSITORY (Toggled via Tab) -->
       <div id="admin-section-files" class="hidden space-y-4">
         
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
           <!-- Files Header & Filter Toolbar -->
-          <div class="p-4 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="p-5 border-b border-slate-200 bg-slate-50/75 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shadow-sm shrink-0">
-                <i data-lucide="folder-archive" class="w-5 h-5"></i>
+              <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-200 shadow-sm shrink-0">
+                <i data-lucide="folder-archive" class="w-6 h-6"></i>
               </div>
               <div>
                 <div class="flex items-center gap-2">
-                  <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                  <h3 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
                     📁 Uploaded Files &amp; Media Repository
                   </h3>
-                  <span id="admin-files-count-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">0 Files</span>
+                  <span id="admin-files-count-badge" class="px-3 py-1 rounded-full text-xs sm:text-sm font-bold bg-blue-100 text-blue-800 border border-blue-200">0 Files</span>
                 </div>
-                <p class="text-xs text-slate-500 mt-0.5">All evidence images, resolution attachments, and profile photos stored in <code class="bg-slate-100 px-1 py-0.5 rounded font-mono text-[11px] text-blue-600">backend/uploads/</code></p>
+                <p class="text-sm text-slate-500 mt-0.5">All evidence images, resolution attachments, and profile photos stored in <code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-xs text-blue-600">backend/uploads/</code></p>
               </div>
             </div>
 
-            <div class="flex flex-wrap items-center gap-2">
-              <div class="relative max-w-xs w-full">
-                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
-                <input type="text" id="admin-files-search" oninput="filterAdminFiles()" placeholder="Search filename, ticket..." class="w-full pl-9 pr-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            <div class="flex flex-wrap items-center gap-2.5">
+              <div class="relative max-w-sm w-full">
+                <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-3 text-slate-400"></i>
+                <input type="text" id="admin-files-search" oninput="filterAdminFiles()" placeholder="Search filename, ticket..." class="w-full pl-10 pr-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white shadow-sm font-medium">
               </div>
-              <select id="admin-files-filter-type" onchange="filterAdminFiles()" class="text-xs px-3 py-1.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+              <select id="admin-files-filter-type" onchange="filterAdminFiles()" class="text-sm px-3.5 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 font-semibold text-slate-700 shadow-sm">
                 <option value="all">All File Types</option>
                 <option value="evidence">Complaint Evidence</option>
                 <option value="avatar">Profile Avatars</option>
               </select>
-              <button onclick="loadAdminFiles()" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 flex items-center gap-1 transition-colors">
-                <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i> Refresh
+              <button onclick="loadAdminFiles()" class="px-4 py-2 text-sm font-semibold rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 flex items-center gap-1.5 transition-colors shadow-sm">
+                <i data-lucide="rotate-cw" class="w-4 h-4"></i> Refresh
               </button>
             </div>
           </div>
@@ -669,6 +682,83 @@
 
       </div> <!-- End of admin-section-files -->
 
+      <!-- SECTION 4: INTERACTIVE KIET CAMPUS 2D MAP (Toggled via Tab) -->
+      <div id="admin-section-map" class="hidden space-y-4">
+        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden p-6">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xl">🗺️</span>
+                <h3 class="text-xl font-black text-slate-900 font-display">
+                  KIET Campus Geographic Issue Map
+                </h3>
+                <span id="admin-map-badge" class="px-3 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200">Live Pins</span>
+              </div>
+              <p class="text-sm text-slate-600 mt-1">Real-time geospatial layout of active and resolved issues across academic and hostel premises.</p>
+            </div>
+            
+            <!-- Map Layers & Actions (Matching Mobile Satellite View) -->
+            <div class="flex flex-wrap items-center gap-2">
+              <button type="button" id="adminMapLayerHybrid" onclick="switchAdminMapLayer('hybrid')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold border border-blue-600 bg-blue-600 text-white shadow-sm transition-all inline-flex items-center gap-1.5">
+                🛰️ Satellite (Hybrid)
+              </button>
+              <button type="button" id="adminMapLayerStreets" onclick="switchAdminMapLayer('streets')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition-all inline-flex items-center gap-1.5">
+                🗺️ Modern Streets
+              </button>
+              <button type="button" id="adminMapLayerAerial" onclick="switchAdminMapLayer('aerial')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition-all inline-flex items-center gap-1.5">
+                🌍 Aerial Photo
+              </button>
+              <button type="button" onclick="focusAdminKIETCampus()" class="px-3.5 py-1.5 rounded-xl text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-all inline-flex items-center gap-1.5">
+                🎯 Focus KIET
+              </button>
+            </div>
+          </div>
+
+          <!-- Status Filter Pills -->
+          <div class="flex flex-wrap items-center gap-2 pt-3">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">Filter Pins:</span>
+            <button type="button" onclick="filterAdminMap('all', this)" class="admin-map-filter-btn active px-3.5 py-1.5 rounded-xl text-xs font-bold border border-slate-300 bg-blue-600 text-white shadow-sm">All</button>
+            <button type="button" onclick="filterAdminMap('Pending', this)" class="admin-map-filter-btn px-3.5 py-1.5 rounded-xl text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50">🔴 Pending</button>
+            <button type="button" onclick="filterAdminMap('In Progress', this)" class="admin-map-filter-btn px-3.5 py-1.5 rounded-xl text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50">🟡 In Progress</button>
+            <button type="button" onclick="filterAdminMap('Resolved', this)" class="admin-map-filter-btn px-3.5 py-1.5 rounded-xl text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50">🟢 Resolved</button>
+          </div>
+
+          <!-- Map Element -->
+          <div id="adminCampusLeafletMap" style="height: 560px; width: 100%; border-radius: 16px; border: 1.5px solid #cbd5e1; margin-top: 14px; box-shadow: inset 0 2px 6px rgba(0,0,0,0.06); position: relative; z-index: 1;"></div>
+
+          <!-- Quick Building View Bar (Matching Photo) -->
+          <div class="pt-4 border-t border-slate-100 space-y-2">
+            <div class="text-[11px] font-black text-slate-500 uppercase tracking-wider">Quick Building View:</div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button type="button" onclick="flyAdminToBuilding('block_ab')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 transition-all inline-flex items-center gap-1.5">
+                🏛️ Academic Block A &amp; B
+              </button>
+              <button type="button" onclick="flyAdminToBuilding('library')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 transition-all inline-flex items-center gap-1.5">
+                📚 Library &amp; Auditorium
+              </button>
+              <button type="button" onclick="flyAdminToBuilding('pharmacy')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 transition-all inline-flex items-center gap-1.5">
+                🖊️ Pharmacy &amp; MBA
+              </button>
+              <button type="button" onclick="flyAdminToBuilding('hostels')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 transition-all inline-flex items-center gap-1.5">
+                🏢 Hostels Complex
+              </button>
+              <button type="button" onclick="flyAdminToBuilding('cafeteria')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 transition-all inline-flex items-center gap-1.5">
+                🍽️ Cafeteria
+              </button>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between text-xs text-slate-500 font-medium pt-3 mt-2 border-t border-slate-100">
+            <div class="flex items-center gap-4">
+              <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> 🔴 Pending Grievance</span>
+              <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> 🟡 In Progress</span>
+              <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> 🟢 Resolved</span>
+              <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-purple-600 animate-pulse"></span> 🚨 Emergency Priority</span>
+            </div>
+            <div id="adminMapTotalCount" class="font-bold text-slate-700">Loading campus pins...</div>
+          </div>
+        </div>
+      </div> <!-- End of admin-section-map -->
 
     </section>
 
@@ -765,20 +855,27 @@
       <form onsubmit="handleAddUserSubmit(event)" class="space-y-4">
         <!-- Role Switcher -->
         <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">User Role *</label>
-          <div class="grid grid-cols-2 gap-3">
-            <label class="cursor-pointer border-2 border-slate-200 rounded-2xl p-3.5 flex items-center gap-3 transition-all hover:border-blue-300 has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50/60 has-[:checked]:shadow-sm">
-              <input type="radio" name="new-user-role" value="Student" checked class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Select User Role *</label>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <label class="cursor-pointer border-2 border-slate-200 rounded-2xl p-3 flex items-center gap-2.5 transition-all hover:border-blue-300 has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50/60 has-[:checked]:shadow-sm">
+              <input type="radio" name="new-user-role" value="Student" checked onchange="handleNewUserRoleChange('Student')" class="w-4 h-4 text-blue-600 focus:ring-blue-500">
               <div>
-                <strong class="block text-sm font-bold text-slate-900">Student</strong>
-                <span class="text-xs text-slate-500">Grievance lodging access</span>
+                <strong class="block text-sm font-bold text-slate-900">🎓 Student</strong>
+                <span class="text-[11px] text-slate-500">Grievance &amp; Tracking</span>
               </div>
             </label>
-            <label class="cursor-pointer border-2 border-slate-200 rounded-2xl p-3.5 flex items-center gap-3 transition-all hover:border-purple-300 has-[:checked]:border-purple-600 has-[:checked]:bg-purple-50/60 has-[:checked]:shadow-sm">
-              <input type="radio" name="new-user-role" value="Admin" class="w-4 h-4 text-purple-600 focus:ring-purple-500">
+            <label class="cursor-pointer border-2 border-slate-200 rounded-2xl p-3 flex items-center gap-2.5 transition-all hover:border-indigo-300 has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/60 has-[:checked]:shadow-sm">
+              <input type="radio" name="new-user-role" value="Staff" onchange="handleNewUserRoleChange('Staff')" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
               <div>
-                <strong class="block text-sm font-bold text-slate-900">Admin / Staff</strong>
-                <span class="text-xs text-slate-500">Resolution management</span>
+                <strong class="block text-sm font-bold text-slate-900">👨‍💼 Staff</strong>
+                <span class="text-[11px] text-slate-500">Branch &amp; Tasks In-Charge</span>
+              </div>
+            </label>
+            <label class="cursor-pointer border-2 border-slate-200 rounded-2xl p-3 flex items-center gap-2.5 transition-all hover:border-purple-300 has-[:checked]:border-purple-600 has-[:checked]:bg-purple-50/60 has-[:checked]:shadow-sm">
+              <input type="radio" name="new-user-role" value="Admin" onchange="handleNewUserRoleChange('Admin')" class="w-4 h-4 text-purple-600 focus:ring-purple-500">
+              <div>
+                <strong class="block text-sm font-bold text-slate-900">🛡️ Admin</strong>
+                <span class="text-[11px] text-slate-500">Central / Dept Control</span>
               </div>
             </label>
           </div>
@@ -804,77 +901,115 @@
                   <i data-lucide="shuffle" class="w-3.5 h-3.5"></i> Preset Avatar
                 </button>
               </div>
-              <p class="text-[11px] text-slate-500 mt-1" id="new-user-photo-status">Default student portrait selected. You can upload an official ID photo.</p>
+              <p class="text-[11px] text-slate-500 mt-1" id="new-user-photo-status">Default portrait selected. You can upload an official photo or cycle presets.</p>
             </div>
           </div>
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Full Legal Name *</label>
+          <label id="new-user-name-label" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Full Legal Name *</label>
           <input type="text" id="new-user-name" required placeholder="e.g. Rahul Sharma" class="w-full px-4 py-3 text-base border border-slate-300 rounded-xl focus:ring-4 focus:ring-blue-500/15 focus:border-blue-600 bg-slate-50/50 hover:bg-white transition-all">
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Official College Email *</label>
+          <label id="new-user-email-label" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Official College Email / Student ID *</label>
           <input type="email" id="new-user-email" required placeholder="rollnumber@kiet.edu or name@kiet.edu" class="w-full px-4 py-3 text-base border border-slate-300 rounded-xl focus:ring-4 focus:ring-blue-500/15 focus:border-blue-600 bg-slate-50/50 hover:bg-white transition-all">
-          <span class="text-xs text-slate-500 mt-1.5 block">Must be an official <code class="text-blue-600 font-bold bg-blue-50 px-1.5 py-0.5 rounded">@kiet.edu</code> ID</span>
+          <span class="text-xs text-slate-500 mt-1.5 block">Official college ID ending with <code class="text-blue-600 font-bold bg-blue-50 px-1.5 py-0.5 rounded">@kiet.edu</code></span>
         </div>
 
-        <div class="grid grid-cols-2 gap-3.5">
+        <!-- 1. DYNAMIC FIELDS FOR STUDENT -->
+        <div id="add-user-student-fields" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           <div>
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Course / Program *</label>
-            <select id="new-user-course" required class="w-full px-4 py-3 text-base border border-slate-300 rounded-xl focus:ring-4 focus:ring-blue-500/15 focus:border-blue-600 bg-white transition-all">
-              <option value="B.Tech" selected>B.Tech</option>
-              <option value="BCA">BCA</option>
-              <option value="BBA">BBA</option>
-              <option value="BA">BA</option>
-              <option value="MCA">MCA</option>
-              <option value="MBA">MBA</option>
-              <option value="B.Pharm">B.Pharm</option>
-              <option value="M.Pharm">M.Pharm</option>
-              <option value="M.Tech">M.Tech</option>
-              <option value="Staff/Faculty">Staff / Faculty</option>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Course / Degree Program *</label>
+            <select id="new-user-course" class="w-full px-4 py-3 text-base border border-slate-300 rounded-xl focus:ring-4 focus:ring-blue-500/15 focus:border-blue-600 bg-white transition-all">
+              <option value="B.Tech" selected>B.Tech (Bachelor of Tech)</option>
+              <option value="BCA">BCA (Computer Applications)</option>
+              <option value="BBA">BBA (Business Admin)</option>
+              <option value="BA">BA (Humanities)</option>
+              <option value="MCA">MCA (Master of Computer App)</option>
+              <option value="MBA">MBA (Master of Business Admin)</option>
+              <option value="B.Pharm">B.Pharm (Pharmacy)</option>
+              <option value="M.Pharm">M.Pharm (Pharmacy)</option>
+              <option value="M.Tech">M.Tech (Master of Tech)</option>
             </select>
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Branch / Dept *</label>
-            <select id="new-user-department" required class="w-full px-4 py-3 text-base border border-slate-300 rounded-xl focus:ring-4 focus:ring-blue-500/15 focus:border-blue-600 bg-white transition-all">
-              <option value="" disabled selected>Select Branch / Dept</option>
-              <optgroup label="Engineering Branches (B.Tech / M.Tech)">
-                <option value="Computer Science & Engineering">CSE (Computer Science)</option>
-                <option value="CSE - Artificial Intelligence">CSE (Artificial Intelligence)</option>
-                <option value="CSE - AI & Machine Learning">CSE (AI & ML)</option>
-                <option value="Information Technology">IT (Information Tech)</option>
-                <option value="Computer Science">CS (Computer Science)</option>
-                <option value="Computer Science & IT">CSIT (CS & IT)</option>
-                <option value="Electronics & Communication">ECE (Electronics & Comm)</option>
-                <option value="Electrical & Electronics">EN (Electrical & Electronics)</option>
-                <option value="Mechanical Engineering">ME (Mechanical Engg)</option>
-                <option value="Civil Engineering">CE (Civil Engg)</option>
-                <option value="Applied Sciences & Humanities">AS&H (1st Year)</option>
-              </optgroup>
-              <optgroup label="Computer Applications (BCA / MCA)">
-                <option value="Bachelor of Computer Applications">BCA (Computer Applications)</option>
-                <option value="Master of Computer Applications">MCA (Computer Applications)</option>
-              </optgroup>
-              <optgroup label="Management Studies (BBA / MBA)">
-                <option value="Bachelor of Business Administration">BBA (Business Administration)</option>
-                <option value="Master of Business Administration">MBA (Business Administration)</option>
-              </optgroup>
-              <optgroup label="Humanities & Social Sciences (BA)">
-                <option value="Bachelor of Arts">BA (Humanities & Social Sciences)</option>
-              </optgroup>
-              <optgroup label="Pharmacy (B.Pharm / M.Pharm)">
-                <option value="Bachelor of Pharmacy">B.Pharm</option>
-                <option value="Master of Pharmacy">M.Pharm</option>
-              </optgroup>
-              <optgroup label="Administration & Campus Staff">
-                <option value="Campus Administration">Campus Administration</option>
-                <option value="Hostel Administration">Hostel Administration</option>
-                <option value="Maintenance & Estate Cell">Maintenance & Estate Cell</option>
-                <option value="IT Infrastructure Cell">IT Infrastructure Cell</option>
-              </optgroup>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Branch / Department *</label>
+            <select id="new-user-department" class="w-full px-4 py-3 text-base border border-slate-300 rounded-xl focus:ring-4 focus:ring-blue-500/15 focus:border-blue-600 bg-white transition-all">
+              <option value="Computer Science & Engineering" selected>CSE (Computer Science &amp; Engg)</option>
+              <option value="Information Technology">IT (Information Technology)</option>
+              <option value="Computer Science & Information Technology">CSIT (CS &amp; IT)</option>
+              <option value="CSE - Artificial Intelligence">CSE (Artificial Intelligence)</option>
+              <option value="CSE - AI & Machine Learning">CSE (AI &amp; ML)</option>
+              <option value="Electronics & Communication">ECE (Electronics &amp; Comm)</option>
+              <option value="Electrical & Electronics">EN (Electrical &amp; Electronics)</option>
+              <option value="Mechanical Engineering">ME (Mechanical Engg)</option>
+              <option value="Civil Engineering">CE (Civil Engg)</option>
+              <option value="Master of Computer Applications">MCA (Computer Applications)</option>
+              <option value="Bachelor of Computer Applications">BCA (Computer Applications)</option>
+              <option value="Master of Business Administration">MBA (Management)</option>
+              <option value="Bachelor of Pharmacy">B.Pharm (Pharmacy)</option>
+              <option value="Applied Sciences & Humanities">AS&amp;H (1st Year)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 2. DYNAMIC FIELDS FOR STAFF -->
+        <div id="add-user-staff-fields" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 hidden">
+          <div>
+            <label class="block text-xs font-bold text-indigo-700 uppercase tracking-wider mb-1.5">Assigned Branch / Technical Wing *</label>
+            <select id="new-user-staff-branch" class="w-full px-4 py-3 text-base border border-indigo-200 rounded-xl focus:ring-4 focus:ring-indigo-500/15 focus:border-indigo-600 bg-indigo-50/30 transition-all font-medium">
+              <option value="MCA Department & Labs" selected>MCA Department &amp; Labs</option>
+              <option value="CSE & IT Computer Labs">CSE &amp; IT Computer Labs</option>
+              <option value="Electrical & Power Maintenance">Electrical &amp; Power Maintenance</option>
+              <option value="Water Supply & Plumbing Cell">Water Supply &amp; Plumbing Cell</option>
+              <option value="Civil, Carpentry & Furniture">Civil, Carpentry &amp; Furniture</option>
+              <option value="Sanitation & Cleanliness Wing">Sanitation &amp; Cleanliness Wing</option>
+              <option value="Hostel Facilities & Maintenance">Hostel Facilities &amp; Maintenance</option>
+              <option value="Mess & Cafeteria Hygiene">Mess &amp; Cafeteria Hygiene</option>
+              <option value="Campus Security & Safety Wing">Campus Security &amp; Safety Wing</option>
+              <option value="General Campus Maintenance">General Campus Maintenance</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-indigo-700 uppercase tracking-wider mb-1.5">Department / Operational Cell *</label>
+            <select id="new-user-staff-department" class="w-full px-4 py-3 text-base border border-indigo-200 rounded-xl focus:ring-4 focus:ring-indigo-500/15 focus:border-indigo-600 bg-indigo-50/30 transition-all font-medium">
+              <option value="Maintenance & Estate Cell" selected>Maintenance &amp; Estate Cell</option>
+              <option value="IT Infrastructure Cell">IT Infrastructure Cell</option>
+              <option value="Academic Faculty & Lab Staff">Academic Faculty &amp; Lab Staff</option>
+              <option value="Hostel Administration">Hostel Administration</option>
+              <option value="Campus Administration">Campus Administration</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 3. DYNAMIC FIELDS FOR ADMIN -->
+        <div id="add-user-admin-fields" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 hidden">
+          <div>
+            <label class="block text-xs font-bold text-purple-700 uppercase tracking-wider mb-1.5">Administrative Jurisdiction &amp; Scope *</label>
+            <select id="new-user-admin-scope" onchange="handleAdminScopeChange(this.value)" class="w-full px-4 py-3 text-base border border-purple-200 rounded-xl focus:ring-4 focus:ring-purple-500/15 focus:border-purple-600 bg-purple-50/30 transition-all font-medium">
+              <option value="Whole Campus (Central Admin)" selected>🏛️ Whole Campus (Central Administration)</option>
+              <option value="Specific Department Admin">🏢 Specific Department / Branch Administrator</option>
+              <option value="Student Welfare & Dean Office">🎓 Student Grievance &amp; Welfare (Dean Office)</option>
+              <option value="Infrastructure & Maintenance HQ">🛠️ Infrastructure &amp; Maintenance HQ</option>
+              <option value="Hostel & Residential Head">🏠 Hostel &amp; Residential Chief Administration</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-purple-700 uppercase tracking-wider mb-1.5">Administrative Purpose &amp; Role *</label>
+            <select id="new-user-admin-dept" class="w-full px-4 py-3 text-base border border-purple-200 rounded-xl focus:ring-4 focus:ring-purple-500/15 focus:border-purple-600 bg-purple-50/30 transition-all font-medium">
+              <option value="Central Administration (All Departments)" selected>Central Administration (All Departments)</option>
+              <option value="MCA Department">MCA Department</option>
+              <option value="Computer Science & Engineering">Computer Science &amp; Engineering</option>
+              <option value="Information Technology">Information Technology</option>
+              <option value="Electronics & Communication">Electronics &amp; Communication</option>
+              <option value="Mechanical Engineering">Mechanical Engineering</option>
+              <option value="Hostel Administration">Hostel Administration</option>
+              <option value="Maintenance & Estate Cell">Maintenance &amp; Estate Cell</option>
+              <option value="Dean Student Affairs HQ">Dean Student Affairs HQ</option>
             </select>
           </div>
         </div>
@@ -964,6 +1099,17 @@
               <p class="text-[11px] text-slate-500 mt-1" id="edit-user-photo-status">Select avatar preset or upload a new photo.</p>
             </div>
           </div>
+        </div>
+
+        <!-- User Role Selector -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Account Role *</label>
+          <select id="edit-user-role" required class="w-full px-4 py-3 text-base font-bold border border-slate-300 rounded-xl focus:ring-4 focus:ring-amber-500/15 focus:border-amber-600 bg-white shadow-sm">
+            <option value="Student">🎓 Student (Grievance Lodging &amp; Tracking)</option>
+            <option value="Staff">👨‍💼 Staff (Department In-Charge &amp; Action Resolution)</option>
+            <option value="Admin">🛡️ Admin (Administrative Control Center HQ)</option>
+          </select>
+          <p class="text-[11px] text-slate-500 mt-1">Switch role to assign staff status, revoke admin access, or grant administrator rights.</p>
         </div>
 
         <div>
@@ -1063,24 +1209,120 @@
   </div>
 
   <!-- ====================================================================
-       MODAL 5: FULL-SCREEN IMAGE LIGHTBOX MODAL
+       MODAL: EDIT ADMINISTRATOR PROFILE
        ==================================================================== -->
-  <div id="image-lightbox-modal" class="lightbox-modal" onclick="closeImageLightbox(event)">
-    <div class="lightbox-content" onclick="event.stopPropagation()">
-      <div class="lightbox-header">
-        <h4 id="lightbox-title" class="text-sm font-bold text-slate-800 flex items-center gap-2">
-          <i data-lucide="image" class="w-4 h-4 text-blue-600"></i> Evidence Photo
-        </h4>
-        <button onclick="closeImageLightbox()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+  <div id="admin-profile-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+        <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">
+          <i data-lucide="user-cog" class="w-5 h-5 text-blue-600"></i> Edit Admin Profile
+        </h3>
+        <button onclick="closeAdminProfileModal()" class="text-slate-400 hover:text-slate-600">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
-      <div class="lightbox-body">
-        <img id="lightbox-img" src="" alt="Full Resolution Evidence">
-      </div>
+
+      <form id="adminProfileForm" onsubmit="handleAdminProfileSubmit(event)" class="space-y-4">
+        <!-- Photo Section -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Profile Avatar / Photo</label>
+          <div class="flex items-center gap-4">
+            <img id="admin-profile-modal-avatar" src="profile images/image2.jpg" alt="Avatar" class="w-16 h-16 rounded-2xl object-cover border-2 border-blue-500 shadow-md" onerror="this.onerror=null; this.src='profile images/image2.jpg';" />
+            <div class="flex-1 space-y-1.5">
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="cycleAdminModalPresetAvatar()" class="px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg inline-flex items-center gap-1.5 transition-colors">
+                  <i data-lucide="shuffle" class="w-3.5 h-3.5"></i> Preset Avatar
+                </button>
+                <label class="px-3 py-1.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg inline-flex items-center gap-1.5 cursor-pointer transition-colors">
+                  <i data-lucide="upload" class="w-3.5 h-3.5"></i> Upload Photo
+                  <input type="file" id="admin-profile-modal-file" accept="image/*" class="hidden" onchange="handleAdminModalPhotoSelect(event)" />
+                </label>
+              </div>
+              <p id="admin-profile-photo-hint" class="text-[11px] text-slate-500">Pick a professional avatar preset or upload a custom image.</p>
+            </div>
+          </div>
+          <input type="hidden" id="admin-profile-preset-url" />
+        </div>
+
+        <!-- Full Name -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Full Name *</label>
+          <input type="text" id="admin-profile-name" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 text-sm font-semibold text-slate-800" />
+        </div>
+
+        <!-- Official Email (Read-Only) -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Official College Email (Read-Only)</label>
+          <input type="email" id="admin-profile-email" disabled class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-100 text-sm font-medium text-slate-500 cursor-not-allowed" />
+        </div>
+
+        <!-- Phone Number -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Official Contact / Phone</label>
+          <input type="tel" id="admin-profile-phone" placeholder="e.g. 9876543210" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 text-sm font-semibold text-slate-800" />
+        </div>
+
+        <!-- Department / Role Info -->
+        <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
+          <div>
+            <span class="text-slate-500 font-semibold block">Designated Role:</span>
+            <span id="admin-profile-role-disp" class="font-bold text-blue-700">Administrator</span>
+          </div>
+          <div>
+            <span class="text-slate-500 font-semibold block">Administrative Scope:</span>
+            <span id="admin-profile-dept-disp" class="font-bold text-slate-800">Central Administration</span>
+          </div>
+        </div>
+
+        <!-- Change Password (Optional) -->
+        <div class="border-t border-slate-100 pt-3">
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Change Password (Leave blank to keep current)</label>
+          <input type="password" id="admin-profile-new-password" placeholder="Min 6 characters if updating" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 text-sm font-semibold text-slate-800" autocomplete="new-password" />
+        </div>
+
+        <div id="admin-profile-alert" class="hidden text-xs font-bold p-2.5 rounded-xl"></div>
+
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeAdminProfileModal()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">
+            Cancel
+          </button>
+          <button type="submit" id="admin-profile-submit-btn" class="px-5 py-2.5 text-xs font-black text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-500/25 transition-all inline-flex items-center gap-1.5">
+            <i data-lucide="save" class="w-4 h-4"></i> Save Profile Changes
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
+  <!-- ====================================================================
+       MODAL 5: FULL-SCREEN CINEMA MEDIA LIGHTBOX (PHOTO & VIDEO)
+       ==================================================================== -->
+  <div id="image-lightbox-modal" class="lightbox-modal media-lightbox-overlay" onclick="closeImageLightbox(event)">
+    <div class="lightbox-content media-lightbox-card" onclick="event.stopPropagation()">
+      <div class="lightbox-header media-lightbox-header">
+        <div class="media-lightbox-title-box">
+          <span class="media-lightbox-badge" id="adminLightboxBadge">📷 Visual Proof</span>
+          <h4 id="lightbox-title" class="text-base font-extrabold text-slate-800 flex items-center gap-2">
+            Evidence Proof
+          </h4>
+        </div>
+        <button type="button" onclick="closeImageLightbox()" class="media-lightbox-cut-btn" title="Cut / Close Preview (Esc)">
+          <span class="cut-icon">&times;</span>
+          <span class="cut-text">Close</span>
+        </button>
+      </div>
+      <div class="lightbox-body media-lightbox-body" id="adminLightboxMediaContainer">
+        <img id="lightbox-img" src="" alt="Full Resolution Evidence" class="media-lightbox-element">
+        <video id="lightbox-video" src="" controls playsinline autoplay class="media-lightbox-element" style="display: none;"></video>
+      </div>
+      <div class="media-lightbox-footer">
+        <span class="media-lightbox-hint">💡 Press <kbd>ESC</kbd> or click outside to cut / close view</span>
+        <button type="button" class="media-lightbox-bottom-close" onclick="closeImageLightbox()">
+          &times; Close Preview
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Application Scripts -->
   <script src="js/config.js"></script>

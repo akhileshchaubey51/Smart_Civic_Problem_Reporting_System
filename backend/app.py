@@ -16,6 +16,7 @@ from backend.config import Config
 from backend.routes.auth_routes import auth_bp
 from backend.routes.complaint_routes import complaint_bp
 from backend.routes.admin_routes import admin_bp
+from backend.routes.staff_routes import staff_bp
 
 def create_app():
     frontend_dir = BASE_DIR / 'frontend'
@@ -31,10 +32,19 @@ def create_app():
     # Enable CORS
     CORS(app, resources={r"/api/*": {"origins": "*"}})
 
+    # Ensure no-cache headers during development to prevent browser stale UI cache
+    @app.after_request
+    def add_header(response):
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '-1'
+        return response
+
     # Register API Blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(complaint_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(staff_bp)
 
     # Static route for uploaded images
     @app.route('/uploads/<path:filename>')
@@ -59,6 +69,19 @@ def create_app():
     @app.route('/admin.css')
     def serve_admin_css():
         return send_from_directory(str(frontend_dir), 'admin.css')
+
+    @app.route('/staff')
+    @app.route('/staff.html')
+    def serve_staff():
+        return send_from_directory(str(frontend_dir), 'staff.html')
+
+    @app.route('/staff.css')
+    def serve_staff_css():
+        return send_from_directory(str(frontend_dir), 'staff.css')
+
+    @app.route('/staff.js')
+    def serve_staff_js():
+        return send_from_directory(str(frontend_dir), 'staff.js')
 
     @app.route('/page-transitions.css')
     def serve_page_transitions_css():
@@ -132,8 +155,9 @@ def create_app():
         return send_from_directory(str(folder), filename)
 
     @app.route('/video/<path:filename>')
+    @app.route('/dashboard/video/<path:filename>')
     def serve_video(filename):
-        return send_from_directory(str(frontend_dir / 'video'), filename)
+        return send_from_directory(str(frontend_dir / 'video'), filename, conditional=True)
 
     @app.route('/css/<path:filename>')
     def serve_css(filename):

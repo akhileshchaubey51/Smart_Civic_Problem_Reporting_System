@@ -20,6 +20,16 @@ class Config:
     PORT = int(os.getenv('PORT', 5000))
     DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
+    # Database Engine Selection ('mysql' for XAMPP, 'mssql' for SQL Server, 'sqlite' for fallback)
+    DATABASE_ENGINE = os.getenv('DATABASE_ENGINE', 'mysql').strip().lower()
+
+    # MySQL / XAMPP Database
+    MYSQL_HOST = os.getenv('MYSQL_HOST', 'localhost')
+    MYSQL_PORT = int(os.getenv('MYSQL_PORT', 3306))
+    MYSQL_USER = os.getenv('MYSQL_USER', 'root')
+    MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD', '')
+    MYSQL_DB = os.getenv('MYSQL_DB', 'campuscaredb')
+
     # SQL Server Database
     DB_SERVER = os.getenv('DB_SERVER', 'localhost')
     DB_NAME = os.getenv('DB_NAME', 'CampusCareDB')
@@ -41,10 +51,10 @@ class Config:
     MAIL_DEFAULT_SENDER = os.getenv('MAIL_DEFAULT_SENDER', 'CampusCare Grievance Cell <notifications@kiet.edu>')
     ADMIN_NOTIFICATION_EMAIL = os.getenv('ADMIN_NOTIFICATION_EMAIL', 'admin@kiet.edu')
 
-    # File uploads
+    # File uploads (Images & Short Video Clips)
     UPLOAD_FOLDER = BASE_DIR / 'backend' / 'uploads'
-    MAX_CONTENT_LENGTH = int(os.getenv('MAX_CONTENT_LENGTH', 10 * 1024 * 1024)) # 10 MB
-    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
+    MAX_CONTENT_LENGTH = int(os.getenv('MAX_CONTENT_LENGTH', 25 * 1024 * 1024)) # 25 MB
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif', 'mp4', 'webm', 'mov', 'avi'}
 
     @classmethod
     def get_connection_string(cls, db_name=None):

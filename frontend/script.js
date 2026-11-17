@@ -3,6 +3,12 @@
  * KIET Smart Civic Problem Reporting System
  */
 
+// Clear stale sessions on fresh landing page load so user must log in
+if (!sessionStorage.getItem('campuscare_session_active')) {
+  localStorage.removeItem('campuscare_token');
+  localStorage.removeItem('campuscare_user');
+}
+
 // 1. Navigation Redirect to Login
 function goToLogin() {
   if (typeof CampusLoader !== 'undefined' && CampusLoader.navigate) {
@@ -15,8 +21,11 @@ function goToLogin() {
 // 2. Open Login Required Modal
 function loginRequired(issueCategory = '') {
   const token = localStorage.getItem('campuscare_token');
-  if (token) {
-    // If user is already authenticated, take them directly to the grievance lodge form
+  const userStr = localStorage.getItem('campuscare_user');
+  const sessionActive = sessionStorage.getItem('campuscare_session_active');
+
+  if (token && userStr && sessionActive) {
+    // If user is currently authenticated in this session, take them to the complaint form
     const targetUrl = `/complaint-form?category=${encodeURIComponent(issueCategory || '')}`;
     if (typeof CampusLoader !== 'undefined' && CampusLoader.navigate) {
       CampusLoader.navigate(targetUrl, 'Loading Grievance Desk', `Preparing ${issueCategory || 'Campus'} reporting form...`);
@@ -26,24 +35,26 @@ function loginRequired(issueCategory = '') {
     return;
   }
 
+  // Not logged in: save pending category and require login first
   if (issueCategory) {
     sessionStorage.setItem('pending_complaint_category', issueCategory);
   }
 
   const modal = document.getElementById('loginPopup');
-  if (!modal) return;
-
-  const descElement = document.getElementById('loginPopupDesc');
-  if (descElement) {
-    if (issueCategory) {
-      descElement.innerHTML = `Please login with your official college ID to report <strong>${issueCategory}</strong>.`;
-    } else {
-      descElement.innerText = 'Please login with your college ID to report a campus issue.';
+  if (modal) {
+    const descElement = document.getElementById('loginPopupDesc');
+    if (descElement) {
+      if (issueCategory) {
+        descElement.innerHTML = `Please login with your official college ID to report <strong>${issueCategory}</strong>.`;
+      } else {
+        descElement.innerText = 'Please login with your college ID to report a campus issue.';
+      }
     }
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  } else {
+    window.location.href = '/login';
   }
-
-  modal.classList.add('active');
-  document.body.style.overflow = 'hidden'; // Prevent background scrolling
 }
 
 // 3. Close Login Required Modal
@@ -73,7 +84,7 @@ window.addEventListener('keydown', function (e) {
 // 4. Smooth Anchor Link Scrolling & Active Nav Highlighting
 document.addEventListener('DOMContentLoaded', function () {
   const navLinks = document.querySelectorAll('.nav-link[href^="#"], .dropdown-item[href^="#"]');
-  
+
   navLinks.forEach(link => {
     link.addEventListener('click', function (e) {
       const targetId = this.getAttribute('href');
@@ -84,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function () {
           const navbarHeight = document.querySelector('.navbar')?.offsetHeight || 70;
           const announcementHeight = document.querySelector('.announcement')?.offsetHeight || 40;
           const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - (navbarHeight + announcementHeight - 10);
-          
+
           window.scrollTo({
             top: targetPosition,
             behavior: 'smooth'

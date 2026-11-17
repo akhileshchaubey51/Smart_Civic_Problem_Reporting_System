@@ -67,3 +67,14 @@ def admin_required(f):
             return jsonify({'success': False, 'message': 'Access denied: Administrator privileges required.'}), 403
         return f(*args, **kwargs)
     return decorated
+
+def staff_required(f):
+    """Decorator to enforce that the request user has 'Staff' or 'Admin' role."""
+    @wraps(f)
+    @token_required
+    def decorated(*args, **kwargs):
+        role = request.current_user.get('role')
+        if role not in ('Staff', 'Admin'):
+            return jsonify({'success': False, 'message': 'Access denied: Staff or Administrator privileges required.'}), 403
+        return f(*args, **kwargs)
+    return decorated

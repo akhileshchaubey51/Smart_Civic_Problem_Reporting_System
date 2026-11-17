@@ -1,10 +1,31 @@
 /**
  * CampusCare Split-Screen Login Controller
- * Features: Password Toggle, Role Switcher, Shake Animation Error Handling,
- * JWT Storage & Portal Redirection.
+ * Features: 3-Role Switcher (Student, Staff, Admin), Direct Portal Launchers,
+ * Password Toggle, JWT Storage & Automatic Role-based Redirection.
  */
 
+const ROLE_CONFIGS = {
+  Student: {
+    title: '🎓 Student Portal Login',
+    subtitle: 'Enter your student ID or @kiet.edu email to register complaints & track live progress.',
+    label: 'Student College ID / Email',
+    placeholder: 'e.g. student@kiet.edu or roll number',
+    submitText: 'Login to Student Portal →'
+  },
+  StaffAdmin: {
+    title: '👨‍💼 Staff & Administration Portal',
+    subtitle: 'Unified official login for campus staff, department in-charges, and administrators.',
+    label: 'Official College Email ID',
+    placeholder: 'e.g. staff@kiet.edu or admin@kiet.edu',
+    submitText: 'Login to Portal →'
+  }
+};
+
 let activeRole = 'Student';
+
+const API_BASE = (window.location.protocol === 'file:' || (window.location.port && window.location.port !== '5000'))
+  ? 'http://127.0.0.1:5000'
+  : '';
 
 // 1. Toggle Password Visibility
 function togglePassword() {
@@ -23,32 +44,62 @@ function togglePassword() {
   }
 }
 
-// 2. Select Role (Student / Admin)
+// 2. Select Role (Student / StaffAdmin)
 function selectRole(role) {
-  activeRole = role;
-  const title = document.querySelector('.login-card h2');
-  const studentBtn = document.getElementById('role-student');
-  const adminBtn = document.getElementById('role-admin');
-  const idLabel = document.querySelector('label[for="collegeId"]');
-  const idInput = document.getElementById('collegeId');
-
-  if (role === 'Admin') {
-    title.innerText = 'Admin / Staff Login';
-    adminBtn.classList.add('active');
-    studentBtn.classList.remove('active');
-    idLabel.innerText = 'Admin Email / Username';
-    idInput.placeholder = 'e.g. admin@kiet.edu';
-  } else {
-    title.innerText = 'Student Login';
-    studentBtn.classList.add('active');
-    adminBtn.classList.remove('active');
-    idLabel.innerText = 'College ID / Email';
-    idInput.placeholder = 'Enter your college ID or @kiet.edu email';
+  if (role === 'Staff' || role === 'Admin' || role === 'staff' || role === 'admin') {
+    role = 'StaffAdmin';
   }
+  if (!ROLE_CONFIGS[role]) role = 'Student';
+  activeRole = role;
+  const config = ROLE_CONFIGS[role];
+
+  // Update Buttons
+  const studentBtn = document.getElementById('role-student');
+  const staffAdminBtn = document.getElementById('role-staffadmin');
+
+  if (studentBtn) studentBtn.classList.remove('active');
+  if (staffAdminBtn) staffAdminBtn.classList.remove('active', 'role-staffadmin-active');
+
+  if (role === 'Student' && studentBtn) {
+    studentBtn.classList.add('active');
+  } else if (role === 'StaffAdmin' && staffAdminBtn) {
+    staffAdminBtn.classList.add('active', 'role-staffadmin-active');
+  }
+
+  // Update Headings & Labels
+  const title = document.getElementById('loginTitle');
+  const subtitle = document.getElementById('loginSubtitle');
+  const idLabel = document.getElementById('collegeIdLabel');
+  const idInput = document.getElementById('collegeId');
+  const submitBtn = document.getElementById('loginSubmitBtn');
+
+  if (title) title.innerText = config.title;
+  if (subtitle) subtitle.innerText = config.subtitle;
+  if (idLabel) idLabel.innerText = config.label;
+  if (idInput) {
+    idInput.placeholder = config.placeholder;
+    idInput.value = '';
+  }
+  const passwordInput = document.getElementById('password');
+  if (passwordInput) {
+    passwordInput.value = '';
+  }
+  if (submitBtn) submitBtn.innerText = config.submitText;
 
   hideAlert();
 }
 
+function navigateToPortal(targetPage) {
+  if (typeof CampusLoader !== 'undefined' && CampusLoader.navigate) {
+    CampusLoader.navigate(targetPage, 'Opening Portal', 'Loading user session and administrative privileges...');
+  } else {
+    if (window.location.protocol === 'file:') {
+      window.location.replace(targetPage.replace(/^\//, ''));
+    } else {
+      window.location.replace(targetPage);
+    }
+  }
+}
 
 // 4. Alert Helpers
 function showAlert(message, type = 'error') {
@@ -67,8 +118,23 @@ function hideAlert() {
   }
 }
 
-// 5. Handle Form Submission with Real Backend Integration
+// 5. Handle Form Submission
 document.addEventListener('DOMContentLoaded', () => {
+  // Check URL query parameters (e.g. ?role=staff, ?role=admin)
+  const urlParams = new URLSearchParams(window.location.search);
+  const reqRole = urlParams.get('role');
+  if (reqRole) {
+    const norm = reqRole.toLowerCase();
+    if (norm === 'staff' || norm === 'admin' || norm === 'staffadmin') {
+      selectRole('StaffAdmin');
+    } else {
+      selectRole('Student');
+    }
+  } else {
+    // Default to Student
+    selectRole('Student');
+  }
+
   const form = document.getElementById('loginForm');
   if (!form) return;
 
@@ -78,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const idInput = document.getElementById('collegeId');
     const passwordInput = document.getElementById('password');
-    const submitBtn = document.querySelector('.login-submit');
+    const submitBtn = document.getElementById('loginSubmitBtn');
 
     let identifier = idInput.value.trim();
     const password = passwordInput.value;
@@ -101,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
     submitBtn.innerHTML = `<span style="display:inline-block; animation: spin 0.8s linear infinite; margin-right: 6px;">⟳</span> Authenticating...`;
 
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(`${API_BASE}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -112,53 +178,55 @@ document.addEventListener('DOMContentLoaded', () => {
         })
       });
 
-      const result = await response.json();
+      const contentType = response.headers.get('content-type') || '';
+      let result;
+      if (contentType.includes('application/json')) {
+        result = await response.json();
+      } else {
+        const text = await response.text();
+        console.error('Server returned non-JSON response:', text);
+        throw new Error('Server returned HTML instead of JSON. Ensure you are accessing via http://127.0.0.1:5000');
+      }
 
       if (response.ok && result.success) {
         // Save session
         localStorage.setItem('campuscare_token', result.token);
         localStorage.setItem('campuscare_user', JSON.stringify(result.user));
+        sessionStorage.setItem('campuscare_session_active', '1');
 
-        showAlert(`Welcome back, ${result.user.full_name}! Redirecting...`, 'success');
-        submitBtn.innerHTML = `Redirecting &rarr;`;
+        submitBtn.innerHTML = `Login Successful ✓`;
 
-        if (typeof CampusLoader !== 'undefined' && CampusLoader.show) {
-          const roleLabel = result.user.role === 'Admin' ? 'Executive Admin Portal' : 'Student Civic Dashboard';
-          CampusLoader.show(`Welcome, ${result.user.full_name}!`, `Entering ${roleLabel}...`);
-        }
-
-        // Redirect based on role and pending selection
+        const pendingCategory = sessionStorage.getItem('pending_complaint_category');
         setTimeout(() => {
-          const pendingCategory = sessionStorage.getItem('pending_complaint_category');
+          let targetPage = '/dashboard.html';
+          if (result.user.role === 'Staff') {
+            targetPage = '/staff.html';
+          } else if (result.user.role === 'Admin') {
+            targetPage = '/admin.html';
+          }
+
           if (pendingCategory && result.user.role === 'Student') {
             sessionStorage.removeItem('pending_complaint_category');
-            window.location.replace(`/complaint-form?category=${encodeURIComponent(pendingCategory)}`);
-            return;
-          }
-          if (result.user.role === 'Student') {
-            window.location.replace('/dashboard');
+            navigateToPortal(`/complaint-form.html?category=${encodeURIComponent(pendingCategory)}`);
           } else {
-            window.location.replace('/admin.html');
+            navigateToPortal(targetPage);
           }
-        }, 500);
+        }, 200);
       } else {
         const errorMsg = result.message || 'Invalid college credentials. Please check and try again.';
         showAlert(errorMsg, 'error');
         submitBtn.disabled = false;
-        submitBtn.innerText = 'Login';
+        submitBtn.innerText = ROLE_CONFIGS[activeRole]?.submitText || 'Login';
       }
     } catch (err) {
       console.error('Login error:', err);
-      showAlert(`Network connection error: ${err.message}`, 'error');
+      showAlert(`Network connection error: Unable to reach CampusCare server (${err.message})`, 'error');
       submitBtn.disabled = false;
-      submitBtn.innerText = 'Login';
+      submitBtn.innerText = ROLE_CONFIGS[activeRole]?.submitText || 'Login';
     }
   });
 });
 
-// Inline spin animation keyframe
-const styleEl = document.createElement('style');
-styleEl.innerHTML = `@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`;
-document.head.appendChild(styleEl);
-
-
+// Global window functions
+window.selectRole = selectRole;
+window.togglePassword = togglePassword;
