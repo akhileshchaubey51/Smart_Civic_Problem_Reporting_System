@@ -9,8 +9,10 @@ let authToken = null;
 
 const API_BASE = (() => {
   if (window.location.protocol === 'file:') return 'http://127.0.0.1:5000';
-  if (window.location.port === '5000') return '';
-  return `${window.location.protocol}//${window.location.hostname}:5000`;
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return window.location.port === '5000' ? '' : 'http://127.0.0.1:5000';
+  }
+  return '';
 })();
 
 function resolveMediaUrl(url) {
@@ -2197,7 +2199,8 @@ async function upvoteTicketFromMap(complaintId) {
 // Global window bindings for inline HTML handlers
 window.viewComplaintEvidence = viewComplaintEvidence;
 window.openDedicatedTrackingPage = openDedicatedTrackingPage;
-window.backToComplaintsOverview = backToComplaintsOverview;
+window.backToComplaintsList = backToComplaintsList;
+window.backToComplaintsOverview = backToComplaintsList;
 window.openStudentImageModal = openStudentImageModal;
 window.closeStudentImageModal = closeStudentImageModal;
 window.openCampusMapModal = openCampusMapModal;

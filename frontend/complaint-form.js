@@ -6,8 +6,10 @@
 
 const API_BASE = (() => {
   if (window.location.protocol === 'file:') return 'http://127.0.0.1:5000';
-  if (window.location.port === '5000') return '';
-  return `${window.location.protocol}//${window.location.hostname}:5000`;
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return window.location.port === '5000' ? '' : 'http://127.0.0.1:5000';
+  }
+  return '';
 })();
 
 let selectedFile = null;

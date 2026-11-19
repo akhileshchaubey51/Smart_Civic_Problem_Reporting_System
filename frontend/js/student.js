@@ -14,8 +14,7 @@ function resolveMediaUrl(url) {
   }
   const cleanUrl = url.startsWith('/') ? url : `/${url}`;
   const base = (window.location.protocol === 'file:') ? 'http://127.0.0.1:5000' :
-               (window.location.port === '5000') ? '' :
-               `${window.location.protocol}//${window.location.hostname}:5000`;
+               (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? (window.location.port === '5000' ? '' : 'http://127.0.0.1:5000') : '';
   return `${base}${cleanUrl}`;
 }
 window.resolveMediaUrl = resolveMediaUrl;
