@@ -5,7 +5,7 @@ services:
     region: singapore
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn backend.app:app
+    startCommand: gunicorn backend.app:app --bind 0.0.0.0:$PORT
     envVars:
       - key: PORT
         value: 10000

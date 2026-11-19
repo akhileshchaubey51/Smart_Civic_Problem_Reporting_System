@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CampusCare — Project Presentation Slides</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+              950: '#0f172a'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #0b0f19;
+      color: #0f172a;
+      overflow: hidden;
+      user-select: none;
+    }
+    .slide {
+      display: none;
+      opacity: 0;
+      transform: scale(0.98);
+      transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+    }
+    .slide.active {
+      display: flex;
+      opacity: 1;
+      transform: scale(1);
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+    }
+    .badge-glow {
+      box-shadow: 0 0 15px rgba(37, 99, 235, 0.35);
+    }
+    #notesOverlay {
+      display: none;
+    }
+    #notesOverlay.show {
+      display: block;
+    }
+  </style>
+</head>
+<body class="w-screen h-screen flex flex-col justify-between p-3 md:p-6 font-sans">
+
+  <!-- Global Header / HUD -->
+  <header class="flex items-center justify-between z-20 px-4 py-2 bg-slate-900/90 backdrop-blur rounded-2xl border border-slate-800 text-slate-300 shadow-xl">
+    <div class="flex items-center gap-3">
+      <div class="w-3 h-3 rounded-full bg-blue-500 animate-pulse"></div>
+      <span class="font-extrabold text-white tracking-wide text-sm">CampusCare</span>
+      <span class="text-xs text-slate-400 hidden md:inline">• KIET College Civic Grievance & Issue Resolution System</span>
+    </div>
+    
+    <div class="flex items-center gap-3 text-xs font-semibold">
+      <span id="slideTopicBadge" class="text-blue-400 bg-blue-950/70 border border-blue-800 px-3 py-1 rounded-full uppercase tracking-wider text-[11px]">
+        Title Slide
+      </span>
+      <span id="slideCounter" class="bg-slate-800 px-3 py-1 rounded-lg text-slate-300 font-mono">01 / 10</span>
+      <button onclick="toggleNotes()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1 rounded-lg transition" title="Toggle Speaker Notes (Key: N)">
+        Notes (N)
+      </button>
+      <button onclick="toggleFullscreen()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1 rounded-lg transition" title="Toggle Fullscreen (Key: F)">
+        ⛶
+      </button>
+    </div>
+  </header>
+
+  <!-- Slide Viewport -->
+  <main class="relative flex-1 w-full max-w-7xl mx-auto my-2 flex items-center justify-center">
+
+    <!-- ======================================================================
+         SLIDE 01: Title Slide
+         ====================================================================== -->
+    <div class="slide active w-full h-full bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 rounded-3xl p-8 md:p-14 flex flex-col justify-between border border-slate-800 shadow-2xl relative overflow-hidden" 
+         data-topic="Title"
+         data-notes="Good morning respected evaluators and professors. Today we present our project 'CampusCare' - an AI-powered smart college civic grievance redressal and automated SLA tracking system designed for higher education campuses like KIET.">
+      <div class="absolute -right-20 -bottom-20 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/60 border border-blue-700 text-blue-300 text-xs font-bold uppercase tracking-wider mb-4 badge-glow">
+          <span>Major Project Technical Presentation</span>
+        </div>
+        <h1 class="text-5xl md:text-6xl font-black text-white tracking-tight leading-tight">
+          CampusCare
+        </h1>
+        <p class="text-xl md:text-2xl text-blue-200 font-semibold mt-2 max-w-3xl">
+          College Civic Grievance &amp; Issue Resolution System
+        </p>
+        <p class="text-slate-400 text-sm md:text-base mt-3 max-w-2xl leading-relaxed">
+          An enterprise-grade civic platform integrating Google Gemini 1.5 Flash Vision AI, 2D Leaflet geospatial mapping, 4-step live audit stepper, and automated SLA compliance governance.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t border-slate-800/80 text-xs md:text-sm">
+        <div>
+          <span class="text-xs uppercase text-slate-500 font-bold block">Institution</span>
+          <span class="font-semibold text-slate-200">KIET Group of Institutions, Ghaziabad</span>
+        </div>
+        <div>
+          <span class="text-xs uppercase text-slate-500 font-bold block">Department / Domain</span>
+          <span class="font-semibold text-blue-400">Computer Science &amp; Engg. (@kiet.edu)</span>
+        </div>
+        <div>
+          <span class="text-xs uppercase text-slate-500 font-bold block">Core Architecture</span>
+          <span class="font-semibold text-slate-200">3-Tier Flask REST + Universal Multi-Engine DB</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         SLIDE 02: 1. Problem Statement
+         ====================================================================== -->
+    <div class="slide w-full h-full bg-slate-50 rounded-3xl p-6 md:p-10 flex flex-col justify-between border border-slate-200 shadow-2xl"
+         data-topic="1. Problem Statement"
+         data-notes="Slide 1 is the Problem Statement. Large residential colleges house thousands of students, faculty, and labs across dozens of acres. Civic breakdowns occur daily, but current administrative systems cannot handle them efficiently.">
+      <div>
+        <div class="text-xs font-bold uppercase tracking-wider text-blue-600 mb-1">Slide 01</div>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900">Problem Statement</h2>
+        <p class="text-slate-500 text-xs md:text-sm mt-1">Inefficiencies and service breakdown in traditional campus civic management.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 my-auto">
+        <div class="glass-card p-6 rounded-2xl border-l-4 border-l-rose-500 flex flex-col justify-between">
+          <div>
+            <span class="text-2xl mb-2 block">🏢</span>
+            <h3 class="font-bold text-slate-900 text-base mb-2">High Volume of Campus Breakdown Events</h3>
+            <p class="text-slate-600 text-xs md:text-sm leading-relaxed">
+              In a college campus spanning over 30+ acres with hostels, specialized IT labs, libraries, and mess facilities, civic issues (water leakages, electrical hazards, broken desks, sanitation issues) occur on a continuous daily basis.
+            </p>
+          </div>
+          <span class="text-[11px] font-bold text-rose-600 bg-rose-50 px-2.5 py-1 rounded-md w-fit mt-3">High Maintenance Load</span>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl border-l-4 border-l-amber-500 flex flex-col justify-between">
+          <div>
+            <span class="text-2xl mb-2 block">📇</span>
+            <h3 class="font-bold text-slate-900 text-base mb-2">Failure of Manual &amp; Informal Reporting Channels</h3>
+            <p class="text-slate-600 text-xs md:text-sm leading-relaxed">
+              Existing practices rely on physical register logbooks in warden offices, verbal notifications, or chaotic WhatsApp groups. As a result, critical safety hazards get buried, tickets remain unresolved for weeks, and students lose faith in institutional governance.
+            </p>
+          </div>
+          <span class="text-[11px] font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-md w-fit mt-3">Zero Central Accountability</span>
+        </div>
+      </div>
+
+      <div class="bg-rose-50 border border-rose-200 rounded-xl p-3 text-xs text-rose-900 flex items-center justify-between">
+        <span class="font-bold">Core Conflict:</span>
+        <span>Students lack an accessible real-time platform to lodge grievances, while administration lacks data to enforce maintenance SLAs.</span>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         SLIDE 03: 2. Problem Identification
+         ====================================================================== -->
+    <div class="slide w-full h-full bg-slate-50 rounded-3xl p-6 md:p-10 flex flex-col justify-between border border-slate-200 shadow-2xl"
+         data-topic="2. Problem Identification"
+         data-notes="In Problem Identification, we broke down the exact root causes: lack of photographic proof, zero status tracking, redundant duplicate reports, and missing audit data for accreditation like NAAC.">
+      <div>
+        <div class="text-xs font-bold uppercase tracking-wider text-blue-600 mb-1">Slide 02</div>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900">Problem Identification: Root Causes</h2>
+        <p class="text-slate-500 text-xs md:text-sm mt-1">Detailed breakdown of the 4 structural bottlenecks identified in campus grievance handling.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-auto">
+        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between h-72 border-t-4 border-t-rose-500">
+          <div>
+            <div class="text-xs font-bold text-rose-600 uppercase mb-1">Bottleneck 01</div>
+            <h3 class="font-bold text-slate-900 text-sm mb-2">Vague Descriptions &amp; Missing Proof</h3>
+            <p class="text-slate-600 text-xs leading-relaxed">
+              Technicians receive vague complaints like <em>"switch not working in Block B"</em> without photos, specific room numbers, or hazard severity, wasting hours finding the fault.
+            </p>
+          </div>
+          <div class="text-[11px] font-semibold text-slate-500 bg-slate-100 p-2 rounded">Impact: Technician Confusion</div>
+        </div>
+
+        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between h-72 border-t-4 border-t-amber-500">
+          <div>
+            <div class="text-xs font-bold text-amber-600 uppercase mb-1">Bottleneck 02</div>
+            <h3 class="font-bold text-slate-900 text-sm mb-2">Zero Tracking &amp; Student Frustration</h3>
+            <p class="text-slate-600 text-xs leading-relaxed">
+              Once a complaint is submitted, students have no visibility into ticket status, who has been assigned, or expected resolution turnaround time (SLA).
+            </p>
+          </div>
+          <div class="text-[11px] font-semibold text-slate-500 bg-slate-100 p-2 rounded">Impact: Student Mistrust</div>
+        </div>
+
+        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between h-72 border-t-4 border-t-purple-500">
+          <div>
+            <div class="text-xs font-bold text-purple-600 uppercase mb-1">Bottleneck 03</div>
+            <h3 class="font-bold text-slate-900 text-sm mb-2">Ticket Clutter &amp; Duplicate Flooding</h3>
+            <p class="text-slate-600 text-xs leading-relaxed">
+              When a central asset fails (e.g. library Wi-Fi router or floor water cooler), 40+ students submit identical complaints, overwhelming the desk.
+            </p>
+          </div>
+          <div class="text-[11px] font-semibold text-slate-500 bg-slate-100 p-2 rounded">Impact: Desk Overload</div>
+        </div>
+
+        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between h-72 border-t-4 border-t-indigo-500">
+          <div>
+            <div class="text-xs font-bold text-indigo-600 uppercase mb-1">Bottleneck 04</div>
+            <h3 class="font-bold text-slate-900 text-sm mb-2">Lack of Auditing &amp; Accreditation Data</h3>
+            <p class="text-slate-600 text-xs leading-relaxed">
+              Deans and HODs have no metrics or turnaround logs to assess contractor performance or submit for NAAC Criterion 5 and NIRF compliance.
+            </p>
+          </div>
+          <div class="text-[11px] font-semibold text-slate-500 bg-slate-100 p-2 rounded">Impact: Institutional Inefficiency</div>
+        </div>
+      </div>
+
+      <div class="text-xs text-slate-400 font-medium">Resolution delay averaged 96+ hours in traditional setups with 0% historical traceability.</div>
+    </div>
+
+    <!-- ======================================================================
+         SLIDE 04: 3. Proposed Solution
+         ====================================================================== -->
+    <div class="slide w-full h-full bg-slate-50 rounded-3xl p-6 md:p-10 flex flex-col justify-between border border-slate-200 shadow-2xl"
+         data-topic="3. Proposed Solution"
+         data-notes="Our Proposed Solution, CampusCare, resolves every one of these problems with 4 intelligent pillars: AI Vision evidence intake, 2D campus geofencing, crowd upvoting, and live audit steppers.">
+      <div>
+        <div class="text-xs font-bold uppercase tracking-wider text-blue-600 mb-1">Slide 03</div>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900">Proposed Solution: CampusCare Platform</h2>
+        <p class="text-slate-500 text-xs md:text-sm mt-1">An intelligent, transparent civic resolution system tailored for college campuses.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-auto">
+        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between h-72 border-t-4 border-t-blue-600">
+          <div>
+            <span class="text-2xl mb-2 block">📷</span>
+            <h3 class="font-bold text-slate-900 text-sm mb-2">Mandatory Proof &amp; AI Vision Classification</h3>
+            <p class="text-slate-600 text-xs leading-relaxed">
+              Compulsory photo/video upload. Google Gemini AI vision inspects image bytes and automatically classifies category, priority, and draft title.
+            </p>
+          </div>
+          <span class="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded w-fit">AI Multimodal Vision</span>
+        </div>
+
+        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between h-72 border-t-4 border-t-emerald-600">
+          <div>
+            <span class="text-2xl mb-2 block">🗺️</span>
+            <h3 class="font-bold text-slate-900 text-sm mb-2">Geospatial 2D Campus Map &amp; Geofencing</h3>
+            <p class="text-slate-600 text-xs leading-relaxed">
+              Interactive Leaflet.js map pinned across all Academic Blocks, Hostels, and Grounds within a 1.5 km campus geofence for pinpoint location.
+            </p>
+          </div>
+          <span class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded w-fit">1.5 km Geofenced Map</span>
+        </div>
+
+        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between h-72 border-t-4 border-t-amber-500">
+          <div>
+            <span class="text-2xl mb-2 block">⏱️</span>
+            <h3 class="font-bold text-slate-900 text-sm mb-2">Transparent 4-Step Live Tracking Stepper</h3>
+            <p class="text-slate-600 text-xs leading-relaxed">
+              Amazon-style progress stepper (Pending &rarr; In Progress &rarr; Resolved &rarr; Closed) with immutable remarks and 5-star student review.
+            </p>
+          </div>
+          <span class="text-[11px] font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded w-fit">100% Audit Stepper</span>
+        </div>
+
+        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between h-72 border-t-4 border-t-purple-600">
+          <div>
+            <span class="text-2xl mb-2 block">👍</span>
+            <h3 class="font-bold text-slate-900 text-sm mb-2">Anti-Duplicate Engine &amp; 1-Click Upvoting</h3>
+            <p class="text-slate-600 text-xs leading-relaxed">
+              Intercepts duplicate tickets at the same location; allows students to 1-click upvote existing issues to elevate administrative priority.
+            </p>
+          </div>
+          <span class="text-[11px] font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded w-fit">Crowd Wisdom</span>
+        </div>
+      </div>
+
+      <div class="text-xs text-slate-400 font-medium">Secured with @kiet.edu institutional accounts and 24-hour stateless JWT tokens.</div>
+    </div>
+
+    <!-- ======================================================================
+         SLIDE 05: 4. Journey (User Journey & Process Lifecycle)
+         ====================================================================== -->
+    <div class="slide w-full h-full bg-slate-50 rounded-3xl p-6 md:p-10 flex flex-col justify-between border border-slate-200 shadow-2xl"
+         data-topic="4. Journey"
+         data-notes="Slide 4 shows the complete Journey. From the moment the student discovers an issue, snaps a photo, and submits it, to automated AI triage, admin delegation, technician execution, and post-resolution feedback.">
+      <div>
+        <div class="text-xs font-bold uppercase tracking-wider text-blue-600 mb-1">Slide 04</div>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900">User Journey &amp; Grievance Lifecycle</h2>
+        <p class="text-slate-500 text-xs md:text-sm mt-1">End-to-end operational journey from issue detection to institutional closure.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-5 gap-3 my-auto">
+        <div class="glass-card p-4 rounded-xl flex flex-col justify-between h-64 border-t-4 border-t-blue-500 text-center">
+          <div>
+            <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center mx-auto mb-2 text-xs">1</div>
+            <h4 class="font-bold text-slate-900 text-xs mb-1.5">Discovery &amp; Snap</h4>
+            <p class="text-[11px] text-slate-600 leading-tight">Student discovers broken fixture, takes photo/video, and triggers AI Vision intake.</p>
+          </div>
+          <span class="text-[10px] text-blue-700 font-mono bg-blue-50 py-1 rounded">Photo Evidence</span>
+        </div>
+
+        <div class="glass-card p-4 rounded-xl flex flex-col justify-between h-64 border-t-4 border-t-purple-500 text-center">
+          <div>
+            <div class="w-8 h-8 rounded-full bg-purple-100 text-purple-600 font-bold flex items-center justify-center mx-auto mb-2 text-xs">2</div>
+            <h4 class="font-bold text-slate-900 text-xs mb-1.5">AI Scan &amp; Duplicate</h4>
+            <p class="text-[11px] text-slate-600 leading-tight">Gemini AI predicts category. System checks location vectors: student can 1-Click Upvote.</p>
+          </div>
+          <span class="text-[10px] text-purple-700 font-mono bg-purple-50 py-1 rounded">AI &amp; Duplicate Check</span>
+        </div>
+
+        <div class="glass-card p-4 rounded-xl flex flex-col justify-between h-64 border-t-4 border-t-amber-500 text-center">
+          <div>
+            <div class="w-8 h-8 rounded-full bg-amber-100 text-amber-600 font-bold flex items-center justify-center mx-auto mb-2 text-xs">3</div>
+            <h4 class="font-bold text-slate-900 text-xs mb-1.5">Intake &amp; Dispatch</h4>
+            <p class="text-[11px] text-slate-600 leading-tight">Ticket logged in DB. Async HTML email sent to Admin &amp; HOD. Added to 2D campus map.</p>
+          </div>
+          <span class="text-[10px] text-amber-700 font-mono bg-amber-50 py-1 rounded">SMTP Alert Sent</span>
+        </div>
+
+        <div class="glass-card p-4 rounded-xl flex flex-col justify-between h-64 border-t-4 border-t-indigo-500 text-center">
+          <div>
+            <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 font-bold flex items-center justify-center mx-auto mb-2 text-xs">4</div>
+            <h4 class="font-bold text-slate-900 text-xs mb-1.5">Staff Delegation</h4>
+            <p class="text-[11px] text-slate-600 leading-tight">Admin delegates ticket to Department Maintenance In-Charge with target SLA deadline.</p>
+          </div>
+          <span class="text-[10px] text-indigo-700 font-mono bg-indigo-50 py-1 rounded">Work Order Issued</span>
+        </div>
+
+        <div class="glass-card p-4 rounded-xl flex flex-col justify-between h-64 border-t-4 border-t-emerald-500 text-center">
+          <div>
+            <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 font-bold flex items-center justify-center mx-auto mb-2 text-xs">5</div>
+            <h4 class="font-bold text-slate-900 text-xs mb-1.5">Resolution &amp; Review</h4>
+            <p class="text-[11px] text-slate-600 leading-tight">Technician resolves fault. Student inspects work, submits 1-5 star review, and closes ticket.</p>
+          </div>
+          <span class="text-[10px] text-emerald-700 font-mono bg-emerald-50 py-1 rounded">5-Star Feedback</span>
+        </div>
+      </div>
+
+      <div class="text-xs text-slate-400 font-medium">Every stage updates the live student stepper and writes an immutable audit record to ComplaintTimeline.</div>
+    </div>
+
+    <!-- ======================================================================
+         SLIDE 06: 5. Architecture (System Architecture)
+         ====================================================================== -->
+    <div class="slide w-full h-full bg-slate-50 rounded-3xl p-6 md:p-10 flex flex-col justify-between border border-slate-200 shadow-2xl"
+         data-topic="5. Architecture"
+         data-notes="Slide 5 covers the high-level System Architecture: 3-tier decoupled design connecting the presentation clients to the Flask REST layer, external AI and mail services, and our multi-engine database.">
+      <div>
+        <div class="text-xs font-bold uppercase tracking-wider text-blue-600 mb-1">Slide 05</div>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900">System Architecture (3-Tier High-Level Design)</h2>
+        <p class="text-slate-500 text-xs md:text-sm mt-1">Decoupled, modular, and resilient client-server interaction model.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 my-auto">
+        <div class="glass-card p-6 rounded-2xl flex flex-col justify-between border-t-4 border-t-blue-600">
+          <div>
+            <div class="flex items-center gap-2 mb-3">
+              <span class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">TIER 1</span>
+              <h3 class="font-bold text-slate-900 text-sm">Presentation Tier</h3>
+            </div>
+            <ul class="space-y-2 text-xs text-slate-600">
+              <li>• <strong>Student Portal:</strong> Grievance creation, AI detection, 4-step stepper, 2D map, feedback.</li>
+              <li>• <strong>Staff Resolution Desk:</strong> Assigned queue, status changer, action logs.</li>
+              <li>• <strong>Admin Control Center:</strong> Multi-filter table, assignment modal, Chart.js KPIs, CSV export.</li>
+            </ul>
+          </div>
+          <span class="text-[11px] font-semibold text-blue-700 bg-blue-50 p-2 rounded mt-4">Responsive HTML5 SPA</span>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl flex flex-col justify-between border-t-4 border-t-emerald-600">
+          <div>
+            <div class="flex items-center gap-2 mb-3">
+              <span class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">TIER 2</span>
+              <h3 class="font-bold text-slate-900 text-sm">Application Tier (Flask)</h3>
+            </div>
+            <ul class="space-y-2 text-xs text-slate-600">
+              <li>• <strong>Modular Blueprints:</strong> Auth (6), Complaints (11), Admin (13), Staff (7).</li>
+              <li>• <strong>Security Middleware:</strong> PyJWT HS256 stateless tokens with 24h expiration.</li>
+              <li>• <strong>Service Integrations:</strong> Gemini AI Vision &amp; Asynchronous Multi-threaded SMTP mailer.</li>
+            </ul>
+          </div>
+          <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 p-2 rounded mt-4">Python 3.10+ / Flask 3.0+</span>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl flex flex-col justify-between border-t-4 border-t-purple-600">
+          <div>
+            <div class="flex items-center gap-2 mb-3">
+              <span class="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xs">TIER 3</span>
+              <h3 class="font-bold text-slate-900 text-sm">Database &amp; Storage Tier</h3>
+            </div>
+            <ul class="space-y-2 text-xs text-slate-600">
+              <li>• <strong>Universal Adapter:</strong> Seamless execution across MySQL, MSSQL, or SQLite.</li>
+              <li>• <strong>7 Normalized Tables:</strong> 3NF schema with foreign key cascades and check constraints.</li>
+              <li>• <strong>File Storage:</strong> UUID hashed multipart upload folder for images/videos.</li>
+            </ul>
+          </div>
+          <span class="text-[11px] font-semibold text-purple-700 bg-purple-50 p-2 rounded mt-4">Relational 3NF Engine</span>
+        </div>
+      </div>
+
+      <div class="text-xs text-slate-400 font-medium">Standardized HTTPS RESTful JSON API layer separates presentation from business logic.</div>
+    </div>
+
+    <!-- ======================================================================
+         SLIDE 07: 6. Technical Architecture
+         ====================================================================== -->
+    <div class="slide w-full h-full bg-slate-50 rounded-3xl p-6 md:p-10 flex flex-col justify-between border border-slate-200 shadow-2xl"
+         data-topic="6. Technical Architecture"
+         data-notes="Slide 6 is the Technical Architecture. Here we detail the underlying database tables, the custom Universal DB Regex adapter that translates SQL dialect on the fly, and the ACID transaction manager.">
+      <div>
+        <div class="text-xs font-bold uppercase tracking-wider text-blue-600 mb-1">Slide 06</div>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900">Technical Architecture: Deep Dive</h2>
+        <p class="text-slate-500 text-xs md:text-sm mt-1">Universal multi-engine database layer, relational integrity, and transaction management.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 my-auto">
+        <div class="glass-card p-5 rounded-2xl">
+          <h3 class="font-bold text-slate-900 text-sm mb-3 flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span> 7 Normalized Relational Tables
+          </h3>
+          <div class="space-y-1.5 text-xs">
+            <div class="p-1.5 bg-slate-100 rounded"><strong>1. Users:</strong> UserID (PK), CollegeEmail (@kiet.edu), PasswordHash, Role, Dept, Phone.</div>
+            <div class="p-1.5 bg-slate-100 rounded"><strong>2. Categories:</strong> CategoryID (PK), CategoryName (12 Domains), SLA_Hours (12h-72h).</div>
+            <div class="p-1.5 bg-slate-100 rounded"><strong>3. Complaints:</strong> ComplaintID (PK), UserID (FK), CategoryID (FK), GPS Lat/Lng, Status, Upvotes.</div>
+            <div class="p-1.5 bg-slate-100 rounded"><strong>4. ComplaintTimeline:</strong> LogID (PK), ComplaintID (FK), Previous/New Status, Remarks, Timestamp.</div>
+            <div class="p-1.5 bg-slate-100 rounded"><strong>5. Feedback:</strong> FeedbackID (PK), ComplaintID (FK, Unique 1:1), Rating (1-5), Comments.</div>
+            <div class="p-1.5 bg-slate-100 rounded"><strong>6. Notifications &amp; 7. Upvotes:</strong> In-app alerts &amp; unique crowd endorsement tracking.</div>
+          </div>
+        </div>
+
+        <div class="glass-card p-5 rounded-2xl">
+          <h3 class="font-bold text-slate-900 text-sm mb-3 flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span> Universal DB Adapter (`backend/db.py`)
+          </h3>
+          <ul class="space-y-2 text-xs text-slate-700">
+            <li>• <strong>Dynamic Regex Translation:</strong> Automatically rewrites SQL queries at runtime between MySQL (<code>TIMESTAMPDIFF</code>, <code>LIMIT/OFFSET</code>, <code>%s</code>), SQL Server (<code>DATEDIFF</code>, <code>OFFSET-FETCH</code>, <code>?</code>), and SQLite (<code>WAL mode</code>).</li>
+            <li>• <strong>Zero Migration Headache:</strong> Developers can test locally with SQLite, college labs can run on XAMPP MySQL, and production can scale on Azure SQL.</li>
+            <li>• <strong>ACID Atomic Transactions:</strong> Uses <code>execute_transaction()</code> context manager so complaint status changes and timeline logs succeed or roll back together.</li>
+            <li>• <strong>Composite Performance Indexes:</strong> Non-clustered indexes on <code>(Status, CategoryID, Priority, CreatedAt)</code>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="text-xs text-slate-400 font-medium">Guarantees high concurrency, data consistency, and database engine independence.</div>
+    </div>
+
+    <!-- ======================================================================
+         SLIDE 08: 7. Open Source Framework
+         ====================================================================== -->
+    <div class="slide w-full h-full bg-slate-50 rounded-3xl p-6 md:p-10 flex flex-col justify-between border border-slate-200 shadow-2xl"
+         data-topic="7. Open Source Framework"
+         data-notes="Slide 7 presents the Open Source Frameworks utilized across our frontend and backend. We leveraged proven, enterprise-grade open-source libraries to ensure high reliability and developer productivity.">
+      <div>
+        <div class="text-xs font-bold uppercase tracking-wider text-blue-600 mb-1">Slide 07</div>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900">Open Source Frameworks &amp; Libraries</h2>
+        <p class="text-slate-500 text-xs md:text-sm mt-1">Robust open-source technologies powering client and server architectures.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 my-auto">
+        <div class="glass-card p-6 rounded-2xl">
+          <div class="text-blue-600 font-bold text-base mb-3 flex items-center gap-2">
+            <span>💻</span> Frontend Open-Source Stack
+          </div>
+          <div class="space-y-2.5 text-xs text-slate-700">
+            <div class="p-2 bg-slate-100 rounded-lg">
+              <span class="font-bold text-slate-900">Tailwind CSS (v3.4):</span> Utility-first CSS framework providing responsive layouts, badges, and glassmorphic UI.
+            </div>
+            <div class="p-2 bg-slate-100 rounded-lg">
+              <span class="font-bold text-slate-900">Bootstrap 5.3+:</span> Responsive grids, modals, and accessible dropdown navigation.
+            </div>
+            <div class="p-2 bg-slate-100 rounded-lg">
+              <span class="font-bold text-slate-900">Leaflet.js (v1.9.4):</span> Leading open-source library for mobile-friendly, interactive 2D geospatial mapping.
+            </div>
+            <div class="p-2 bg-slate-100 rounded-lg">
+              <span class="font-bold text-slate-900">Chart.js:</span> HTML5 Canvas data visualization library for rendering KPI metrics and SLA distributions.
+            </div>
+            <div class="p-2 bg-slate-100 rounded-lg">
+              <span class="font-bold text-slate-900">Lucide &amp; Bootstrap Icons:</span> Lightweight vector icons for clean UI aesthetics.
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl">
+          <div class="text-emerald-600 font-bold text-base mb-3 flex items-center gap-2">
+            <span>⚙️</span> Backend Open-Source Stack
+          </div>
+          <div class="space-y-2.5 text-xs text-slate-700">
+            <div class="p-2 bg-slate-100 rounded-lg">
+              <span class="font-bold text-slate-900">Flask 3.0+:</span> Lightweight WSGI micro-framework offering modular Blueprint routing.
+            </div>
+            <div class="p-2 bg-slate-100 rounded-lg">
+              <span class="font-bold text-slate-900">PyJWT (v2.8+):</span> RFC 7519 standard JSON Web Token encoding/decoding for stateless auth.
+            </div>
+            <div class="p-2 bg-slate-100 rounded-lg">
+              <span class="font-bold text-slate-900">Werkzeug Security (v3.0+):</span> Advanced cryptographic password hashing (Scrypt) and secure file parsing.
+            </div>
+            <div class="p-2 bg-slate-100 rounded-lg">
+              <span class="font-bold text-slate-900">Flask-CORS (v4.0+):</span> Secure Cross-Origin Resource Sharing middleware.
+            </div>
+            <div class="p-2 bg-slate-100 rounded-lg">
+              <span class="font-bold text-slate-900">PyMySQL &amp; pyodbc:</span> High-performance native drivers for MySQL and SQL Server.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-xs text-slate-400 font-medium">100% open-source foundation with no commercial licensing dependencies.</div>
+    </div>
+
+    <!-- ======================================================================
+         SLIDE 09: 8. Third Party API Integrated
+         ====================================================================== -->
+    <div class="slide w-full h-full bg-slate-50 rounded-3xl p-6 md:p-10 flex flex-col justify-between border border-slate-200 shadow-2xl"
+         data-topic="8. Third Party APIs"
+         data-notes="Slide 8 covers our Third Party API Integrations: Google Gemini 1.5 Flash Vision API for multimodal problem classification, OpenStreetMap for map tiles, Google SMTP for automated email dispatch, and the HTML5 Geolocation API.">
+      <div>
+        <div class="text-xs font-bold uppercase tracking-wider text-blue-600 mb-1">Slide 08</div>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900">Third-Party API Integrations</h2>
+        <p class="text-slate-500 text-xs md:text-sm mt-1">External cognitive, geospatial, and communication services integrated into CampusCare.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-auto">
+        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between h-72 border-t-4 border-t-blue-600">
+          <div>
+            <span class="text-2xl mb-2 block">🤖</span>
+            <h3 class="font-bold text-slate-900 text-sm mb-2">Google Gemini 1.5 Flash Vision API</h3>
+            <p class="text-slate-600 text-xs leading-relaxed">
+              Accepts uploaded JPEG/PNG/video frames. Uses multimodal reasoning to output JSON predicting problem category, priority, and structured title.
+            </p>
+          </div>
+          <span class="text-[10px] font-mono text-blue-700 bg-blue-50 py-1 px-2 rounded w-fit">google.generativeai</span>
+        </div>
+
+        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between h-72 border-t-4 border-t-emerald-600">
+          <div>
+            <span class="text-2xl mb-2 block">🗺️</span>
+            <h3 class="font-bold text-slate-900 text-sm mb-2">OpenStreetMap (OSM) Tiles API</h3>
+            <p class="text-slate-600 text-xs leading-relaxed">
+              Powers Leaflet map background rendering with high-resolution satellite/street raster tiles covering KIET campus boundary coordinates.
+            </p>
+          </div>
+          <span class="text-[10px] font-mono text-emerald-700 bg-emerald-50 py-1 px-2 rounded w-fit">tile.openstreetmap.org</span>
+        </div>
+
+        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between h-72 border-t-4 border-t-amber-500">
+          <div>
+            <span class="text-2xl mb-2 block">📧</span>
+            <h3 class="font-bold text-slate-900 text-sm mb-2">Google SMTP Mail Service API</h3>
+            <p class="text-slate-600 text-xs leading-relaxed">
+              Dispatches multi-threaded, asynchronous HTML formatted email alerts with priority color badges to administrators via TLS Port 587.
+            </p>
+          </div>
+          <span class="text-[10px] font-mono text-amber-700 bg-amber-50 py-1 px-2 rounded w-fit">smtp.gmail.com:587</span>
+        </div>
+
+        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between h-72 border-t-4 border-t-purple-600">
+          <div>
+            <span class="text-2xl mb-2 block">📍</span>
+            <h3 class="font-bold text-slate-900 text-sm mb-2">W3C HTML5 Geolocation API</h3>
+            <p class="text-slate-600 text-xs leading-relaxed">
+              Captures live device latitude and longitude from student smartphones and verifies within the campus 1.5 km geofence radius.
+            </p>
+          </div>
+          <span class="text-[10px] font-mono text-purple-700 bg-purple-50 py-1 px-2 rounded w-fit">navigator.geolocation</span>
+        </div>
+      </div>
+
+      <div class="text-xs text-slate-400 font-medium">All external integrations feature asynchronous timeouts and graceful local fallbacks.</div>
+    </div>
+
+    <!-- ======================================================================
+         SLIDE 10: 9. Project Images
+         ====================================================================== -->
+    <div class="slide w-full h-full bg-slate-50 rounded-3xl p-6 md:p-10 flex flex-col justify-between border border-slate-200 shadow-2xl"
+         data-topic="9. Project Images"
+         data-notes="Slide 9 showcases our actual Project Images: the photo capture interface, Gemini AI analysis card, the 2D Leaflet GPS map, and the 4-step live tracking stepper.">
+      <div>
+        <div class="text-xs font-bold uppercase tracking-wider text-blue-600 mb-1">Slide 09</div>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900">Project Images: Live User Interface</h2>
+        <p class="text-slate-500 text-xs md:text-sm mt-1">Real screenshots and interface elements from the deployed CampusCare portal.</p>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 my-auto">
+        <div class="glass-card p-3 rounded-2xl flex flex-col justify-between h-72 border border-slate-200 overflow-hidden">
+          <div class="h-44 bg-slate-900 rounded-xl overflow-hidden flex items-center justify-center p-1">
+            <img src="../frontend/images/capture.png" alt="Photo Capture Interface" class="h-full object-contain hover:scale-105 transition duration-300" onerror="this.src='../frontend/images/capture.png'">
+          </div>
+          <div class="mt-2">
+            <h4 class="font-bold text-slate-900 text-xs">1. Camera Evidence Intake</h4>
+            <p class="text-[10px] text-slate-500 leading-tight">Drag-drop or live mobile camera capture of campus breakdowns.</p>
+          </div>
+        </div>
+
+        <div class="glass-card p-3 rounded-2xl flex flex-col justify-between h-72 border border-slate-200 overflow-hidden">
+          <div class="h-44 bg-slate-900 rounded-xl overflow-hidden flex items-center justify-center p-1">
+            <img src="../frontend/images/ai-analysis.png" alt="AI Analysis Engine" class="h-full object-contain hover:scale-105 transition duration-300" onerror="this.src='../frontend/images/ai-analysis.png'">
+          </div>
+          <div class="mt-2">
+            <h4 class="font-bold text-slate-900 text-xs">2. Gemini AI Analysis</h4>
+            <p class="text-[10px] text-slate-500 leading-tight">Visual inference predicting category, priority, and structured title.</p>
+          </div>
+        </div>
+
+        <div class="glass-card p-3 rounded-2xl flex flex-col justify-between h-72 border border-slate-200 overflow-hidden">
+          <div class="h-44 bg-slate-900 rounded-xl overflow-hidden flex items-center justify-center p-1">
+            <img src="../frontend/images/gps.png" alt="2D Campus Map" class="h-full object-contain hover:scale-105 transition duration-300" onerror="this.src='../frontend/images/gps.png'">
+          </div>
+          <div class="mt-2">
+            <h4 class="font-bold text-slate-900 text-xs">3. 2D Leaflet Campus Map</h4>
+            <p class="text-[10px] text-slate-500 leading-tight">Color-coded GPS status pins mapped across university blocks.</p>
+          </div>
+        </div>
+
+        <div class="glass-card p-3 rounded-2xl flex flex-col justify-between h-72 border border-slate-200 overflow-hidden">
+          <div class="h-44 bg-slate-900 rounded-xl overflow-hidden flex items-center justify-center p-1">
+            <img src="../frontend/images/track.jpg" alt="Live Tracking Stepper" class="h-full object-contain hover:scale-105 transition duration-300" onerror="this.src='../frontend/images/track.jpg'">
+          </div>
+          <div class="mt-2">
+            <h4 class="font-bold text-slate-900 text-xs">4. Live Tracking Stepper</h4>
+            <p class="text-[10px] text-slate-500 leading-tight">4-step progress stepper with technician remarks and feedback rating.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-xs text-slate-400 font-medium">Live system deployed and operational with real campus assets at KIET Group of Institutions.</div>
+    </div>
+
+  </main>
+
+  <!-- Navigation Bar & Controls -->
+  <footer class="flex items-center justify-between z-20 px-4 py-2 bg-slate-900/90 backdrop-blur rounded-2xl border border-slate-800 text-slate-300 shadow-xl">
+    <div class="flex items-center gap-2 text-xs text-slate-400">
+      <span>Controls:</span>
+      <kbd class="bg-slate-800 px-2 py-0.5 rounded border border-slate-700 text-slate-200 font-mono">← / →</kbd> Slide
+      <kbd class="bg-slate-800 px-2 py-0.5 rounded border border-slate-700 text-slate-200 font-mono">Space</kbd> Next
+      <kbd class="bg-slate-800 px-2 py-0.5 rounded border border-slate-700 text-slate-200 font-mono">F</kbd> Fullscreen
+      <kbd class="bg-slate-800 px-2 py-0.5 rounded border border-slate-700 text-slate-200 font-mono">N</kbd> Notes
+    </div>
+
+    <!-- Progress Indicator -->
+    <div class="w-1/3 max-w-xs bg-slate-800 rounded-full h-1.5 overflow-hidden hidden sm:block">
+      <div id="progressBar" class="bg-blue-500 h-full w-[10%] transition-all duration-300"></div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button onclick="prevSlide()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-1.5 rounded-xl transition flex items-center gap-1 text-sm">
+        <span>←</span> Prev
+      </button>
+      <button onclick="nextSlide()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-1.5 rounded-xl transition flex items-center gap-1 text-sm shadow-lg shadow-blue-600/30">
+        Next <span>→</span>
+      </button>
+    </div>
+  </footer>
+
+  <!-- Presenter Notes Modal -->
+  <div id="notesOverlay" class="fixed bottom-20 right-6 z-50 w-96 max-w-[90vw] bg-slate-900/95 text-slate-200 p-4 rounded-2xl border border-slate-700 shadow-2xl backdrop-blur">
+    <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800">
+      <span class="text-xs font-bold uppercase tracking-wider text-blue-400">🎤 Speaker Notes (Viva / Demo)</span>
+      <button onclick="toggleNotes()" class="text-slate-400 hover:text-white text-xs">✕</button>
+    </div>
+    <p id="speakerNotesText" class="text-xs text-slate-300 leading-relaxed font-sans">
+      Good morning respected evaluators, professors, and peers...
+    </p>
+  </div>
+
+  <script>
+    const slides = document.querySelectorAll('.slide');
+    const counter = document.getElementById('slideCounter');
+    const topicBadge = document.getElementById('slideTopicBadge');
+    const progressBar = document.getElementById('progressBar');
+    const notesText = document.getElementById('speakerNotesText');
+    const notesOverlay = document.getElementById('notesOverlay');
+    let currentIndex = 0;
+
+    function updateSlide(index) {
+      if (index < 0) index = 0;
+      if (index >= slides.length) index = slides.length - 1;
+
+      slides.forEach((s, i) => {
+        s.classList.remove('active');
+        if (i === index) s.classList.add('active');
+      });
+
+      currentIndex = index;
+      const currentNum = (currentIndex + 1).toString().padStart(2, '0');
+      const totalNum = slides.length.toString().padStart(2, '0');
+      counter.innerText = `${currentNum} / ${totalNum}`;
+      progressBar.style.width = `${((currentIndex + 1) / slides.length) * 100}%`;
+
+      const topic = slides[currentIndex].getAttribute('data-topic') || `Slide ${currentNum}`;
+      topicBadge.innerText = topic;
+
+      const note = slides[currentIndex].getAttribute('data-notes') || 'No speaker notes for this slide.';
+      notesText.innerText = note;
+    }
+
+    function nextSlide() {
+      if (currentIndex < slides.length - 1) {
+        updateSlide(currentIndex + 1);
+      }
+    }
+
+    function prevSlide() {
+      if (currentIndex > 0) {
+        updateSlide(currentIndex - 1);
+      }
+    }
+
+    function toggleNotes() {
+      notesOverlay.classList.toggle('show');
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => console.log(err));
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    // Keyboard Navigation
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        prevSlide();
+      } else if (e.key === 'f' || e.key === 'F') {
+        toggleFullscreen();
+      } else if (e.key === 'n' || e.key === 'N') {
+        toggleNotes();
+      }
+    });
+
+    updateSlide(0);
+  </script>
+</body>
+</html>

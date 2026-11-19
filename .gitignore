@@ -20,8 +20,8 @@ ENV/
 scratch/
 tests/scratch/
 *.log
-*.db
-backend/*.db
+*.db.bak
+!backend/campuscare.db
 
 # Uploaded dynamic complaint images
 backend/uploads/*
