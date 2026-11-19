@@ -14,7 +14,7 @@ from werkzeug.security import generate_password_hash
 from backend.config import Config, BASE_DIR
 
 _ENGINE = None  # 'mysql', 'mssql', or 'sqlite'
-_INIT_LOCK = threading.Lock()
+_INIT_LOCK = threading.RLock()
 SQLITE_DB_PATH = str(BASE_DIR / 'backend' / 'campuscare.db')
 
 def dict_row(cursor, row):
@@ -71,7 +71,10 @@ def _ensure_sqlite_initialized():
 
         conn = sqlite3.connect(SQLITE_DB_PATH, timeout=30.0)
         try:
-            conn.execute("PRAGMA journal_mode = WAL")
+            try:
+                conn.execute("PRAGMA journal_mode = WAL")
+            except Exception:
+                pass
             conn.execute("PRAGMA busy_timeout = 30000")
             conn.execute("PRAGMA synchronous = NORMAL")
             cur = conn.cursor()
